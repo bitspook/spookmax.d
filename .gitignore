@@ -1,0 +1,6 @@
+/.cache/
+/straight/
+/org-roam.db
+/init.el
+/early-init.el
+/.org-id-locations

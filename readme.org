@@ -1,39 +1,11 @@
 #+PROPERTY: header-args :tangle ./init.el
 
 * Spook max 👻
+:PROPERTIES:
+:ID:       884752cb-1a69-406a-9083-ffe764c84f10
+:END:
 
 My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
-
-** Lib
-
-Library functions/macros coped from doom
-
-#+begin_src elisp
-    ;;; Mutation
-  (defmacro appendq! (sym &rest lists)
-    "Append LISTS to SYM in place."
-    `(setq ,sym (append ,sym ,@lists)))
-#+end_src
-
-
-** Set emacs configuration directory
-:PROPERTIES:
-:ID:       3ec0459e-0127-49b5-b2e3-c23e88a05046
-:END:
-
-straight.el uses it in some default variables, and perhaps other packages do it
-too. Setting it to current dir for now, but will need to set it to something
-else, or remove this if using =~/.emacs.d= instead
-
-#+begin_src elisp
-  ;;; core-ui.el -*- lexical-binding: t; -*-
-  ;; (setq user-emacs-directory "$HOME/smacs.d")
-#+end_src
-
-** Preliminary setup
-:PROPERTIES:
-:ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
-:END:
 
 - Bootstrap
 
@@ -51,6 +23,37 @@ else, or remove this if using =~/.emacs.d= instead
     ;; set-language-enviornment sets default-input-method, which is unwanted
     (setq default-input-method nil)
   #+end_src
+
+** Initialize straight.el itself
+:PROPERTIES:
+:ID:       635cd7c4-e3cb-4a0e-a722-6fa8f2035ea0
+:END:
+
+#+begin_src elisp :tangle ./init.el
+  (defvar bootstrap-version)
+  (setq straight-use-package-by-default t)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+  #+end_src
+
+  - Install =use-package=
+  #+begin_src elisp
+  (straight-use-package 'use-package)
+  #+end_src
+
+** Preliminary setup
+:PROPERTIES:
+:ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
+:END:
 
 - Disable the ugly-ass toolbar, scroll-bars and menu-bar
 
@@ -167,122 +170,50 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
     (setq window-resize-pixelwise nil)
   #+end_src
 
-** Initialize straight.el itself
-:PROPERTIES:
-:ID:       635cd7c4-e3cb-4a0e-a722-6fa8f2035ea0
-:END:
+- Introspection
+  :PROPERTIES:
+  :ID:       e17d83de-251c-4407-b2ea-ca9c428e5ea1
+  :END:
 
-#+begin_src elisp :tangle ./init.el
-  (defvar bootstrap-version)
-  (setq straight-use-package-by-default t)
-  (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-  #+end_src
+  Setup =which-key= for easy keys discovery
 
-  - Install =use-package=
   #+begin_src elisp
-  (straight-use-package 'use-package)
+    (use-package which-key
+      :config
+      (which-key-mode t))
   #+end_src
 
-** General editing configuration
+- Highlighting
+  :PROPERTIES:
+  :ID:       79c1e2a9-c52e-4660-ba70-f6f1f98f7d4e
+  :END:
 
-*** Compile/Comint mode
+  Setting this to =nil= for now; until I configure a decent theme which don't
+  cause the problem. The problem is that, with the default themes at least, the
+  highlighted line and color of selection is same. So it become impossible to
+  tell which part is selection and which is highlighted line.
 
-#+begin_src elisp
-  (eval-after-load 'compile
-    (progn
-      (setq compilation-always-kill t       ; kill compilation process before starting another
-            compilation-ask-about-save nil  ; save all buffers on `compile'
-            compilation-scroll-output 'first-error)
-      ;; Automatically truncate compilation buffers so they don't accumulate too
-      ;; much data and bog down the rest of Emacs.
-      (autoload 'comint-truncate-buffer "comint" nil t)
-      (add-hook 'compilation-filter-hook #'comint-truncate-buffer)))
-#+end_src
+  #+begin_src elisp
+    (global-hl-line-mode nil)
+  #+end_src
 
+- Line numbers
+  :PROPERTIES:
+  :ID:       2b554619-a8c0-4bd0-8ab0-8107c52a6e7e
+  :END:
 
-*** Highlighting
+  #+begin_src elisp
+  (global-display-line-numbers-mode 1)
+  #+end_src
 
-Setting this to =nil= for now; until I configure a decent theme which don't
-cause the problem. The problem is that, with the default themes at least, the
-highlighted line and color of selection is same. So it become impossible to tell
-which part is selection and which is highlighted line.
+- Magit
 
-#+begin_src elisp
-  (global-hl-line-mode nil)
-#+end_src
-
-*** Winner mode
-
-#+begin_src elisp
-  (use-package winner
-    ;; undo/redo changes to Emacs' window layout
-    :preface (defvar winner-dont-bind-my-keys t) ; I'll bind keys myself
-    :hook (doom-first-buffer . winner-mode)
-    :config
-    (appendq! winner-boring-buffers
-              '("*Compile-Log*" "*inferior-lisp*" "*Fuzzy Completions*"
-                "*Apropos*" "*Help*" "*cvs*" "*Buffer List*" "*Ibuffer*"
-                "*esh command on file*")))
-#+end_src
-
-*** Parens
-
-#+begin_src elisp
-  (use-package paren
-    ;; highlight matching delimiters
-    :hook show-paren-mode
-    :config
-    (setq show-paren-delay 0.1
-          show-paren-highlight-openparen t
-          show-paren-when-point-inside-paren t
-          show-paren-when-point-in-periphery t))
-#+end_src
-
-*** Whitespace
-
-#+begin_src elisp
-  ;;;###package whitespace
-  (setq whitespace-line-column nil
-        whitespace-style
-        '(face indentation tabs tab-mark spaces space-mark newline newline-mark
-          trailing lines-tail)
-        whitespace-display-mappings
-        '((tab-mark ?\t [?› ?\t])
-          (newline-mark ?\n [?¬ ?\n])
-          (space-mark ?\  [?·] [?.])))
-#+end_src
-
-*** Line numbers
-
-#+begin_src elisp
-  ;;
-  ;;; Line numbers
-
-  ;; Explicitly define a width to reduce the cost of on-the-fly computation
-  (setq-default display-line-numbers-width 3)
-
-  ;; Show absolute line numbers for narrowed regions to make it easier to tell the
-  ;; buffer is narrowed, and where you are, exactly.
-  (setq-default display-line-numbers-widen t)
-
-  ;; Enable line numbers in most text-editing modes. We avoid
-  ;; `global-display-line-numbers-mode' because there are many special and
-  ;; temporary modes where we don't need/want them.
-  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
-  (add-hook 'text-mode-hook #'display-line-numbers-mode)
-  (add-hook 'conf-mode-hook #'display-line-numbers-mode)
-
-#+end_src
+  #+begin_src elisp
+    (use-package magit
+      :config
+      (setq magit-display-buffer-function
+              'magit-display-buffer-fullframe-status-v1))
+  #+end_src
 
 ** Org mode
 :PROPERTIES:
@@ -413,7 +344,10 @@ For zettelkasten style note taking
             org-roam-ui-open-on-start t))
   #+end_src
 
-** Meow
+** Modal editing with Meow
+:PROPERTIES:
+:ID:       17c2eeec-133f-49f3-b2ce-95bf3dab1188
+:END:
 
 Let's get some modal editing with some spice. I have used Evil mode
 with Spacemacs, I was going to configure Evil, but let's give meow a
@@ -512,4 +446,37 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
     :config
     (meow-global-mode)
     (meow-setup))
+#+end_src
+
+- Custom meow shortcuts
+
+  #+begin_src elisp
+    (meow-normal-define-key
+     '("/" . swiper-isearch)
+     '("?" . swiper-isearch-backward))
+  #+end_src
+
+** Ivy
+:PROPERTIES:
+:ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
+:END:
+
+#+begin_src elisp
+  (use-package ivy
+    :init
+    (setq ivy-use-virtual-buffers t
+          ivy-height 20)
+    :config
+    (ivy-mode 1))
+
+  (use-package swiper
+    :after (ivy)
+    :config
+    (global-set-key (kbd "C-s") #'swiper-isearch)
+    (global-set-key (kbd "C-r") #'swiper-isearch-backward))
+
+  (use-package counsel
+    :after (ivy)
+    :config
+    (counsel-mode 1))
 #+end_src
