@@ -480,3 +480,21 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
     :config
     (counsel-mode 1))
 #+end_src
+
+** Looks
+:PROPERTIES:
+:ID:       baaa3b17-3676-4759-b2a0-dc792897862b
+:END:
+
+#+begin_src elisp
+  (use-package doom-themes
+    :config
+    (load-theme 'doom-material t))
+#+end_src
+
+Modeline
+
+#+begin_src elisp
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
+#+end_src
