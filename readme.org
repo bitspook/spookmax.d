@@ -206,13 +206,27 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
   (global-display-line-numbers-mode 1)
   #+end_src
 
+- Wrapping text in parens, quotes etc
+
+  #+begin_src elisp
+    (show-paren-mode 1)
+    (electric-pair-mode 1)
+  #+end_src
+
+  Lispy for some nasty lisp structural editing.
+
+  #+begin_src elisp
+    (use-package lispy
+      :hook (emacs-lisp-mode . lispy-mode))
+  #+end_src
+
 - Magit
 
   #+begin_src elisp
     (use-package magit
       :config
       (setq magit-display-buffer-function
-              'magit-display-buffer-fullframe-status-v1))
+            'magit-display-buffer-fullframe-status-v1))
   #+end_src
 
 ** Org mode
@@ -453,7 +467,8 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
   #+begin_src elisp
     (meow-normal-define-key
      '("/" . swiper-isearch)
-     '("?" . swiper-isearch-backward))
+     '("?" . swiper-isearch-backward)
+     '("G" . end-of-buffer))
   #+end_src
 
 ** Ivy
@@ -489,7 +504,7 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
 #+begin_src elisp
   (use-package doom-themes
     :config
-    (load-theme 'doom-material t))
+    (load-theme 'doom-vibrant t))
 #+end_src
 
 Modeline
