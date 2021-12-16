@@ -1,9 +1,6 @@
 #+PROPERTY: header-args :tangle ./init.el
 
 * Spook max 👻
-:
-:ID:       884752cb-1a69-406a-9083-ffe764c84f10
-:END:
 
 My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
 
@@ -211,6 +208,13 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
 
 - Magit
 
+  Magit uses =project-switch-commands= which are present only in more
+  recent project.el project.
+
+  #+begin_src elisp
+    (straight-use-package 'project)
+  #+end_src
+
   #+begin_src elisp
     (use-package magit
       :config
@@ -218,10 +222,31 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
             'magit-display-buffer-fullframe-status-v1))
   #+end_src
 
+  Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
+
+  #+begin_src elisp
+    (use-package magit-delta
+    :ensure t
+    :hook (magit-mode . magit-delta-mode))
+  #+end_src
+
+- Keep backup/auto-save files out of my vc
+
+  #+begin_src elisp
+    (setq
+     backup-dir "~/.emacs.d/bakups"
+     backup-directory-alist `((".*" . ,backup-dir))
+     auto-save-file-name-transforms `((".*" ,backup-dir t))
+     create-lockfiles nil)
+  #+end_src
+
 - Spell checking
 
   #+begin_src elisp
-    (use-package flyspell)
+    (use-package flyspell
+      :hook
+      (text-mode . flyspell-mode)
+      (prog-mode . flyspell-prog-mode))
     (use-package flyspell-correct
       :after (flyspell)
       :commands (flyspell-correct-at-point
@@ -250,6 +275,7 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
   #+begin_src elisp
     (setq
      org-startup-indented t
+     org-startup-folded t
      org-agenda-window-setup "only-window"
      org-directory "~/Documents/org"
      org-agenda-diary-file (concat org-directory "/diary.org.gpg")
@@ -270,6 +296,7 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
        ("t" "Todo" entry (file+headline org-inbox-file "Inbox") "* TODO %?\n%U\n[[%F]]")
        ("c" "Contact" entry (file org-contacts-file) "* %^{Name}\n:PROPERTIES:\n:COMPANY %^{Company}\n:PHONE: %^{Phone}\n:END:"))
      org-log-into-drawer "LOGBOOK"
+     org-log-done "time"
      org-clock-report-include-clocking-task t
      org-clock-into-drawer t
      org-fontify-done-headline t
@@ -291,18 +318,6 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
       (add-to-list 'org-modules "org-habit"))
 
   #+end_src
-
-  - org-babel languages
-
-    #+begin_src elisp
-      (with-eval-after-load 'org
-        (org-babel-do-load-languages
-         'org-babel-load-languages
-         '((emacs-lisp . t)
-           (plantuml . t)
-           (shell . t)
-           (sql . t))))
-    #+end_src
 
 *** org-super-agenda
 :PROPERTIES:
@@ -361,6 +376,29 @@ For zettelkasten style note taking
             org-roam-ui-update-on-save t
             org-roam-ui-open-on-start t))
   #+end_src
+
+*** org-babel
+
+#+begin_src elisp
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (plantuml . t)
+       (shell . t)
+       (sql . t))))
+#+end_src
+
+*** saunf
+
+Use the local repo; very risky, should change.
+
+#+begin_src elisp
+  (use-package saunf
+    :straight (saunf :type git
+                     :local-repo "~/Documents/work/saunf"
+                     :file "saunf.el"))
+#+end_src
 
 ** Modal editing with Meow
 :PROPERTIES:
@@ -498,10 +536,6 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
     :after (ivy)
     :config
     (counsel-mode 1))
-
-  (use-package counsel-projectile
-    :config
-    (counsel-projectile-mode +1))
 #+end_src
 
 ** Looks
@@ -613,6 +647,14 @@ things globally.
   (setq spook--indent-width 2)
 #+end_src
 
+Direnv is pretty essential for my dev workflow.
+
+#+begin_src elisp
+(use-package direnv
+ :config
+ (direnv-mode))
+#+end_src
+
 *** Lisp
 :PROPERTIES:
 :ID:       828dd6e7-a386-415c-b4e1-cb5515138109
@@ -635,36 +677,58 @@ says on the box without much fuss.
     :hook (emacs-lisp-mode . flycheck-elsa-setup))
 #+end_src
 
+*** Nix
+#+begin_src elisp
+  (use-package nix-mode
+    :mode "\\.nix\\'")
+#+end_src
 *** Web dev
+:PROPERTIES:
+:ID:       62e08f15-d996-48fd-90c3-fd6d348555be
+:END:
 
 #+begin_src elisp
-  (use-package js)
-  (use-package web-mode
-    :mode (("\\.html?\\'" . web-mode)
-           ("\\.css\\'"   . web-mode)
-           ("\\.jsx?\\'"  . web-mode)
-           ("\\.tsx?\\'"  . web-mode)
-           ("\\.json\\'"  . web-mode))
-    :config
-    (setq web-mode-markup-indent-offset spook--indent-width)
-    (setq web-mode-code-indent-offset spook--indent-width)
-    (setq web-mode-css-indent-offset spook--indent-width)
-    (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+    (use-package js
+      :mode "\\.js'")
+    (use-package web-mode
+      :mode (("\\.html?\\'" . web-mode)
+             ("\\.css\\'"   . web-mode)
+             ("\\.jsx?\\'"  . web-mode)
+             ("\\.tsx?\\'"  . web-mode)
+             ("\\.json\\'"  . web-mode))
+      :config
+      (setq web-mode-markup-indent-offset spook--indent-width)
+      (setq web-mode-code-indent-offset spook--indent-width)
+      (setq web-mode-css-indent-offset spook--indent-width)
+      (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
-  (use-package emmet-mode
-    :hook ((html-mode       . emmet-mode)
-           (css-mode        . emmet-mode)
-           (js-mode         . emmet-mode)
-           (js-jsx-mode     . emmet-mode)
-           (typescript-mode . emmet-mode)
-           (typescript-tsx-mode . emmet-mode)
-           (web-mode        . emmet-mode))
-    :config
-    (setq emmet-insert-flash-time 0.001)	; effectively disabling it
-    (add-hook 'js-jsx-mode-hook #'(lambda ()
-                                    (setq-local emmet-expand-jsx-className? t)))
-    (add-hook 'ts-tsx-mode-hook #'(lambda ()
-                                    (setq-local emmet-expand-jsx-className? t)))
-    (add-hook 'web-mode-hook #'(lambda ()
-                                 (setq-local emmet-expand-jsx-className? t))))
+    (use-package emmet-mode
+      :hook ((html-mode       . emmet-mode)
+             (css-mode        . emmet-mode)
+             (js-mode         . emmet-mode)
+             (js-jsx-mode     . emmet-mode)
+             (typescript-mode . emmet-mode)
+             (typescript-tsx-mode . emmet-mode)
+             (web-mode        . emmet-mode))
+      :config
+      (setq emmet-insert-flash-time 0.001)	; effectively disabling it
+      (add-hook 'js-jsx-mode-hook #'(lambda ()
+                                      (setq-local emmet-expand-jsx-className? t)))
+      (add-hook 'ts-tsx-mode-hook #'(lambda ()
+                                      (setq-local emmet-expand-jsx-className? t)))
+      (add-hook 'web-mode-hook #'(lambda ()
+                                   (setq-local emmet-expand-jsx-className? t))))
+
+    (use-package typescript-mode
+      :mode "\\.ts'")
+#+end_src
+
+*** Rust
+
+#+begin_src elisp
+  (use-package rustic
+    :init
+    (setq rustic-cargo-bin "cargo"
+          lsp-rust-analyzer-cargo-watch-command "clippy")
+    (push 'rustic-clippy flycheck-checkers))
 #+end_src
