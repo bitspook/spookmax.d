@@ -206,20 +206,6 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
   (global-display-line-numbers-mode 1)
   #+end_src
 
-- Wrapping text in parens, quotes etc
-
-  #+begin_src elisp
-    (show-paren-mode 1)
-    (electric-pair-mode 1)
-  #+end_src
-
-  Lispy for some nasty lisp structural editing.
-
-  #+begin_src elisp
-    (use-package lispy
-      :hook (emacs-lisp-mode . lispy-mode))
-  #+end_src
-
 - Magit
 
   #+begin_src elisp
@@ -227,6 +213,21 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
       :config
       (setq magit-display-buffer-function
             'magit-display-buffer-fullframe-status-v1))
+  #+end_src
+
+- Spell checking
+
+  #+begin_src elisp
+    (use-package flyspell)
+    (use-package flyspell-correct
+      :after (flyspell)
+      :commands (flyspell-correct-at-point
+                 flyspell-correct-wrapper))
+    (use-package flyspell-correct-ivy
+      :after (flyspell-correct)
+      :commands (flyspell-correct-ivy)
+      :init (setq flyspell-correct-interface #'flyspell-correct-ivy)
+      :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
   #+end_src
 
 ** Org mode
@@ -512,4 +513,55 @@ Modeline
 #+begin_src elisp
   (use-package doom-modeline
     :init (doom-modeline-mode 1))
+#+end_src
+
+** Programming
+:PROPERTIES:
+:ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
+:END:
+
+Wrapping text in parens, quotes etc
+
+#+begin_src elisp
+  (show-paren-mode 1)
+  (electric-pair-mode 1)
+#+end_src
+
+Flycheck for getting those in-buffer warnings errors.
+
+#+begin_src elisp
+    (use-package flycheck
+      :init (global-flycheck-mode t))
+#+end_src
+
+Projectile for managing projects.
+
+#+begin_src elisp
+  (use-package projectile
+    :init (projectile-mode +1)
+    :bind (:map projectile-mode-map
+                ("s-p" . projectile-command-map)
+                ("C-c p" . projectile-command-map)))
+#+end_src
+
+*** Lisp
+:PROPERTIES:
+:ID:       828dd6e7-a386-415c-b4e1-cb5515138109
+:END:
+
+Lispy for some nasty lisp structural editing.
+
+#+begin_src elisp
+  (use-package lispy
+    :hook (emacs-lisp-mode . lispy-mode))
+#+end_src
+
+Elsa provides very nice static-analysis and more for elisp
+programming. First time I am trying this, hopefully it does what it
+says on the box without much fuss.
+
+#+begin_src elisp
+  (use-package flycheck-elsa
+    :after elsa
+    :hook (emacs-lisp-mode . flycheck-elsa-setup))
 #+end_src
