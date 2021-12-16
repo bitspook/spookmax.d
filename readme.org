@@ -1,7 +1,6 @@
 #+PROPERTY: header-args :tangle ./init.el
 
 * Spook max 👻
-
 My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
 
 - Bootstrap
@@ -433,6 +432,7 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
      '("0" . meow-digit-argument)
      '("/" . meow-keypad-describe-key)
      '("?" . meow-cheatsheet))
+    
     (meow-normal-define-key
      '("0" . meow-expand-0)
      '("9" . meow-expand-9)
@@ -504,15 +504,65 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
     (meow-setup))
 #+end_src
 
-- Custom meow shortcuts
+- Helpers for more easily configuring meow
+
+  #+begin_src elisp
+    (defmacro spook-meow-define-prefix (parent-keymap key name)
+      "Create prefix KEY for PARENT-KEYMAP with NAME."
+      (let ((keymap-name (make-symbol (concat name "-keymap")))
+            (alias-name (make-symbol name)))
+        `(progn
+           (defvar ,keymap-name (make-sparse-keymap))
+           (defalias ',alias-name ,keymap-name)
+           (define-key ,parent-keymap (kbd ,key) ',alias-name))))
+
+    (defun spook-meow-leader-define-prefix (key name)
+      "Create KEY as a prefix with NAME which can be used in `meow-leader-define-key`."
+      (eval (macroexpand `(spook-meow-define-prefix meow-leader-keymap ,key ,name))))
+  #+end_src
+
+- Normal mode-keybindings. Mostly mimicking vim
 
   #+begin_src elisp
     (meow-normal-define-key
      '("/" . swiper-isearch)
-     '("?" . swiper-isearch-backward)
-     '("G" . end-of-buffer))
+     '("?" . swiper-isearch-backward))
   #+end_src
 
+- Spacemacs like kbds for magit
+
+  #+begin_src elisp
+    (spook-meow-leader-define-prefix "g" "spook-git")
+
+    (meow-leader-define-key
+     '("gs" . magit-status)
+     '("gb" . magit-blame)
+     '("gg" . magit-dispatch))
+  #+end_src
+
+- Projectile
+
+  #+begin_src elisp
+    (spook-meow-leader-define-prefix "p" "spook-projectile")
+    (meow-leader-define-key
+     '("p" . projectile-command-map))
+  #+end_src
+
+- Window management
+
+  #+begin_src elisp
+    (spook-meow-leader-define-prefix "w" "spook-window")
+    (meow-leader-define-key
+     '("w-" . split-window-below)
+     '("w/" . split-window-right)
+     '("wd" . delete-window)
+     '("wm" . delete-other-windows)
+     '("wo" . other-window)
+     '("wh" . windmove-left)
+     '("wj" . windmove-down)
+     '("wk" . windmove-up)
+     '("wl" . windmove-right))
+  #+end_src
 ** Ivy
 :PROPERTIES:
 :ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
