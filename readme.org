@@ -1,7 +1,7 @@
 #+PROPERTY: header-args :tangle ./init.el
 
 * Spook max 👻
-:PROPERTIES:
+:
 :ID:       884752cb-1a69-406a-9083-ffe764c84f10
 :END:
 
@@ -194,7 +194,10 @@ https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
   tell which part is selection and which is highlighted line.
 
   #+begin_src elisp
-    (global-hl-line-mode nil)
+    (use-package highlight-symbol
+      :hook (prog-mode . highlight-symbol-mode)
+      :config
+      (setq highlight-symbol-idle-delay 0.3))
   #+end_src
 
 - Line numbers
@@ -495,6 +498,10 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
     :after (ivy)
     :config
     (counsel-mode 1))
+
+  (use-package counsel-projectile
+    :config
+    (counsel-projectile-mode +1))
 #+end_src
 
 ** Looks
@@ -505,7 +512,7 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
 #+begin_src elisp
   (use-package doom-themes
     :config
-    (load-theme 'doom-vibrant t))
+    (load-theme 'doom-spacegrey t))
 #+end_src
 
 Modeline
@@ -530,8 +537,8 @@ Wrapping text in parens, quotes etc
 Flycheck for getting those in-buffer warnings errors.
 
 #+begin_src elisp
-    (use-package flycheck
-      :init (global-flycheck-mode t))
+  (use-package flycheck
+    :init (global-flycheck-mode t))
 #+end_src
 
 Projectile for managing projects.
@@ -542,6 +549,68 @@ Projectile for managing projects.
     :bind (:map projectile-mode-map
                 ("s-p" . projectile-command-map)
                 ("C-c p" . projectile-command-map)))
+#+end_src
+
+Company mode. I think I have a general idea of what it does, but still
+fuzzy on details. This stuff is usually taken for granted; I've been
+taking it for granted with Spacemacs for a while now I suppose.
+
+#+begin_src elisp
+  (use-package company
+    :init (global-company-mode +1))
+#+end_src
+
+[[https://github.com/sebastiencs/company-box/][company-box-mode]] adds icons and colors to company options.
+
+#+begin_src elisp
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+#+end_src
+
+LSP provides support for many languages with little cost of
+configuring. So LSP we do.
+
+#+begin_src elisp
+  (use-package lsp-mode
+    :init (setq lsp-keymap-prefix "C-c l")
+    :hook
+    (lsp-mode . lsp-enable-which-key-integration)
+    ((typescript-mode
+      typescript-tsx-mode
+      js-mode
+      js-jsx-mode
+      python-mode
+      web-mode) . lsp)
+    :config
+    (setq lsp-auto-guess-root t)
+    (setq lsp-enable-symbol-highlighting nil)
+    (setq lsp-enable-on-type-formatting nil)
+    (setq lsp-enable-imenu nil)
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+    (add-to-list 'lsp-language-id-configuration '(js-jsx-mode . "javascriptreact"))
+    :commands lsp-deferred)
+
+  (use-package lsp-ivy
+    :commands lsp-ivy-workspace-symbol)
+#+end_src
+
+[[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
+
+#+begin_src elisp
+  (use-package reformatter
+    :config
+    (reformatter-define prettier-format
+      :program (expand-file-name "node_modules/.bin/prettier"
+                                 (locate-dominating-file (buffer-file-name) "node_modules"))
+      :args `("--stdin-filepath" ,(buffer-file-name)))
+    :hook (web-mode . prettier-format-on-save-mode))
+#+end_src
+
+Set some variables which I can use for reference and to configure
+things globally.
+
+#+begin_src elisp
+  (setq spook--indent-width 2)
 #+end_src
 
 *** Lisp
@@ -564,4 +633,38 @@ says on the box without much fuss.
   (use-package flycheck-elsa
     :after elsa
     :hook (emacs-lisp-mode . flycheck-elsa-setup))
+#+end_src
+
+*** Web dev
+
+#+begin_src elisp
+  (use-package js)
+  (use-package web-mode
+    :mode (("\\.html?\\'" . web-mode)
+           ("\\.css\\'"   . web-mode)
+           ("\\.jsx?\\'"  . web-mode)
+           ("\\.tsx?\\'"  . web-mode)
+           ("\\.json\\'"  . web-mode))
+    :config
+    (setq web-mode-markup-indent-offset spook--indent-width)
+    (setq web-mode-code-indent-offset spook--indent-width)
+    (setq web-mode-css-indent-offset spook--indent-width)
+    (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+
+  (use-package emmet-mode
+    :hook ((html-mode       . emmet-mode)
+           (css-mode        . emmet-mode)
+           (js-mode         . emmet-mode)
+           (js-jsx-mode     . emmet-mode)
+           (typescript-mode . emmet-mode)
+           (typescript-tsx-mode . emmet-mode)
+           (web-mode        . emmet-mode))
+    :config
+    (setq emmet-insert-flash-time 0.001)	; effectively disabling it
+    (add-hook 'js-jsx-mode-hook #'(lambda ()
+                                    (setq-local emmet-expand-jsx-className? t)))
+    (add-hook 'ts-tsx-mode-hook #'(lambda ()
+                                    (setq-local emmet-expand-jsx-className? t)))
+    (add-hook 'web-mode-hook #'(lambda ()
+                                 (setq-local emmet-expand-jsx-className? t))))
 #+end_src
