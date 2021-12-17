@@ -1,5 +1,18 @@
 #+PROPERTY: header-args :tangle ./init.el
 
+#+begin_quote
+1. Clone this repo to ~/.emacs.d
+2. Open =readme.org= in emacs
+3. Press =C-c C-v t= to tangle all the blocks
+4. Restart Emacs. straight.el will now take a bunch of time cloning
+   all the packages, and then you'll be ready for a spooky Emacs.
+#+end_quote
+
+PS I am slowly transitioning from spacemacs, so this configuration
+isn't exactly complete. Use it for reference or tricks. I'd recommend
+doom or spacemacs if you're looking for something that'll let you get
+started with Emacs quickly.
+
 * Spook max 👻
 My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
 
@@ -52,8 +65,11 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   (defmacro defkeymap (name prefix &rest bindings)
     "Create a new NAME-keymap bound to PREFIX, with BINDINGS.
 
+  Disadvantage: keymaps created are local and can't be directly
+  used.
+
   Usage:
-    (defkeymap \"spook-git\" \"C-c g\" 
+    (defkeymap \"spook-git\" \"C-c g\"
       '(\"s\" . magit-status))
   "
     (let* ((keymap-name (make-symbol (concat name "-keymap")))
@@ -139,7 +155,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       ;; especially for tabs.
       (setq x-stretch-cursor nil)
     #+end_src
-
+    
   - Window/Frame
 
     #+begin_src elisp
@@ -195,6 +211,12 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       (setq window-resize-pixelwise nil)
     #+end_src
 
+- Basic indentation
+
+  #+begin_src elisp
+    (setq tab-width 2)
+  #+end_src
+
 - Introspection
   :PROPERTIES:
   :ID:       e17d83de-251c-4407-b2ea-ca9c428e5ea1
@@ -237,7 +259,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - Window management
 
   #+begin_src elisp
-    (defkeymap "spook-windows" "C-c w" 
+    (defkeymap "spook-windows" "C-c w"
       '("-" . split-window-below)
       '("/" . split-window-right)
       '("d" . delete-window)
@@ -248,8 +270,21 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       '("k" . windmove-up)
       '("l" . windmove-right))
   #+end_src
-  
-- Magit
+
+- Buffer management
+
+  #+begin_src elisp
+    (defvar spook-buffer-keymap (make-sparse-keymap))
+    (defalias 'spook-buffer spook-buffer-keymap)
+
+    (global-set-key (kbd "C-c b") spook-buffer-keymap)
+
+    (define-key spook-buffer-keymap (kbd "b") #'ivy-switch-buffer)
+    (define-key spook-buffer-keymap (kbd "d") #'kill-current-buffer)
+    (define-key spook-buffer-keymap (kbd "s") #'startup--get-buffer-create-scratch)
+  #+end_src
+
+- [Ma]git
 
   Magit uses =project-switch-commands= which are present only in more
   recent project.el project.
@@ -258,29 +293,29 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (straight-use-package 'project)
   #+end_src
 
-#+begin_src elisp
-    (use-package magit
-      :config
-      (setq magit-display-buffer-function
-            'magit-display-buffer-fullframe-status-v1))
-#+end_src
+  #+begin_src elisp
+  (use-package magit
+    :config
+    (setq magit-display-buffer-function
+          'magit-display-buffer-fullframe-status-v1))
+  #+end_src
 
-Buncha nice keybindings.
+  - Buncha nice keybindings.
 
-#+begin_src elisp
-  (defkeymap "spook-git" "C-c g"
-    '("s" . magit-status)
-    '("b" . magit-blame)
-    '("g" . magit-dispatch))
-#+end_src
+    #+begin_src elisp
+      (defkeymap "spook-git" "C-c g"
+        '("s" . magit-status)
+        '("b" . magit-blame)
+        '("g" . magit-dispatch))
+    #+end_src
 
-Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
+  - Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
 
-#+begin_src elisp
-  (use-package magit-delta
-  :ensure t
-  :hook (magit-mode . magit-delta-mode))
-#+end_src
+    #+begin_src elisp
+      (use-package magit-delta
+        :ensure t
+        :hook (magit-mode . magit-delta-mode))
+    #+end_src
 
 - Keep backup/auto-save files out of my vc
 
@@ -369,6 +404,12 @@ Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
 
       (add-to-list 'org-modules "org-habit"))
 
+  #+end_src
+
+- Keybindings
+
+  #+begin_src elisp
+    (global-set-key (kbd "C-c c") #'org-capture)
   #+end_src
 
 *** org-super-agenda
@@ -461,94 +502,94 @@ Let's get some modal editing with some spice. I have used Evil mode
 with Spacemacs, I was going to configure Evil, but let's give meow a
 shot!
 
-Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYBINDING_QWERTY.org
-#+begin_src elisp
-  (defun meow-setup ()
-    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-    (meow-motion-overwrite-define-key
-     '("j" . meow-next)
-     '("k" . meow-prev))
-    (meow-leader-define-key
-     ;; SPC j/k will run the original command in MOTION state.
-     '("j" . "H-j")
-     '("k" . "H-k")
-     ;; Use SPC (0-9) for digit arguments.
-     '("1" . meow-digit-argument)
-     '("2" . meow-digit-argument)
-     '("3" . meow-digit-argument)
-     '("4" . meow-digit-argument)
-     '("5" . meow-digit-argument)
-     '("6" . meow-digit-argument)
-     '("7" . meow-digit-argument)
-     '("8" . meow-digit-argument)
-     '("9" . meow-digit-argument)
-     '("0" . meow-digit-argument)
-     '("/" . meow-keypad-describe-key)
-     '("?" . meow-cheatsheet))
-    
-    (meow-normal-define-key
-     '("0" . meow-expand-0)
-     '("9" . meow-expand-9)
-     '("8" . meow-expand-8)
-     '("7" . meow-expand-7)
-     '("6" . meow-expand-6)
-     '("5" . meow-expand-5)
-     '("4" . meow-expand-4)
-     '("3" . meow-expand-3)
-     '("2" . meow-expand-2)
-     '("1" . meow-expand-1)
-     '("-" . negative-argument)
-     '(";" . meow-reverse)
-     '("," . meow-inner-of-thing)
-     '("." . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
-     '("a" . meow-append)
-     '("A" . meow-open-below)
-     '("b" . meow-back-word)
-     '("B" . meow-back-symbol)
-     '("c" . meow-change)
-     '("d" . meow-delete)
-     '("D" . meow-backward-delete)
-     '("e" . meow-next-word)
-     '("E" . meow-next-symbol)
-     '("f" . meow-find)
-     '("g" . meow-cancel-selection)
-     '("G" . meow-grab)
-     '("h" . meow-left)
-     '("H" . meow-left-expand)
-     '("i" . meow-insert)
-     '("I" . meow-open-above)
-     '("j" . meow-next)
-     '("J" . meow-next-expand)
-     '("k" . meow-prev)
-     '("K" . meow-prev-expand)
-     '("l" . meow-right)
-     '("L" . meow-right-expand)
-     '("m" . meow-join)
-     '("n" . meow-search)
-     '("o" . meow-block)
-     '("O" . meow-to-block)
-     '("p" . meow-yank)
-     '("q" . meow-quit)
-     '("Q" . meow-goto-line)
-     '("r" . meow-replace)
-     '("R" . meow-swap-grab)
-     '("s" . meow-kill)
-     '("t" . meow-till)
-     '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
-     '("v" . meow-visit)
-     '("w" . meow-mark-word)
-     '("W" . meow-mark-symbol)
-     '("x" . meow-line)
-     '("X" . meow-goto-line)
-     '("y" . meow-save)
-     '("Y" . meow-sync-grab)
-     '("z" . meow-pop-selection)
-     '("'" . repeat)
-     '("<escape>" . mode-line-other-buffer)))
-#+end_src
+- Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYBINDING_QWERTY.org
+  #+begin_src elisp
+    (defun meow-setup ()
+      (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+      (meow-motion-overwrite-define-key
+       '("j" . meow-next)
+       '("k" . meow-prev))
+      (meow-leader-define-key
+       ;; SPC j/k will run the original command in MOTION state.
+       '("j" . "H-j")
+       '("k" . "H-k")
+       ;; Use SPC (0-9) for digit arguments.
+       '("1" . meow-digit-argument)
+       '("2" . meow-digit-argument)
+       '("3" . meow-digit-argument)
+       '("4" . meow-digit-argument)
+       '("5" . meow-digit-argument)
+       '("6" . meow-digit-argument)
+       '("7" . meow-digit-argument)
+       '("8" . meow-digit-argument)
+       '("9" . meow-digit-argument)
+       '("0" . meow-digit-argument)
+       '("/" . meow-keypad-describe-key)
+       '("?" . meow-cheatsheet))
+
+      (meow-normal-define-key
+       '("0" . meow-expand-0)
+       '("9" . meow-expand-9)
+       '("8" . meow-expand-8)
+       '("7" . meow-expand-7)
+       '("6" . meow-expand-6)
+       '("5" . meow-expand-5)
+       '("4" . meow-expand-4)
+       '("3" . meow-expand-3)
+       '("2" . meow-expand-2)
+       '("1" . meow-expand-1)
+       '("-" . negative-argument)
+       '(";" . meow-reverse)
+       '("," . meow-inner-of-thing)
+       '("." . meow-bounds-of-thing)
+       '("[" . meow-beginning-of-thing)
+       '("]" . meow-end-of-thing)
+       '("a" . meow-append)
+       '("A" . meow-open-below)
+       '("b" . meow-back-word)
+       '("B" . meow-back-symbol)
+       '("c" . meow-change)
+       '("d" . meow-delete)
+       '("D" . meow-backward-delete)
+       '("e" . meow-next-word)
+       '("E" . meow-next-symbol)
+       '("f" . meow-find)
+       '("g" . meow-cancel-selection)
+       '("G" . meow-grab)
+       '("h" . meow-left)
+       '("H" . meow-left-expand)
+       '("i" . meow-insert)
+       '("I" . meow-open-above)
+       '("j" . meow-next)
+       '("J" . meow-next-expand)
+       '("k" . meow-prev)
+       '("K" . meow-prev-expand)
+       '("l" . meow-right)
+       '("L" . meow-right-expand)
+       '("m" . meow-join)
+       '("n" . meow-search)
+       '("o" . meow-block)
+       '("O" . meow-to-block)
+       '("p" . meow-yank)
+       '("q" . meow-quit)
+       '("Q" . meow-goto-line)
+       '("r" . meow-replace)
+       '("R" . meow-swap-grab)
+       '("s" . meow-kill)
+       '("t" . meow-till)
+       '("u" . meow-undo)
+       '("U" . meow-undo-in-selection)
+       '("v" . meow-visit)
+       '("w" . meow-mark-word)
+       '("W" . meow-mark-symbol)
+       '("x" . meow-line)
+       '("X" . meow-goto-line)
+       '("y" . meow-save)
+       '("Y" . meow-sync-grab)
+       '("z" . meow-pop-selection)
+       '("'" . repeat)
+       '("<escape>" . mode-line-other-buffer)))
+  #+end_src
 
 #+begin_src elisp
   (use-package meow
@@ -572,19 +613,15 @@ Meow qwerty setup copied from https://github.com/meow-edit/meow/blob/master/KEYB
      '("g" . "C-c g"))
   #+end_src
 
-- Projectile
+- Leader keybindings
 
   #+begin_src elisp
     (meow-leader-define-key
-     '("p" . projectile-command-map))
+     '("p" . projectile-command-map)
+     '("w" . "C-c w")
+     '("b" . spook-buffer-keymap)) 			  
   #+end_src
 
-- Window management
-
-  #+begin_src elisp
-    (meow-leader-define-key
-     '("w" . "C-c w"))
-  #+end_src
 ** Ivy
 :PROPERTIES:
 :ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
@@ -804,4 +841,3 @@ says on the box without much fuss.
           lsp-rust-analyzer-cargo-watch-command "clippy")
     (push 'rustic-clippy flycheck-checkers))
 #+end_src
-
