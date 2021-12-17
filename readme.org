@@ -62,18 +62,15 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 ** Helper utilities
 
 #+begin_src elisp
-  (defmacro defkeymap (name prefix &rest bindings)
+  (defmacro spook-defkeymap (name prefix &rest bindings)
     "Create a new NAME-keymap bound to PREFIX, with BINDINGS.
 
-  Disadvantage: keymaps created are local and can't be directly
-  used.
-
   Usage:
-    (defkeymap \"spook-git\" \"C-c g\"
+    (spook-defkeymap \"spook-git\" \"C-c g\"
       '(\"s\" . magit-status))
   "
-    (let* ((keymap-name (make-symbol (concat name "-keymap")))
-           (keymap-alias (make-symbol name))
+    (let* ((keymap-name (intern (concat name "-keymap")))
+           (keymap-alias (intern name))
            (keymap-bindings (mapcar
                              (lambda (binding)
                                (let ((binding (eval binding)))
@@ -259,7 +256,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - Window management
 
   #+begin_src elisp
-    (defkeymap "spook-windows" "C-c w"
+    (spook-defkeymap "spook-windows" "C-c w"
       '("-" . split-window-below)
       '("/" . split-window-right)
       '("d" . delete-window)
@@ -274,14 +271,10 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - Buffer management
 
   #+begin_src elisp
-    (defvar spook-buffer-keymap (make-sparse-keymap))
-    (defalias 'spook-buffer spook-buffer-keymap)
-
-    (global-set-key (kbd "C-c b") spook-buffer-keymap)
-
-    (define-key spook-buffer-keymap (kbd "b") #'ivy-switch-buffer)
-    (define-key spook-buffer-keymap (kbd "d") #'kill-current-buffer)
-    (define-key spook-buffer-keymap (kbd "s") #'startup--get-buffer-create-scratch)
+    (spook-defkeymap
+     "spook-buffers" "C-c b"
+     '("b" . ivy-switch-buffer)
+     '("d" . kill-current-buffer))
   #+end_src
 
 - [Ma]git
@@ -303,7 +296,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   - Buncha nice keybindings.
 
     #+begin_src elisp
-      (defkeymap "spook-git" "C-c g"
+      (spook-defkeymap "spook-git" "C-c g"
         '("s" . magit-status)
         '("b" . magit-blame)
         '("g" . magit-dispatch))
@@ -606,20 +599,14 @@ shot!
      '("?" . swiper-isearch-backward))
   #+end_src
 
-- Spacemacs like kbds for magit
-
-  #+begin_src elisp
-    (meow-leader-define-key
-     '("g" . "C-c g"))
-  #+end_src
-
 - Leader keybindings
 
   #+begin_src elisp
     (meow-leader-define-key
      '("p" . projectile-command-map)
-     '("w" . "C-c w")
-     '("b" . spook-buffer-keymap)) 			  
+     '("w" . spook-windows)
+     '("b" . spook-buffers)
+     '("g" . spook-git))
   #+end_src
 
 ** Ivy
