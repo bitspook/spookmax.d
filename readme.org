@@ -403,88 +403,101 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   #+begin_src elisp
     (global-set-key (kbd "C-c c") #'org-capture)
+
+    (spook-defkeymap
+     "spook-notes" "C-c n"
+     '("f" . org-roam-node-find)
+     '("o" . org-roam-ui-open))
+
+    (spook-defkeymap
+     "spook-org" "C-c o"
+     '("a" . org-agenda-list)
+     '("A" . org-agenda)
+     '("c" . org-capture)
+     '("C" . org-clock-goto))
   #+end_src
 
-*** org-super-agenda
-:PROPERTIES:
-:ID:       06dd246b-30f0-4c17-ab47-8128d49f7f69
-:END:
+- org-super-agenda
+  :PROPERTIES:
+  :ID:       06dd246b-30f0-4c17-ab47-8128d49f7f69
+  :END:
 
-More/better structure in agenda view.
-
-#+begin_src elisp
-  (use-package org-super-agenda
-    :config
-    (org-super-agenda-mode t)
-    (setq org-super-agenda-groups
-          '((:name "Work" :tag "work" :order 1)
-            (:name "In Progress" :todo "IN-PROGRESS" :order 1)
-            (:name "Projects" :tag "project" :order 3)
-            (:name "Home" :tag "home" :order 2)
-            (:name "Study" :tag "study" :order 4)
-            (:name "Inbox" :tag "inbox" :order 4)
-            (:name "Habits" :tag "habit" :order 5))))
-#+end_src
-
-*** org-roam
-:PROPERTIES:
-:ID:       29c74372-5882-4a72-a567-0a0cbc53cede
-:END:
-
-For zettelkasten style note taking
-
-- Setup =org-roam=
+  More/better structure in agenda view.
 
   #+begin_src elisp
-    (use-package org-roam
-      :init
-      (setq org-roam-directory (concat org-directory "/notes/")
-            org-roam-tag-sources '(prop)
-            org-roam-v2-ack t)
+    (use-package org-super-agenda
       :config
-      (org-roam-setup))
+      (org-super-agenda-mode t)
+      (setq org-super-agenda-groups
+            '((:name "Work" :tag "work" :order 1)
+              (:name "In Progress" :todo "IN-PROGRESS" :order 1)
+              (:name "Projects" :tag "project" :order 3)
+              (:name "Home" :tag "home" :order 2)
+              (:name "Study" :tag "study" :order 4)
+              (:name "Inbox" :tag "inbox" :order 4)
+              (:name "Habits" :tag "habit" :order 5))))
   #+end_src
 
-- Setup =org-roam-ui= for a pretty browser based UI
+- org-roam
+  :PROPERTIES:
+  :ID:       29c74372-5882-4a72-a567-0a0cbc53cede
+  :END:
+
+  For zettelkasten style note taking
+
+  - Setup =org-roam=
+
+    #+begin_src elisp
+      (use-package org-roam
+        :init
+        (setq org-roam-directory (concat org-directory "/notes/")
+              org-roam-tag-sources '(prop)
+              org-roam-v2-ack t)
+        :config
+        (org-roam-setup))
+    #+end_src
+
+  - Setup =org-roam-ui= for a pretty browser based UI
+
+    #+begin_src elisp
+      (use-package org-roam-ui
+        :straight
+        (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+        :after org-roam
+        ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+        ;;         a hookable mode anymore, you're advised to pick something yourself
+        ;;         if you don't care about startup time, use
+        ;;  :hook (after-init . org-roam-ui-mode)
+        :config
+        (setq org-roam-ui-sync-theme t
+              org-roam-ui-follow t
+              org-roam-ui-update-on-save t
+              org-roam-ui-open-on-start t))
+    #+end_src
+
+- org-babel
 
   #+begin_src elisp
-    (use-package org-roam-ui
-      :straight
-      (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-      :after org-roam
-      ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-      ;;         a hookable mode anymore, you're advised to pick something yourself
-      ;;         if you don't care about startup time, use
-      ;;  :hook (after-init . org-roam-ui-mode)
-      :config
-      (setq org-roam-ui-sync-theme t
-            org-roam-ui-follow t
-            org-roam-ui-update-on-save t
-            org-roam-ui-open-on-start t))
+    (with-eval-after-load 'org
+      (org-babel-do-load-languages
+       'org-babel-load-languages
+       '((emacs-lisp . t)
+         (plantuml . t)
+         (shell . t)
+         (sql . t)
+         (rust . t))))
   #+end_src
 
-*** org-babel
+- saunf
+  
+  Use the local repo; very risky, should change.
 
-#+begin_src elisp
-  (with-eval-after-load 'org
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((emacs-lisp . t)
-       (plantuml . t)
-       (shell . t)
-       (sql . t))))
-#+end_src
-
-*** saunf
-
-Use the local repo; very risky, should change.
-
-#+begin_src elisp
-  (use-package saunf
-    :straight (saunf :type git
-                     :local-repo "~/Documents/work/saunf"
-                     :file "saunf.el"))
-#+end_src
+  #+begin_src elisp
+    (use-package saunf
+      :straight (saunf :type git
+                       :local-repo "~/Documents/work/saunf"
+                       :file "saunf.el"))
+  #+end_src
 
 ** Modal editing with Meow
 :PROPERTIES:
@@ -602,11 +615,17 @@ shot!
 - Leader keybindings
 
   #+begin_src elisp
+    ;; alias is needed for using the keymap in meow
+    (defalias 'flycheck-command-map flycheck-command-map)
+
     (meow-leader-define-key
      '("p" . projectile-command-map)
+     '("e" . flycheck-command-map)
      '("w" . spook-windows)
      '("b" . spook-buffers)
-     '("g" . spook-git))
+     '("g" . spook-git)
+     '("o" . spook-org)
+     '("n" . spook-notes))
   #+end_src
 
 ** Ivy
@@ -668,7 +687,8 @@ Flycheck for getting those in-buffer warnings errors.
 
 #+begin_src elisp
   (use-package flycheck
-    :init (global-flycheck-mode t))
+    :init
+    (global-flycheck-mode t)) 
 #+end_src
 
 Projectile for managing projects.
