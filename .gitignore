@@ -4,3 +4,8 @@
 /init.el
 /early-init.el
 /.org-id-locations
+/projectile-bookmarks.eld
+/bakups/
+/recentf
+/transient/
+/auto-save-list/
