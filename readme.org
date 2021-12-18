@@ -335,7 +335,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :after (flyspell-correct)
       :commands (flyspell-correct-ivy)
       :init (setq flyspell-correct-interface #'flyspell-correct-ivy)
-      :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+      :bind (:map flyspell-mode ("C-;" . flyspell-correct-wrapper)))
   #+end_src
 
 ** Org mode
@@ -484,8 +484,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
        '((emacs-lisp . t)
          (plantuml . t)
          (shell . t)
-         (sql . t)
-         (rust . t))))
+         (sql . t))))
   #+end_src
 
 - saunf
@@ -615,9 +614,6 @@ shot!
 - Leader keybindings
 
   #+begin_src elisp
-    ;; alias is needed for using the keymap in meow
-    (defalias 'flycheck-command-map flycheck-command-map)
-
     (meow-leader-define-key
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
@@ -688,7 +684,9 @@ Flycheck for getting those in-buffer warnings errors.
 #+begin_src elisp
   (use-package flycheck
     :init
-    (global-flycheck-mode t)) 
+    (global-flycheck-mode t)
+    ;; alias is needed for using the keymap in meow
+    (defalias 'flycheck-command-map flycheck-command-map)) 
 #+end_src
 
 Projectile for managing projects.
