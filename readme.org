@@ -87,6 +87,12 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 :ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
 :END:
 
+- Start emacs as a server
+
+  #+begin_src elisp
+    (server-start)
+  #+end_src
+
 - Unset annoying keybindings
 
   #+begin_src elisp
@@ -207,6 +213,14 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       ;; when resizing too many windows at once or rapidly.
       (setq window-resize-pixelwise nil)
     #+end_src
+
+- Allow selection to be deleted, generally expected behavior during
+  editing. I tried to not have this on by default, but I am finding
+  that to be increasingly annoying.
+
+  #+begin_src elisp
+    (delete-selection-mode +1)
+  #+end_src
 
 - Basic indentation
 
@@ -335,7 +349,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :after (flyspell-correct)
       :commands (flyspell-correct-ivy)
       :init (setq flyspell-correct-interface #'flyspell-correct-ivy)
-      :bind (:map flyspell-mode ("C-;" . flyspell-correct-wrapper)))
+      :config
+      (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
   #+end_src
 
 ** Org mode
@@ -487,6 +502,48 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
          (sql . t))))
   #+end_src
 
+- Allow adding HTML class/id to exported src blocks
+
+  Org mode don't allow adding custom HTML class or id to exported src
+  blocks, but I've found myself in need of this functionality when
+  customizing published projects.
+
+  #+begin_src elisp
+    ;; Copied from https://emacs.stackexchange.com/questions/68592/add-css-class-or-id-tag-to-individual-src-blocks
+
+    (defun spook--org-html-src-block-advice (oldfun src-block contents info)
+      "Add class or id CSS tags to html source block output.
+
+    Allows class or id tags to be added to a source block using
+    #attr_html:
+
+        ,#+ATTR_HTML: :class myclass :id myid
+        ,#+begin_src python
+        print(\"Hi\")
+        ,#+end_src
+    "
+      (let* ((old-ret (funcall oldfun src-block contents info))
+             (class-tag (org-export-read-attribute :attr_html src-block :class))
+             (id-tag (org-export-read-attribute :attr_html src-block :id)))
+        (if (or class-tag id-tag)
+            (concat
+             "<div "
+             (if class-tag (format "class=\"%s\" " class-tag))
+             (if id-tag (format "id=\"%s\" " id-tag))
+             ">"
+             old-ret
+             "</div>")
+          old-ret)))
+
+    (advice-add 'org-html-src-block :around #'spook--org-html-src-block-advice)
+  #+end_src
+
+- Support exporting code blocks with syntax-highlighting
+
+  #+begin_src elisp
+    (use-package htmlize)
+  #+end_src
+
 - saunf
   
   Use the local repo; very risky, should change.
@@ -615,6 +672,7 @@ shot!
 
   #+begin_src elisp
     (meow-leader-define-key
+     '("l" . lsp-mode-map)
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
      '("w" . spook-windows)
@@ -738,8 +796,12 @@ configuring. So LSP we do.
     (add-to-list 'lsp-language-id-configuration '(js-jsx-mode . "javascriptreact"))
     :commands lsp-deferred)
 
-  (use-package lsp-ivy
-    :commands lsp-ivy-workspace-symbol)
+  (use-package lsp-ui
+    :commands lsp-ui-mode
+    :config 
+    (setq lsp-ui-doc-show-with-cursor t
+          lsp-ui-doc-delay 1
+          lsp-ui-doc-position 'at-point))
 #+end_src
 
 [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
@@ -802,39 +864,41 @@ says on the box without much fuss.
 :END:
 
 #+begin_src elisp
-    (use-package js
-      :mode "\\.js'")
-    (use-package web-mode
-      :mode (("\\.html?\\'" . web-mode)
-             ("\\.css\\'"   . web-mode)
-             ("\\.jsx?\\'"  . web-mode)
-             ("\\.tsx?\\'"  . web-mode)
-             ("\\.json\\'"  . web-mode))
-      :config
-      (setq web-mode-markup-indent-offset spook--indent-width)
-      (setq web-mode-code-indent-offset spook--indent-width)
-      (setq web-mode-css-indent-offset spook--indent-width)
-      (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+  (setq css-indent-offset spook--indent-width)
 
-    (use-package emmet-mode
-      :hook ((html-mode       . emmet-mode)
-             (css-mode        . emmet-mode)
-             (js-mode         . emmet-mode)
-             (js-jsx-mode     . emmet-mode)
-             (typescript-mode . emmet-mode)
-             (typescript-tsx-mode . emmet-mode)
-             (web-mode        . emmet-mode))
-      :config
-      (setq emmet-insert-flash-time 0.001)	; effectively disabling it
-      (add-hook 'js-jsx-mode-hook #'(lambda ()
-                                      (setq-local emmet-expand-jsx-className? t)))
-      (add-hook 'ts-tsx-mode-hook #'(lambda ()
-                                      (setq-local emmet-expand-jsx-className? t)))
-      (add-hook 'web-mode-hook #'(lambda ()
-                                   (setq-local emmet-expand-jsx-className? t))))
+  (use-package js
+    :mode "\\.js'")
+  (use-package web-mode
+    :mode (("\\.html?\\'" . web-mode)
+           ("\\.css\\'"   . web-mode)
+           ("\\.jsx?\\'"  . web-mode)
+           ("\\.tsx?\\'"  . web-mode)
+           ("\\.json\\'"  . web-mode))
+    :config
+    (setq web-mode-markup-indent-offset spook--indent-width)
+    (setq web-mode-code-indent-offset spook--indent-width)
+    (setq web-mode-css-indent-offset spook--indent-width)
+    (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
-    (use-package typescript-mode
-      :mode "\\.ts'")
+  (use-package emmet-mode
+    :hook ((html-mode       . emmet-mode)
+           (css-mode        . emmet-mode)
+           (js-mode         . emmet-mode)
+           (js-jsx-mode     . emmet-mode)
+           (typescript-mode . emmet-mode)
+           (typescript-tsx-mode . emmet-mode)
+           (web-mode        . emmet-mode))
+    :config
+    (setq emmet-insert-flash-time 0.001)	; effectively disabling it
+    (add-hook 'js-jsx-mode-hook #'(lambda ()
+                                    (setq-local emmet-expand-jsx-className? t)))
+    (add-hook 'ts-tsx-mode-hook #'(lambda ()
+                                    (setq-local emmet-expand-jsx-className? t)))
+    (add-hook 'web-mode-hook #'(lambda ()
+                                 (setq-local emmet-expand-jsx-className? t))))
+
+  (use-package typescript-mode
+    :mode "\\.ts'")
 #+end_src
 
 *** Rust
@@ -846,3 +910,12 @@ says on the box without much fuss.
           lsp-rust-analyzer-cargo-watch-command "clippy")
     (push 'rustic-clippy flycheck-checkers))
 #+end_src
+
+** Applications
+
+- Ledger
+
+  #+begin_src elisp
+    (use-package ledger-mode
+      :mode "\\.ledger\\'")
+  #+end_src

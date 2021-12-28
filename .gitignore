@@ -11,3 +11,6 @@
 /auto-save-list/
 /eshell/
 /\#\!*
+/bookmarks
+/.lsp-session-v1
+/projects
