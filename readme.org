@@ -158,7 +158,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       ;; especially for tabs.
       (setq x-stretch-cursor nil)
     #+end_src
-    
+
   - Window/Frame
 
     #+begin_src elisp
@@ -222,10 +222,25 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (delete-selection-mode +1)
   #+end_src
 
-- Basic indentation
+- Indentation and whitespace
 
   #+begin_src elisp
-    (setq tab-width 2)
+    (setq spook--indent-width 2)
+    (setq-default tab-width spook--indent-width)
+    (setq-default indent-tabs-mode nil)
+  #+end_src
+
+  From: https://github.com/susam/emfy/blob/main/.emacs#L26
+  #+begin_src elisp
+    ;; Show stray whitespace.
+    (setq-default show-trailing-whitespace t)
+    (setq-default indicate-empty-lines t)
+    (setq-default indicate-buffer-boundaries 'left)
+
+    ;; Consider a period followed by a single space to be end of sentence.
+    (setq sentence-end-double-space nil)
+
+    (setq create-lockfiles nil)
   #+end_src
 
 - Introspection
@@ -275,6 +290,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       '("/" . split-window-right)
       '("d" . delete-window)
       '("m" . delete-other-windows)
+      '("M" . window-swap-states)
       '("o" . other-window)
       '("h" . windmove-left)
       '("j" . windmove-down)
@@ -545,7 +561,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+end_src
 
 - saunf
-  
+
   Use the local repo; very risky, should change.
 
   #+begin_src elisp
@@ -744,7 +760,7 @@ Flycheck for getting those in-buffer warnings errors.
     :init
     (global-flycheck-mode t)
     ;; alias is needed for using the keymap in meow
-    (defalias 'flycheck-command-map flycheck-command-map)) 
+    (defalias 'flycheck-command-map flycheck-command-map))
 #+end_src
 
 Projectile for managing projects.
@@ -798,7 +814,7 @@ configuring. So LSP we do.
 
   (use-package lsp-ui
     :commands lsp-ui-mode
-    :config 
+    :config
     (setq lsp-ui-doc-show-with-cursor t
           lsp-ui-doc-delay 1
           lsp-ui-doc-position 'at-point))
@@ -818,10 +834,6 @@ configuring. So LSP we do.
 
 Set some variables which I can use for reference and to configure
 things globally.
-
-#+begin_src elisp
-  (setq spook--indent-width 2)
-#+end_src
 
 Direnv is pretty essential for my dev workflow.
 
@@ -911,6 +923,19 @@ says on the box without much fuss.
     (push 'rustic-clippy flycheck-checkers))
 #+end_src
 
+*** Yaml
+
+#+begin_src elisp
+  (use-package yaml-mode
+    :mode "\\.ya?ml\\'")
+#+end_src
+
+*** Graphql
+
+#+begin_src elisp
+  (use-package graphql-mode
+    :mode "\\.graphql\\'")
+#+end_src
 ** Applications
 
 - Ledger
