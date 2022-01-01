@@ -688,6 +688,7 @@ shot!
 
   #+begin_src elisp
     (meow-leader-define-key
+     '("/" . counsel-git-grep)
      '("l" . lsp-mode-map)
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
@@ -720,7 +721,8 @@ shot!
   (use-package counsel
     :after (ivy)
     :config
-    (counsel-mode 1))
+    (counsel-mode 1)
+    (setq counsel-git-grep-cmd "git --no-pager rg -n --no-color -I -e \"%s\""))
 #+end_src
 
 ** Looks
