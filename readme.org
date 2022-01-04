@@ -689,6 +689,7 @@ shot!
 
   #+begin_src elisp
     (meow-normal-define-key
+     '("z" . spook-fold)
      '("/" . swiper-isearch)
      '("?" . swiper-isearch-backward))
   #+end_src
@@ -757,106 +758,125 @@ Modeline
 :ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
 :END:
 
-Wrapping text in parens, quotes etc
+- Wrapping text in parens, quotes etc
 
-#+begin_src elisp
-  (show-paren-mode 1)
-  (electric-pair-mode 1)
-#+end_src
+  #+begin_src elisp
+    (show-paren-mode 1)
+    (electric-pair-mode 1)
+  #+end_src
 
-Flycheck for getting those in-buffer warnings errors.
+- Code folding
 
-#+begin_src elisp
-  (use-package flycheck
-    :init
-    (global-flycheck-mode t)
-    ;; alias is needed for using the keymap in meow
-    (defalias 'flycheck-command-map flycheck-command-map))
-#+end_src
+  #+begin_src elisp
+    (use-package origami
+      :config (global-origami-mode +1)
+      (spook-defkeymap "spook-fold" "C-c f"
+                       '("n" . origami-next-fold)
+                       '("p" . origami-previous-fold)
+                       '("O" . origami-open-all-nodes)
+                       '("o" . origami-open-node-recursively)
+                       '("r" . origami-redo)
+                       '("u" . origami-undo)
+                       '("C" . origami-close-all-nodes)
+                       '("c" . origami-close-node-recursively)
+                       '("z" . origami-recursively-toggle-node)
+                       '("C-f" . origami-toggle-node)
+                       '("f" . origami-recursively-toggle-node)
+                       '("r" . origami-reset)))
+  #+end_src
 
-Projectile for managing projects.
+- Flycheck for getting those in-buffer warnings errors.
 
-#+begin_src elisp
-  (use-package projectile
-    :init (projectile-mode +1)
-    :bind (:map projectile-mode-map
-                ("s-p" . projectile-command-map)
-                ("C-c p" . projectile-command-map)))
-#+end_src
+  #+begin_src elisp
+    (use-package flycheck
+      :init
+      (global-flycheck-mode t)
+      ;; alias is needed for using the keymap in meow
+      (defalias 'flycheck-command-map flycheck-command-map))
+  #+end_src
 
-Company mode. I think I have a general idea of what it does, but still
-fuzzy on details. This stuff is usually taken for granted; I've been
-taking it for granted with Spacemacs for a while now I suppose.
+- Projectile for managing projects.
 
-#+begin_src elisp
-  (use-package company
-    :init (global-company-mode +1))
-#+end_src
+  #+begin_src elisp
+    (use-package projectile
+      :init (projectile-mode +1)
+      :bind (:map projectile-mode-map
+                  ("s-p" . projectile-command-map)
+                  ("C-c p" . projectile-command-map)))
+  #+end_src
 
-[[https://github.com/sebastiencs/company-box/][company-box-mode]] adds icons and colors to company options.
+- Company mode
 
-#+begin_src elisp
-  (use-package company-box
-    :hook (company-mode . company-box-mode))
-#+end_src
+  I think I have a general idea of what it does, but still fuzzy on
+  details. This stuff is usually taken for granted; I've been taking
+  it for granted with Spacemacs for a while now I suppose.
 
-LSP provides support for many languages with little cost of
-configuring. So LSP we do.
+  #+begin_src elisp
+    (use-package company
+      :init (global-company-mode +1))
+  #+end_src
 
-#+begin_src elisp
-  (use-package lsp-mode
-    :init (setq lsp-keymap-prefix "C-c l")
-    :hook
-    (lsp-mode . lsp-enable-which-key-integration)
-    ((typescript-mode
-      typescript-tsx-mode
-      js-mode
-      js-jsx-mode
-      python-mode
-      web-mode) . lsp)
-    :config
-    (setq lsp-auto-guess-root t)
-    (setq lsp-enable-symbol-highlighting nil)
-    (setq lsp-enable-on-type-formatting nil)
-    (setq lsp-enable-imenu nil)
-    (setq read-process-output-max (* 1024 1024)) ;; 1mb
-    (add-to-list 'lsp-language-id-configuration '(js-jsx-mode . "javascriptreact"))
-    :commands lsp-deferred)
+  [[https://github.com/sebastiencs/company-box/][company-box-mode]] adds icons and colors to company options.
 
-  (use-package lsp-ui
-    :commands lsp-ui-mode
-    :config
-    (setq lsp-ui-doc-show-with-cursor t
-          lsp-ui-doc-delay 1
-          lsp-ui-doc-position 'at-point))
+  #+begin_src elisp
+    (use-package company-box
+      :hook (company-mode . company-box-mode))
+  #+end_src
 
-  (use-package lsp-ivy
-    :config
-    (define-key lsp-mode-map (kbd "C-c lga") #'lsp-ivy-workspace-symbol))
-#+end_src
+- LSP provides support for many languages with little cost of
+  configuring. So LSP we do.
 
-[[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
+  #+begin_src elisp
+    (use-package lsp-mode
+      :init (setq lsp-keymap-prefix "C-c l")
+      :hook
+      (lsp-mode . lsp-enable-which-key-integration)
+      ((typescript-mode
+        typescript-tsx-mode
+        js-mode
+        js-jsx-mode
+        python-mode
+        web-mode) . lsp)
+      :config
+      (setq lsp-auto-guess-root t)
+      (setq lsp-enable-symbol-highlighting nil)
+      (setq lsp-enable-on-type-formatting nil)
+      (setq lsp-enable-imenu nil)
+      (setq read-process-output-max (* 1024 1024)) ;; 1mb
+      (add-to-list 'lsp-language-id-configuration '(js-jsx-mode . "javascriptreact"))
+      :commands lsp-deferred)
 
-#+begin_src elisp
-  (use-package reformatter
-    :config
-    (reformatter-define prettier-format
-      :program (expand-file-name "node_modules/.bin/prettier"
-                                 (locate-dominating-file (buffer-file-name) "node_modules"))
-      :args `("--stdin-filepath" ,(buffer-file-name)))
-    :hook (web-mode . prettier-format-on-save-mode))
-#+end_src
+    (use-package lsp-ui
+      :commands lsp-ui-mode
+      :config
+      (setq lsp-ui-doc-show-with-cursor t
+            lsp-ui-doc-delay 1
+            lsp-ui-doc-position 'at-point))
 
-Set some variables which I can use for reference and to configure
-things globally.
+    (use-package lsp-ivy
+      :config
+      (define-key lsp-mode-map (kbd "C-c lga") #'lsp-ivy-workspace-symbol))
+  #+end_src
 
-Direnv is pretty essential for my dev workflow.
+- [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
 
-#+begin_src elisp
-(use-package direnv
- :config
- (direnv-mode))
-#+end_src
+  #+begin_src elisp
+    (use-package reformatter
+      :config
+      (reformatter-define prettier-format
+        :program (expand-file-name "node_modules/.bin/prettier"
+                                   (locate-dominating-file (buffer-file-name) "node_modules"))
+        :args `("--stdin-filepath" ,(buffer-file-name)))
+      :hook (web-mode . prettier-format-on-save-mode))
+  #+end_src
+
+- Direnv is pretty essential for my dev workflow.
+
+  #+begin_src elisp
+    (use-package direnv
+     :config
+     (direnv-mode))
+  #+end_src
 
 *** Lisp
 :PROPERTIES:
@@ -894,7 +914,10 @@ says on the box without much fuss.
   (setq css-indent-offset spook--indent-width)
 
   (use-package js
-    :mode "\\.js'")
+    :mode "\\.js'"
+    :config
+    (setq js-indent-level spook--indent-width)
+    :hook ((js-mode . subword-mode)))
 
   (use-package web-mode
     :mode (("\\.html?\\'" . web-mode))
