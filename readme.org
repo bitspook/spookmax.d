@@ -298,6 +298,15 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       '("l" . windmove-right))
   #+end_src
 
+  Eyebrowse allows saving current windows state, and switch to a new
+  one to do one-off operations or work on different projects very
+  easy. I should perhaps try perspective sometime.
+
+  #+begin_src elisp
+    (use-package eyebrowse
+      :config (eyebrowse-mode t))
+  #+end_src
+
 - Buffer management
 
   #+begin_src elisp
@@ -820,6 +829,10 @@ configuring. So LSP we do.
     (setq lsp-ui-doc-show-with-cursor t
           lsp-ui-doc-delay 1
           lsp-ui-doc-position 'at-point))
+
+  (use-package lsp-ivy
+    :config
+    (define-key lsp-mode-map (kbd "C-c lga") #'lsp-ivy-workspace-symbol))
 #+end_src
 
 [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
@@ -882,12 +895,9 @@ says on the box without much fuss.
 
   (use-package js
     :mode "\\.js'")
+
   (use-package web-mode
-    :mode (("\\.html?\\'" . web-mode)
-           ("\\.css\\'"   . web-mode)
-           ("\\.jsx?\\'"  . web-mode)
-           ("\\.tsx?\\'"  . web-mode)
-           ("\\.json\\'"  . web-mode))
+    :mode (("\\.html?\\'" . web-mode))
     :config
     (setq web-mode-markup-indent-offset spook--indent-width)
     (setq web-mode-code-indent-offset spook--indent-width)
@@ -912,7 +922,10 @@ says on the box without much fuss.
                                  (setq-local emmet-expand-jsx-className? t))))
 
   (use-package typescript-mode
-    :mode "\\.ts'")
+    :mode "\\.tsx?\\'")
+
+  (use-package css-mode
+    :mode "\\.s?css\\'")
 #+end_src
 
 *** Rust
@@ -946,3 +959,19 @@ says on the box without much fuss.
     (use-package ledger-mode
       :mode "\\.ledger\\'")
   #+end_src
+
+- Desktop save/restore
+
+  Need to keep this at the bottom to ensure everything else is loaded
+  before desktop is restored; otherwise it restores buffers with
+  major-modes not loaded.
+
+  Eyebrowse allow saving on desktop-save, perhaps it'll be a good idea
+  to start from where I leave off. I'd certainly like my workspaces
+  restored. Don't want to create/rename them all the time.
+
+  #+begin_src elisp
+    (desktop-save-mode t)
+    (desktop-read)
+  #+end_src
+
