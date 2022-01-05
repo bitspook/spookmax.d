@@ -243,6 +243,15 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (setq create-lockfiles nil)
   #+end_src
 
+  I got sick of manually calling whitespace cleanup all the trim.
+  Cleanup whitespace.
+
+  #+begin_src elisp
+    (use-package whitespace-cleanup-mode
+      :config
+      (global-whitespace-cleanup-mode +1))
+  #+end_src
+
 - Introspection
   :PROPERTIES:
   :ID:       e17d83de-251c-4407-b2ea-ca9c428e5ea1
@@ -312,6 +321,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+begin_src elisp
     (spook-defkeymap
      "spook-buffers" "C-c b"
+     '("n" . next-buffer)
+     '("p" . previous-buffer)
      '("b" . ivy-switch-buffer)
      '("d" . kill-current-buffer))
   #+end_src
@@ -534,12 +545,10 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   customizing published projects.
 
   #+begin_src elisp
-    ;; Copied from https://emacs.stackexchange.com/questions/68592/add-css-class-or-id-tag-to-individual-src-blocks
+    (defun spook--org-src-block-html-attrs-advice (oldfun src-block contents info)
+      "Add class, id or data-* CSS attributes to html source block output.
 
-    (defun spook--org-html-src-block-advice (oldfun src-block contents info)
-      "Add class or id CSS tags to html source block output.
-
-    Allows class or id tags to be added to a source block using
+    Allows class, id or data  attributes to be added to a source block using
     #attr_html:
 
         ,#+ATTR_HTML: :class myclass :id myid
@@ -549,18 +558,21 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     "
       (let* ((old-ret (funcall oldfun src-block contents info))
              (class-tag (org-export-read-attribute :attr_html src-block :class))
+             (data-attr (let ((attr (org-export-read-attribute :attr_html src-block :data)))
+                          (when attr (split-string attr "="))))
              (id-tag (org-export-read-attribute :attr_html src-block :id)))
-        (if (or class-tag id-tag)
+        (if (or class-tag id-tag  data-attr)
             (concat
              "<div "
              (if class-tag (format "class=\"%s\" " class-tag))
              (if id-tag (format "id=\"%s\" " id-tag))
+             (if data-attr (format "data-%s=\"%s\" " (car data-attr) (cadr data-attr)))
              ">"
              old-ret
              "</div>")
           old-ret)))
 
-    (advice-add 'org-html-src-block :around #'spook--org-html-src-block-advice)
+    (advice-add 'org-html-src-block :around #'spook--org-src-block-html-attrs-advice)
   #+end_src
 
 - Support exporting code blocks with syntax-highlighting
@@ -706,7 +718,8 @@ shot!
      '("b" . spook-buffers)
      '("g" . spook-git)
      '("o" . spook-org)
-     '("n" . spook-notes))
+     '("n" . spook-notes)
+     '("t" . spook-tree))
   #+end_src
 
 ** Ivy
@@ -782,7 +795,8 @@ Modeline
                        '("z" . origami-recursively-toggle-node)
                        '("C-f" . origami-toggle-node)
                        '("f" . origami-recursively-toggle-node)
-                       '("r" . origami-reset)))
+                       '("r" . origami-reset)
+                       '("t" . origami-toggle-all-nodes)))
   #+end_src
 
 - Flycheck for getting those in-buffer warnings errors.
@@ -974,6 +988,48 @@ says on the box without much fuss.
   (use-package graphql-mode
     :mode "\\.graphql\\'")
 #+end_src
+
+
+*** Niceties
+:PROPERTIES:
+:ID:       8e8563f8-2161-4af3-b072-fc3b81cc57a6
+:END:
+
+- Treemacs
+
+  #+begin_src elisp
+    (use-package treemacs
+      :config
+      (progn
+        (treemacs-follow-mode t)
+        (treemacs-filewatch-mode t)
+        (treemacs-fringe-indicator-mode 'always)
+        (treemacs-git-mode 'deferred)
+        (treemacs-git-mode 'simple)
+        (treemacs-hide-gitignored-files-mode nil))
+      (spook-defkeymap "spook-tree" "C-c t"
+                       '("0" . treemacs-select-window)
+                       '("1" . treemacs-delete-other-windows)
+                       '("t" . treemacs)
+                       '("d" . treemacs-select-directory)
+                       '("B" . treemacs-bookmark)
+                       '("C-t" . treemacs-find-file)
+                       '("M-t" . treemacs-find-tag)))
+
+    (use-package treemacs-projectile
+      :after (treemacs projectile))
+
+    (use-package treemacs-icons-dired
+      :hook (dired-mode . treemacs-icons-dired-enable-once))
+
+    (use-package treemacs-magit
+      :after (treemacs magit))
+
+    (use-package treemacs-all-the-icons
+      :after (treemacs)
+      :config
+      (treemacs-load-theme 'all-the-icons))
+  #+end_src
 ** Applications
 
 - Ledger
