@@ -232,8 +232,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   From: https://github.com/susam/emfy/blob/main/.emacs#L26
   #+begin_src elisp
-    ;; Show stray whitespace.
-    (setq-default show-trailing-whitespace t)
     (setq-default indicate-empty-lines t)
     (setq-default indicate-buffer-boundaries 'left)
 
@@ -250,6 +248,12 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (use-package whitespace-cleanup-mode
       :config
       (global-whitespace-cleanup-mode +1))
+  #+end_src
+
+- Fill column for auto-formatting/filling paragraphs.
+
+  #+begin_src elisp
+    (setq-default fill-column 80)
   #+end_src
 
 - Introspection
@@ -722,7 +726,7 @@ shot!
      '("t" . spook-tree))
   #+end_src
 
-** Ivy
+** Completion UI
 :PROPERTIES:
 :ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
 :END:
@@ -731,7 +735,8 @@ shot!
   (use-package ivy
     :init
     (setq ivy-use-virtual-buffers t
-          ivy-height 20)
+          ivy-height 20
+          ivy-re-builders-alist '((t . orderless-ivy-re-builder)))
     :config
     (ivy-mode 1))
 
@@ -747,6 +752,28 @@ shot!
     (counsel-mode 1)
     (setq counsel-git-grep-cmd "git --no-pager rg -n --no-color -I -e \"%s\""))
 #+end_src
+
+- Marginalia adds pretty information to completions. I am adding it because
+  they're pretty, and I imagine will be helpful. If they're not, I'll remove it
+  later.
+
+  #+begin_src elisp
+    ;; Enable richer annotations using the Marginalia package
+    (use-package marginalia
+      :bind (:map minibuffer-local-map
+             ("M-A" . marginalia-cycle))
+      :init (marginalia-mode +1))
+  #+end_src
+
+- Orderless adds matches completion candidates by space-separated patterns in
+  any order. I liked this style of matching in Spacemacs a lot, and miss it in
+  ivy
+
+  #+begin_src elisp
+    (use-package orderless
+      :config
+      (setq completion-styles '(orderless-regexp)))
+  #+end_src
 
 ** Looks
 :PROPERTIES:
@@ -770,6 +797,12 @@ Modeline
 :PROPERTIES:
 :ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
 :END:
+
+- Show trailing whitespace in programming files
+
+  #+begin_src elisp
+    (add-hook 'prog-mode-hook #'(lambda () (setq-local show-trailing-whitespace t)))
+  #+end_src
 
 - Wrapping text in parens, quotes etc
 
@@ -1012,6 +1045,7 @@ says on the box without much fuss.
                        '("1" . treemacs-delete-other-windows)
                        '("t" . treemacs)
                        '("d" . treemacs-select-directory)
+                       '("p" . treemacs-projectile)
                        '("B" . treemacs-bookmark)
                        '("C-t" . treemacs-find-file)
                        '("M-t" . treemacs-find-tag)))
