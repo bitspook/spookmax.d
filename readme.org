@@ -388,6 +388,70 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
                  flyspell-correct-wrapper))
   #+end_src
 
+
+** EXWM
+
+#+begin_src elisp
+  (use-package exwm
+    :config
+    (setq exwm-workspace-number 5)
+
+    (add-hook 'exwm-update-class-hook
+              (lambda ()
+                (unless (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                  (exwm-workspace-rename-buffer exwm-class-name))))
+    (add-hook 'exwm-update-title-hook
+              (lambda ()
+                (when (or (not exwm-instance-name)
+                          (string-prefix-p "sun-awt-X11-" exwm-instance-name))
+                  (exwm-workspace-rename-buffer exwm-title))))
+
+    (setq exwm-input-global-keys
+          `(
+            (,(kbd "s-r") . exwm-reset)
+            (,(kbd "s-w") . exwm-workspace-switch)
+            ,@(mapcar (lambda (i)
+                        `(,(kbd (format "s-%d" i)) .
+                          (lambda ()
+                            (interactive)
+                            (exwm-workspace-switch-create ,i))))
+                      (number-sequence 1 9))
+            (,(kbd "s-&") . (lambda (command)
+                              (interactive (list (read-shell-command "$ ")))
+                              (start-process-shell-command command nil command)))
+            (,(kbd "s-d") . (lambda ()
+                              (interactive)
+                              (start-process "rofi" nil "rofi" "-show" "run")))
+            (,(kbd "s-C-l") . (lambda ()
+                                (interactive)
+                                (start-process "" nil "slock")))))
+
+    (define-key exwm-mode-map (kbd "C-q") #'exwm-input-send-next-key)
+
+    (setq exwm-input-simulation-keys
+          `(
+            (,(kbd "C-b") . [left])
+            (,(kbd "M-b") . [C-left])
+            (,(kbd "C-f") . [right])
+            (,(kbd "M-f") . [C-right])
+            (,(kbd "C-p") . [up])
+            (,(kbd "C-n") . [down])
+            (,(kbd "C-a") . [home])
+            (,(kbd "C-e") . [end])
+            (,(kbd "M-v") . [prior])
+            (,(kbd "C-v") . [next])
+            (,(kbd "C-d") . [delete])
+            (,(kbd "C-k") . [S-end delete])
+            (,(kbd "C-w") . [?\C-x])
+            (,(kbd "M-w") . [?\C-c])
+            (,(kbd "C-y") . [?\C-v])
+            (,(kbd "C-s") . [?\C-f])))
+
+    ;; (setq exwm-workspace-minibuffer-position 'bottom)
+
+    (exwm-enable))
+#+end_src
+
 ** Org mode
 :PROPERTIES:
 :ID:       8b2528d8-3fd2-4076-8b1e-791df8ed9a67
