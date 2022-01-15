@@ -19,7 +19,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - Bootstrap
 
   #+begin_src elisp :tangle ./early-init.el
-    ;;; core-ui.el -*- lexical-binding: t; -*-
+    ;; -*- lexical-binding: t -*-
     (setq package-enable-at-startup nil)
 
     ;;
@@ -1022,17 +1022,43 @@ says on the box without much fuss.
     (setq emmet-insert-flash-time 0.001)	; effectively disabling it
     (add-hook 'js-jsx-mode-hook #'(lambda ()
                                     (setq-local emmet-expand-jsx-className? t)))
-    (add-hook 'ts-tsx-mode-hook #'(lambda ()
+    (add-hook 'typescript-tsx-mode-hook #'(lambda ()
                                     (setq-local emmet-expand-jsx-className? t)))
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
   (use-package typescript-mode
-    :mode "\\.tsx?\\'")
+    :mode "\\.ts?\\'")
 
   (use-package css-mode
     :mode "\\.s?css\\'")
 #+end_src
+
+- Setup =typescript-tsx-mode= using code I don't fully understand. Copied from
+  [[https://github.com/emacs-typescript/typescript.el/issues/4#issuecomment-873485004][typescript.el#4]]
+
+  #+begin_src elisp
+    (use-package typescript-mode
+      :ensure t
+      :init
+      (define-derived-mode typescript-tsx-mode typescript-mode "tsx")
+      :config
+      (setq typescript-indent-level 2)
+      (add-hook 'typescript-mode #'subword-mode)
+      (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-tsx-mode)))
+
+    (use-package tree-sitter
+      :ensure t
+      :hook ((typescript-mode . tree-sitter-hl-mode)
+       (typescript-tsx-mode . tree-sitter-hl-mode)))
+
+    (use-package tree-sitter-langs
+      :ensure t
+      :after tree-sitter
+      :config
+      (tree-sitter-require 'tsx)
+      (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx)))
+  #+end_src
 
 *** Rust
 
