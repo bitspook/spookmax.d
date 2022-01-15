@@ -308,14 +308,20 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       '("l" . windmove-right))
   #+end_src
 
-  Eyebrowse allows saving current windows state, and switch to a new
-  one to do one-off operations or work on different projects very
-  easy. I should perhaps try perspective sometime.
+  - Workspace management with perspective
 
-  #+begin_src elisp
-    (use-package eyebrowse
-      :config (eyebrowse-mode t))
-  #+end_src
+    I was using eyebrowse earlier, but I don't like its reliance on desktop-mode
+    to save state. Let's give perspective a shot
+
+    #+begin_src elisp
+      (use-package perspective
+        :bind
+        ("C-x C-b" . persp-list-buffers)   ; or use a nicer switcher, see below
+        :init
+        (setq persp-mode-prefix-key (kbd "C-c C-w"))
+        :config
+        (persp-mode +1))
+    #+end_src
 
 - Buffer management
 
@@ -388,69 +394,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
                  flyspell-correct-wrapper))
   #+end_src
 
-
-** EXWM
-
-#+begin_src elisp
-  (use-package exwm
-    :config
-    (setq exwm-workspace-number 5)
-
-    (add-hook 'exwm-update-class-hook
-              (lambda ()
-                (unless (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-                  (exwm-workspace-rename-buffer exwm-class-name))))
-    (add-hook 'exwm-update-title-hook
-              (lambda ()
-                (when (or (not exwm-instance-name)
-                          (string-prefix-p "sun-awt-X11-" exwm-instance-name))
-                  (exwm-workspace-rename-buffer exwm-title))))
-
-    (setq exwm-input-global-keys
-          `(
-            (,(kbd "s-r") . exwm-reset)
-            (,(kbd "s-w") . exwm-workspace-switch)
-            ,@(mapcar (lambda (i)
-                        `(,(kbd (format "s-%d" i)) .
-                          (lambda ()
-                            (interactive)
-                            (exwm-workspace-switch-create ,i))))
-                      (number-sequence 1 9))
-            (,(kbd "s-&") . (lambda (command)
-                              (interactive (list (read-shell-command "$ ")))
-                              (start-process-shell-command command nil command)))
-            (,(kbd "s-d") . (lambda ()
-                              (interactive)
-                              (start-process "rofi" nil "rofi" "-show" "run")))
-            (,(kbd "s-C-l") . (lambda ()
-                                (interactive)
-                                (start-process "" nil "slock")))))
-
-    (define-key exwm-mode-map (kbd "C-q") #'exwm-input-send-next-key)
-
-    (setq exwm-input-simulation-keys
-          `(
-            (,(kbd "C-b") . [left])
-            (,(kbd "M-b") . [C-left])
-            (,(kbd "C-f") . [right])
-            (,(kbd "M-f") . [C-right])
-            (,(kbd "C-p") . [up])
-            (,(kbd "C-n") . [down])
-            (,(kbd "C-a") . [home])
-            (,(kbd "C-e") . [end])
-            (,(kbd "M-v") . [prior])
-            (,(kbd "C-v") . [next])
-            (,(kbd "C-d") . [delete])
-            (,(kbd "C-k") . [S-end delete])
-            (,(kbd "C-w") . [?\C-x])
-            (,(kbd "M-w") . [?\C-c])
-            (,(kbd "C-y") . [?\C-v])
-            (,(kbd "C-s") . [?\C-f])))
-
-    ;; (setq exwm-workspace-minibuffer-position 'bottom)
-
-    (exwm-enable))
-#+end_src
 
 ** Org mode
 :PROPERTIES:
@@ -1087,12 +1030,13 @@ says on the box without much fuss.
     (add-hook 'js-jsx-mode-hook #'(lambda ()
                                     (setq-local emmet-expand-jsx-className? t)))
     (add-hook 'typescript-tsx-mode-hook #'(lambda ()
-                                    (setq-local emmet-expand-jsx-className? t)))
+                                            (setq-local emmet-expand-jsx-className? t)))
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
   (use-package typescript-mode
-    :mode "\\.ts?\\'")
+    :mode "\\.ts?\\'"
+    :hook ((typescript-mode . subword-mode)))
 
   (use-package css-mode
     :mode "\\.s?css\\'")
@@ -1103,21 +1047,19 @@ says on the box without much fuss.
 
   #+begin_src elisp
     (use-package typescript-mode
-      :ensure t
       :init
       (define-derived-mode typescript-tsx-mode typescript-mode "tsx")
+      :hook ((typescript-mode . subword-mode))
       :config
       (setq typescript-indent-level 2)
       (add-hook 'typescript-mode #'subword-mode)
       (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-tsx-mode)))
 
     (use-package tree-sitter
-      :ensure t
       :hook ((typescript-mode . tree-sitter-hl-mode)
-       (typescript-tsx-mode . tree-sitter-hl-mode)))
+             (typescript-tsx-mode . tree-sitter-hl-mode)))
 
     (use-package tree-sitter-langs
-      :ensure t
       :after tree-sitter
       :config
       (tree-sitter-require 'tsx)
