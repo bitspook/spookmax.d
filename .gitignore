@@ -17,3 +17,5 @@
 /multisession/
 /.log/
 .emacs.desktop*
+/projectile.cache
+/history

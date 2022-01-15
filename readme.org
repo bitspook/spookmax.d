@@ -249,7 +249,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :config
       (global-whitespace-cleanup-mode +1))
   #+end_src
-
+  
 - Fill column for auto-formatting/filling paragraphs.
 
   #+begin_src elisp
@@ -274,12 +274,9 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   :ID:       79c1e2a9-c52e-4660-ba70-f6f1f98f7d4e
   :END:
 
-  Setting this to =nil= for now; until I configure a decent theme which don't
-  cause the problem. The problem is that, with the default themes at least, the
-  highlighted line and color of selection is same. So it become impossible to
-  tell which part is selection and which is highlighted line.
-
   #+begin_src elisp
+    (global-hl-line-mode +1)
+
     (use-package highlight-symbol
       :hook (prog-mode . highlight-symbol-mode)
       :config
@@ -327,7 +324,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      "spook-buffers" "C-c b"
      '("n" . next-buffer)
      '("p" . previous-buffer)
-     '("b" . ivy-switch-buffer)
      '("d" . kill-current-buffer))
   #+end_src
 
@@ -380,17 +376,16 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (use-package flyspell
       :hook
       (text-mode . flyspell-mode)
-      (prog-mode . flyspell-prog-mode))
+      (prog-mode . flyspell-prog-mode)
+      :config
+      (define-key flyspell-mode-map (kbd "C-,") nil t)
+      (define-key flyspell-mode-map (kbd "C-.") nil t)
+      (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
+
     (use-package flyspell-correct
       :after (flyspell)
       :commands (flyspell-correct-at-point
                  flyspell-correct-wrapper))
-    (use-package flyspell-correct-ivy
-      :after (flyspell-correct)
-      :commands (flyspell-correct-ivy)
-      :init (setq flyspell-correct-interface #'flyspell-correct-ivy)
-      :config
-      (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
   #+end_src
 
 ** Org mode
@@ -469,7 +464,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      '("a" . org-agenda-list)
      '("A" . org-agenda)
      '("c" . org-capture)
-     '("C" . org-clock-goto))
+     '("C" . org-clock-goto)
+     '("o" . consult-org-agenda))
   #+end_src
 
 - org-super-agenda
@@ -627,7 +623,7 @@ shot!
        '("8" . meow-digit-argument)
        '("9" . meow-digit-argument)
        '("0" . meow-digit-argument)
-       '("/" . meow-keypad-describe-key)
+       ;; '("/" . meow-keypad-describe-key)
        '("?" . meow-cheatsheet))
 
       (meow-normal-define-key
@@ -675,7 +671,7 @@ shot!
        '("O" . meow-to-block)
        '("p" . meow-yank)
        '("q" . meow-quit)
-       '("Q" . meow-goto-line)
+       ;; '("Q" . meow-goto-line)
        '("r" . meow-replace)
        '("R" . meow-swap-grab)
        '("s" . meow-kill)
@@ -686,7 +682,7 @@ shot!
        '("w" . meow-mark-word)
        '("W" . meow-mark-symbol)
        '("x" . meow-line)
-       '("X" . meow-goto-line)
+       ;; '("X" . meow-goto-line)
        '("y" . meow-save)
        '("Y" . meow-sync-grab)
        '("z" . meow-pop-selection)
@@ -706,15 +702,15 @@ shot!
   #+begin_src elisp
     (meow-normal-define-key
      '("z" . spook-fold)
-     '("/" . swiper-isearch)
-     '("?" . swiper-isearch-backward))
+     '("/" . "C-s")
+     '("?" . "C-r"))
   #+end_src
 
 - Leader keybindings
 
   #+begin_src elisp
     (meow-leader-define-key
-     '("/" . counsel-git-grep)
+     '("/" . consult-git-grep)
      '("l" . lsp-mode-map)
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
@@ -730,32 +726,36 @@ shot!
 :PROPERTIES:
 :ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
 :END:
+- Orderlies adds matches completion candidates by space-separated patterns in
+  any order
 
-#+begin_src elisp
-  (use-package ivy
-    :init
-    (setq ivy-use-virtual-buffers t
-          ivy-height 20
-          ivy-re-builders-alist '((t . orderless-ivy-re-builder)))
-    :config
-    (ivy-mode 1))
+  #+begin_src elisp
+    (use-package orderless
+      :config
+      (setq completion-styles '(orderless)))
+  #+end_src
 
-  (use-package swiper
-    :after (ivy)
-    :config
-    (global-set-key (kbd "C-s") #'swiper-isearch)
-    (global-set-key (kbd "C-r") #'swiper-isearch-backward))
+- Vertico for completion UI
 
-  (use-package counsel
-    :after (ivy)
-    :config
-    (counsel-mode 1)
-    (setq counsel-git-grep-cmd "git --no-pager rg -n --no-color -I -e \"%s\""))
-#+end_src
+  #+begin_src elisp
+    (use-package vertico
+      :init (vertico-mode +1)
+      :config
+      (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
-- Marginalia adds pretty information to completions. I am adding it because
-  they're pretty, and I imagine will be helpful. If they're not, I'll remove it
-  later.
+    ;; Persist history over Emacs restarts. Vertico sorts by history position.
+    (use-package savehist
+      :init
+      (savehist-mode +1))
+
+    ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+    ;; Vertico commands are hidden in normal buffers.
+    (setq read-extended-command-predicate
+          #'command-completion-default-include-p)
+  #+end_src
+
+- Marginalia adds pretty information to completions. It's pretty, useful, and
+  recommended by =embark= (it provides extra information to =embark=)
 
   #+begin_src elisp
     ;; Enable richer annotations using the Marginalia package
@@ -765,33 +765,73 @@ shot!
       :init (marginalia-mode +1))
   #+end_src
 
-- Orderless adds matches completion candidates by space-separated patterns in
-  any order. I liked this style of matching in Spacemacs a lot, and miss it in
-  ivy
+- Consult for enhanced commands
 
   #+begin_src elisp
-    (use-package orderless
+    (use-package consult
+      :init
+      (setq consult-project-root-function #'projectile-project-root)
       :config
-      (setq completion-styles '(orderless-regexp)))
+      (consult-customize consult-theme :preview-key '(:debounce 0.5 any))
+
+      (global-set-key (kbd "C-s") #'consult-line)
+      (global-set-key (kbd "C-r") #'consult-line-multi)
+      (global-set-key (kbd "C-x b") #'consult-buffer)
+      (define-key spook-buffers-keymap (kbd "b") #'consult-buffer)
+      (define-key spook-buffers-keymap (kbd "B") #'consult-buffer-other-window)
+
+      ;; better yank which show kill-ring for selection
+      (global-set-key (kbd "C-y") #'consult-yank-pop)
+      (meow-leader-define-key
+       '("/" . consult-ripgrep))
+      (meow-normal-define-key
+       '("p" . consult-yank-pop)
+       '("Q" . consult-goto-line)
+       '("X" . consult-focus-lines)))
+
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    (recentf-mode +1)
+
+    (use-package consult-flycheck
+      :config
+      (define-key flycheck-command-map (kbd "l") #'consult-flycheck))
+
+    (use-package embark-consult
+      :after (embark consult)
+      :demand t
+      :hook
+      (embark-collect-mode . consult-preview-at-point-mode))
   #+end_src
 
-** Looks
-:PROPERTIES:
-:ID:       baaa3b17-3676-4759-b2a0-dc792897862b
-:END:
+** Contextual actions
 
-#+begin_src elisp
-  (use-package doom-themes
-    :config
-    (load-theme 'doom-vibrant t))
-#+end_src
+- [[https://github.com/oantolin/embark][embark]] allow contextual actions, like opening buffers in other window from
+  minibuffer and a lot more
 
-Modeline
+  #+begin_src elisp
+    (defun spook--embark-act-no-quit ()
+      "(embark-act), but don't quit the minibuffer"
+      (interactive)
+      (let ((embark-quit-after-action nil))
+        (embark-act)))
 
-#+begin_src elisp
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1))
-#+end_src
+    (use-package embark
+      :bind
+      (("C-," . embark-act)
+       ("C-." . embark-dwim)
+       ("C-h b" . embark-bindings)
+       ("C-<" . spook--embark-act-no-quit)))
+  #+end_src
+
+** More powerful editing
+
+- =wgrep= for editing grep buffers
+
+  #+begin_src elisp
+    (use-package wgrep)
+  #+end_src
 
 ** Programming
 :PROPERTIES:
@@ -899,10 +939,6 @@ Modeline
       (setq lsp-ui-doc-show-with-cursor t
             lsp-ui-doc-delay 1
             lsp-ui-doc-position 'at-point))
-
-    (use-package lsp-ivy
-      :config
-      (define-key lsp-mode-map (kbd "C-c lga") #'lsp-ivy-workspace-symbol))
   #+end_src
 
 - [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
@@ -1064,6 +1100,26 @@ says on the box without much fuss.
       :config
       (treemacs-load-theme 'all-the-icons))
   #+end_src
+** Looks
+:PROPERTIES:
+:ID:       baaa3b17-3676-4759-b2a0-dc792897862b
+:END:
+
+#+begin_src elisp
+  (use-package doom-themes
+    :config
+    (setq doom-rouge-brighter-modeline t
+          doom-rouge-brighter-comments t)
+    (load-theme 'doom-rouge t))
+#+end_src
+
+Modeline
+
+#+begin_src elisp
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
+#+end_src
+
 ** Applications
 
 - Ledger
@@ -1072,19 +1128,3 @@ says on the box without much fuss.
     (use-package ledger-mode
       :mode "\\.ledger\\'")
   #+end_src
-
-- Desktop save/restore
-
-  Need to keep this at the bottom to ensure everything else is loaded
-  before desktop is restored; otherwise it restores buffers with
-  major-modes not loaded.
-
-  Eyebrowse allow saving on desktop-save, perhaps it'll be a good idea
-  to start from where I leave off. I'd certainly like my workspaces
-  restored. Don't want to create/rename them all the time.
-
-  #+begin_src elisp
-    (desktop-save-mode t)
-    (desktop-read)
-  #+end_src
-
