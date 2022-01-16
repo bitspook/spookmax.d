@@ -1068,11 +1068,9 @@ says on the box without much fuss.
     (use-package typescript-mode
       :init
       (define-derived-mode typescript-tsx-mode typescript-mode "tsx")
-      :hook ((typescript-mode . subword-mode))
+      :mode (("\\.tsx\\'" . typescript-tsx-mode))
       :config
-      (setq typescript-indent-level 2)
-      (add-hook 'typescript-mode #'subword-mode)
-      (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-tsx-mode)))
+      (add-hook 'typescript-tsx-mode #'subword-mode))
 
     (use-package tree-sitter
       :hook ((typescript-mode . tree-sitter-hl-mode)
