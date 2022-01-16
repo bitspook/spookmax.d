@@ -315,8 +315,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
     #+begin_src elisp
       (use-package perspective
-        :bind
-        ("C-x C-b" . persp-list-buffers)   ; or use a nicer switcher, see below
         :init
         (setq persp-mode-prefix-key (kbd "C-c C-w"))
         :config

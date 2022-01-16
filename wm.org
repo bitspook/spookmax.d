@@ -20,8 +20,21 @@
       (require 'exwm-systemtray)
       (exwm-systemtray-enable)
 
+      (require 'exwm-randr)
+      (exwm-randr-enable)
+      ;; If HDMI cable is connected, turn off laptop monitor
+      (let ((hdmi (seq-find (lambda (el) (string-match "HDMI" el))
+                            (split-string (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3") "[\n]" t nil))))
+        (when hdmi
+          (start-process "" "*wm-startup*" "xrandr" "--output" (replace-regexp-in-string "[\+\*]" "" hdmi) "--auto" "--output" "eDP-1" "--off")
+          (start-process-shell-command "" "*wm-startup*" "feh --bg-fill --randomize /home/channi/Pictures/wallpaper")))
+
       (setq exwm-input-global-keys
             `(
+              (,(kbd "s-[") . (lambda () (interactive) (exwm-layout-shrink-window-horizontally 40)))
+              (,(kbd "s-]") . (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 40)))
+              (,(kbd "s-{") . (lambda () (interactive) (exwm-layout-shrink-window 40)))
+              (,(kbd "s-}") . (lambda () (interactive) (exwm-layout-enlarge-window 40)))
               (,(kbd "s-r") . exwm-reset)
               (,(kbd "s-w") . exwm-workspace-switch)
               ,@(mapcar (lambda (i)
@@ -29,15 +42,21 @@
                             (lambda ()
                               (interactive)
                               (exwm-workspace-switch-create ,i))))
-                        (number-sequence 1 9))
+                        (number-sequence 0 9))
               (,(kbd "s-&") . (lambda (command)
                                 (interactive (list (read-shell-command "$ ")))
                                 (start-process-shell-command command nil command)))
-              (,(kbd "s-d") . (lambda ()
-                                (interactive)
-                                (start-process "rofi" nil "rofi" "-show" "run")))))
+              (,(kbd "s-d") . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
+              (,(kbd "s-p") . (lambda () (interactive) (start-process "" "*wm-shortcuts" nil "rofi-pass")))
+              ([?\s-x] . meow-keypad-start)
+              ([?\s-m] . meow-keypad-start)
+              ([?\s-g] . meow-keypad-start)
+              ([?\s-c] . meow-keypad-start)
+              ([?\ ] . ,meow-leader-keymap) ;; This is super+SPC
+              ))
 
       (define-key exwm-mode-map (kbd "C-q") #'exwm-input-send-next-key)
+      (define-key exwm-mode-map (kbd "C-c C-f") #'exwm-layout-toggle-fullscreen)
 
       (setq exwm-input-simulation-keys
             `(
@@ -59,8 +78,20 @@
               (,(kbd "C-s") . [?\C-f])))
 
       ;; (setq exwm-workspace-minibuffer-position 'bottom)
+      (setq mouse-autoselect-window t
+            focus-follows-mouse t)
+
+      ;; enable mouse drag for window resice
+      (setq mouse-autoselect-window t
+            focus-follows-mouse t)
 
       (exwm-enable))
+  #+end_src
+
+- Global keybindings now that =s-= prefix is free
+
+  #+begin_src elisp
+    (global-set-key  (kbd "s-x") #'execute-extended-command)
   #+end_src
 
 - Display batter and time in modline
@@ -69,4 +100,14 @@
     (display-battery-mode +1)
     (setq display-time-day-and-date t)
     (display-time-mode +1)
+  #+end_src
+
+- Move any input to emacs for quick editing
+
+  #+begin_src elisp
+    (defun spook--on-exwm-edit-compose ()
+      (funcall 'markdown-mode))
+
+    (use-package exwm-edit
+      :hook (exwm-edit-compose . spook--on-exwm-edit-compose))
   #+end_src
