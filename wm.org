@@ -35,28 +35,33 @@
               (,(kbd "s-]") . (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 40)))
               (,(kbd "s-{") . (lambda () (interactive) (exwm-layout-shrink-window 40)))
               (,(kbd "s-}") . (lambda () (interactive) (exwm-layout-enlarge-window 40)))
-              (,(kbd "s-r") . exwm-reset)
-              (,(kbd "s-w") . exwm-workspace-switch)
+              ([?\s-r] . exwm-reset)
+              ([?\s-w] . exwm-workspace-switch)
               ,@(mapcar (lambda (i)
                           `(,(kbd (format "s-%d" i)) .
                             (lambda ()
                               (interactive)
                               (exwm-workspace-switch-create ,i))))
                         (number-sequence 0 9))
-              (,(kbd "s-&") . (lambda (command)
-                                (interactive (list (read-shell-command "$ ")))
-                                (start-process-shell-command command nil command)))
-              (,(kbd "s-d") . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
-              (,(kbd "s-p") . (lambda () (interactive) (start-process "" "*wm-shortcuts" nil "rofi-pass")))
+              ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+              ([?\s-&] . (lambda (command)
+                           (interactive (list (read-shell-command "$ ")))
+                           (start-process-shell-command command nil command)))
+              ([?\s-d] . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
+              ([?\s-p] . (lambda () (interactive) (start-process "" "*wm-shortcuts" nil "rofi-pass")))
               ([?\s-x] . meow-keypad-start)
               ([?\s-m] . meow-keypad-start)
               ([?\s-g] . meow-keypad-start)
               ([?\s-c] . meow-keypad-start)
-              ([?\ ] . ,meow-leader-keymap) ;; This is super+SPC
-              ))
+              ([?\s-\ ] . ,meow-leader-keymap)))
 
       (define-key exwm-mode-map (kbd "C-q") #'exwm-input-send-next-key)
       (define-key exwm-mode-map (kbd "C-c C-f") #'exwm-layout-toggle-fullscreen)
+
+      ;; Allow using leader key in X windows; as a downside, I need to press `C-q
+      ;; SPC` to add normal SPC while editing. Which isn't as big a problem since I
+      ;; use =C-'= to edit most inputs anyway
+      (define-key exwm-mode-map (kbd "SPC") 'meow-leader-keymap)
 
       (setq exwm-input-simulation-keys
             `(
@@ -109,5 +114,6 @@
       (funcall 'markdown-mode))
 
     (use-package exwm-edit
-      :hook (exwm-edit-compose . spook--on-exwm-edit-compose))
+      :config
+      (add-hook 'exwm-edit-compose-hook #'spook--on-exwm-edit-compose))
   #+end_src
