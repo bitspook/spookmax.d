@@ -61,27 +61,46 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 ** Helper utilities
 
-#+begin_src elisp
-  (defmacro spook-defkeymap (name prefix &rest bindings)
-    "Create a new NAME-keymap bound to PREFIX, with BINDINGS.
+- Ergonomically create keymaps 
 
-  Usage:
-    (spook-defkeymap \"spook-git\" \"C-c g\"
-      '(\"s\" . magit-status))
-  "
-    (let* ((keymap-name (intern (concat name "-keymap")))
-           (keymap-alias (intern name))
-           (keymap-bindings (mapcar
-                             (lambda (binding)
-                               (let ((binding (eval binding)))
-                                 `(define-key ,keymap-name (kbd ,(car binding)) #',(cdr binding))))
-                             bindings)))
-      `(progn
-         (defvar ,keymap-name (make-sparse-keymap))
-         (defalias ',keymap-alias ,keymap-name)
-         (global-set-key (kbd ,prefix) ',keymap-alias)
-         ,@keymap-bindings)))
-#+end_src
+  #+begin_src elisp
+    (defmacro spook-defkeymap (name prefix &rest bindings)
+      "Create a new NAME-keymap bound to PREFIX, with BINDINGS.
+
+    Usage:
+      (spook-defkeymap \"spook-git\" \"C-c g\"
+        '(\"s\" . magit-status))
+    "
+      (let* ((keymap-name (intern (concat name "-keymap")))
+             (keymap-alias (intern name))
+             (keymap-bindings (mapcar
+                               (lambda (binding)
+                                 (let ((binding (eval binding)))
+                                   `(define-key ,keymap-name (kbd ,(car binding)) #',(cdr binding))))
+                               bindings)))
+        `(progn
+           (defvar ,keymap-name (make-sparse-keymap))
+           (defalias ',keymap-alias ,keymap-name)
+           (global-set-key (kbd ,prefix) ',keymap-alias)
+           ,@keymap-bindings)))
+  #+end_src
+
+- Utilities for helping with scratch buffer
+
+  #+begin_src elisp
+    (defun spook--get-or-create-scratch ()
+      "Switch to *scratch* buffer. Create if it doesn't already exist"
+      (interactive)
+      (switch-to-buffer (get-buffer-create "*scratch*")))
+
+    (defun spook--scratch-below (&optional scratch-size)
+      "Create a small window below with *scratch* as its buffer for quick access"
+      (interactive)
+      (let ((lower-window (split-window-below (or scratch-size -20))))
+        (select-window lower-window)
+        (spook--get-or-create-scratch)))
+  #+end_src
+
 ** Preliminary setup
 :PROPERTIES:
 :ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
@@ -297,6 +316,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+begin_src elisp
     (spook-defkeymap "spook-windows" "C-c w"
       '("-" . split-window-below)
+      '("_" . spook--scratch-below)
       '("/" . split-window-right)
       '("d" . delete-window)
       '("m" . delete-other-windows)
@@ -328,7 +348,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      "spook-buffers" "C-c b"
      '("n" . next-buffer)
      '("p" . previous-buffer)
-     '("d" . kill-current-buffer))
+     '("d" . kill-current-buffer)
+     '("s" . spook--get-or-create-scratch))
   #+end_src
 
 - [Ma]git
