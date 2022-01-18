@@ -48,15 +48,20 @@
                            (interactive (list (read-shell-command "$ ")))
                            (start-process-shell-command command nil command)))
               ([?\s-d] . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
-              ([?\s-p] . (lambda () (interactive) (start-process "" "*wm-shortcuts" nil "rofi-pass")))
               ([?\s-x] . meow-keypad-start)
               ([?\s-m] . meow-keypad-start)
               ([?\s-g] . meow-keypad-start)
               ([?\s-c] . meow-keypad-start)
               ([?\s-\ ] . ,meow-leader-keymap)))
 
+      (defun spook--rofi-pass ()
+        (interactive)
+        (start-process-shell-command "" nil "rofi-pass"))
+
       (define-key exwm-mode-map (kbd "C-q") #'exwm-input-send-next-key)
       (define-key exwm-mode-map (kbd "C-c C-f") #'exwm-layout-toggle-fullscreen)
+      (define-key exwm-mode-map (kbd "C-c C-k") #'exwm-input-toggle-keyboard)
+      (define-key exwm-mode-map (kbd "s-P") #'spook--rofi-pass)
 
       ;; Allow using leader key in X windows; as a downside, I need to press `C-q
       ;; SPC` to add normal SPC while editing. Which isn't as big a problem since I
@@ -83,8 +88,8 @@
               (,(kbd "C-s") . [?\C-f])))
 
       ;; (setq exwm-workspace-minibuffer-position 'bottom)
-      (setq mouse-autoselect-window t
-            focus-follows-mouse t)
+      (setq mouse-autoselect-window nil
+            focus-follows-mouse nil)
 
       ;; enable mouse drag for window resice
       (setq mouse-autoselect-window t
