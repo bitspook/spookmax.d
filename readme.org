@@ -118,6 +118,13 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (global-unset-key (kbd "C-x C-z"))
   #+end_src
 
+- Set a custom-file so Emacs won't put customized entries in my =init.el= which
+  gets overwritten every time I tangle spookmax.d
+
+  #+BEGIN_SRC elisp
+    (setq custom-file (concat user-emacs-directory "custom.el"))
+  #+END_SRC
+
 - Disable the ugly-ass toolbar, scroll-bars and menu-bar
 
   #+begin_src elisp :tangle ./init.el
