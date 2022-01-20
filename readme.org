@@ -481,11 +481,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (global-set-key (kbd "C-c c") #'org-capture)
 
     (spook-defkeymap
-     "spook-notes" "C-c n"
-     '("f" . org-roam-node-find)
-     '("o" . org-roam-ui-open))
-
-    (spook-defkeymap
      "spook-org" "C-c o"
      '("a" . org-agenda-list)
      '("A" . org-agenda)
@@ -534,6 +529,15 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         (org-roam-setup))
     #+end_src
 
+    - Keybindings for org-roam
+
+      #+begin_src elisp
+        (spook-defkeymap
+         "spook-notes" "C-c n"
+         '("f" . org-roam-node-find)
+         '("o" . org-roam-ui-open))
+      #+end_src
+
   - Setup =org-roam-ui= for a pretty browser based UI
 
     #+begin_src elisp
@@ -551,6 +555,48 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
               org-roam-ui-update-on-save t
               org-roam-ui-open-on-start t))
     #+end_src
+
+  - Setup =org-roam= as a CRM
+
+    I have a very hard time keeping track of people; whom to talk to, who I
+    talked with, even who someone is. People just somehow disappear from my
+    memory, faster than rest of the stuff. I've found org-roam to be helpful
+    keeping track of meetings, calls, and people in general. Below code create
+    some helper functions which allow using a separate directory for people and
+    stuff.
+
+    #+begin_src elisp
+      (defvar spook--org-roam-crm-dir "~/Documents/org/people"
+        "Directory where org-roam notes related to people are kept.")
+
+      (defun spook--with-org-roam-crm (func &rest args)
+        "Evaluate FUNC with ARGS org-roam set for working as CRM."
+        (let* ((org-roam-directory spook--org-roam-crm-dir)
+               (org-roam-db-location (concat org-roam-directory "/roam.db")))
+          (apply func args)))
+
+      (defun spook-crm--db-sync ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-db-sync))
+
+      (defun spook-crm--find-person ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-node-find))
+
+      (defun spook-crm--insert-person ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-node-insert))
+    #+end_src
+
+    - Keybindings for org-roam
+
+    #+begin_src elisp
+      (spook-defkeymap
+       "spook-people" "C-c S-p"
+       '("f" . spook-crm--find-person)
+       '("i" . spook-crm--insert-person))
+    #+end_src
+
 
 - org-babel
 
@@ -745,6 +791,7 @@ shot!
      '("g" . spook-git)
      '("o" . spook-org)
      '("n" . spook-notes)
+     '("P" . spook-people)
      '("t" . spook-tree))
   #+end_src
 
@@ -1171,9 +1218,19 @@ Modeline
 
 ** Applications
 
+Non crucial things which should be loaded last. If they fail, nothing crucial is
+blocked.
+
 - Ledger
 
   #+begin_src elisp
     (use-package ledger-mode
       :mode "\\.ledger\\'")
   #+end_src
+
+- Sync org-crm
+
+  #+begin_src elisp
+    (spook-crm--db-sync)
+  #+end_src
+
