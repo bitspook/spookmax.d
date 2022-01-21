@@ -542,6 +542,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         (spook-defkeymap
          "spook-notes" "C-c n"
          '("f" . org-roam-node-find)
+         '("i" . org-roam-node-insert)
+         '("I" . org-roam-node-insert-section)
          '("o" . org-roam-ui-open))
       #+end_src
 
@@ -599,7 +601,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
     #+begin_src elisp
       (spook-defkeymap
-       "spook-people" "C-c S-p"
+       "spook-people" "C-c P"
        '("f" . spook-crm--find-person)
        '("i" . spook-crm--insert-person))
     #+end_src
