@@ -61,7 +61,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 ** Helper utilities
 
-- Ergonomically create keymaps 
+- Ergonomically create keymaps
 
   #+begin_src elisp
     (defmacro spook--defkeymap (name prefix &rest bindings)
@@ -276,7 +276,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :config
       (global-whitespace-cleanup-mode +1))
   #+end_src
-  
+
 - Fill column for auto-formatting/filling paragraphs.
 
   #+begin_src elisp
@@ -687,7 +687,8 @@ shot!
       (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
       (meow-motion-overwrite-define-key
        '("j" . meow-next)
-       '("k" . meow-prev))
+       '("k" . meow-prev)
+       '("<escape>" . ignore))
       (meow-leader-define-key
        ;; SPC j/k will run the original command in MOTION state.
        '("j" . "H-j")
@@ -767,7 +768,7 @@ shot!
        '("Y" . meow-sync-grab)
        '("z" . meow-pop-selection)
        '("'" . repeat)
-       '("<escape>" . mode-line-other-buffer)))
+       '("<escape>" . ignore)))
   #+end_src
 
 #+begin_src elisp
@@ -796,7 +797,7 @@ shot!
      '("e" . flycheck-command-map)
      '("w" . spook-windows)
      '("b" . spook-buffers)
-     '("g" . spook-git)
+     '("G" . spook-git)
      '("o" . spook-org)
      '("n" . spook-notes)
      '("P" . spook-people)
@@ -1241,4 +1242,3 @@ blocked.
   #+begin_src elisp
     (spook-crm--db-sync)
   #+end_src
-
