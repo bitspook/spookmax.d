@@ -52,7 +52,7 @@
               ([?\s-q] . exwm-input-send-next-key)
               ([?\s-f] . exwm-input-toggle-fullscreen)
               ([?\s-\ ] . ,meow-keymap)
-              ([?\s-S ] . (lambda () (interactive) (start-process-shell-command "flameshot" "*wm-shortcuts*" "flameshot gui")))))
+              ([?\s-S] . (lambda () (interactive) (start-process-shell-command "flameshot" "*wm-shortcuts*" "flameshot gui")))))
 
       (defun spook--rofi-pass ()
         (interactive)
@@ -61,11 +61,6 @@
       (define-key exwm-mode-map (kbd "s-q") #'exwm-input-send-next-key)
       (define-key exwm-mode-map (kbd "s-P") #'spook--rofi-pass)
       (define-key exwm-mode-map (kbd "C-c m") #'exwm-workspace-move-window)
-
-      ;; Allow using leader key in X windows; as a downside, I need to press `C-q
-      ;; SPC` to add normal SPC while editing. Which isn't as big a problem since I
-      ;; use =C-'= to edit most inputs anyway
-      (define-key exwm-mode-map (kbd "SPC") 'meow-keymap)
 
       (setq exwm-input-simulation-keys
             `(
