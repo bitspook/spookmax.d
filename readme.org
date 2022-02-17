@@ -93,12 +93,20 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       (interactive)
       (switch-to-buffer (get-buffer-create "*scratch*")))
 
-    (defun spook--scratch-below (&optional scratch-size)
-      "Create a small window below with *scratch* as its buffer for quick access"
+    (defun spook--baby-window (&optional baby-size)
+      "A baby-window is a small window below active-window, like
+    DevConsole in a browser. Depending on the active-window,
+    baby-window contains a different application. e.g for Firefox,
+    the baby window will be Emacs frame in capture mode for
+    org-roam-dailies, capturing the \"reading\" template."
       (interactive)
-      (let ((lower-window (split-window-below (or scratch-size -20))))
+      (let ((lower-window (split-window-below (or baby-size -20)))
+            (window-name (or (when (boundp 'exwm-class-name) exwm-class-name) "")))
         (select-window lower-window)
-        (spook--get-or-create-scratch)))
+        (cond
+         ((string= window-name "Firefox")
+          (org-roam-dailies--capture (current-time) t "r"))
+         (t (spook--get-or-create-scratch)))))
   #+end_src
 
 ** Preliminary setup
@@ -324,7 +332,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+begin_src elisp
     (spook--defkeymap "spook-windows" "C-c w"
       '("-" . split-window-below)
-      '("_" . spook--scratch-below)
+      '("_" . spook--baby-window)
       '("/" . split-window-right)
       '("d" . delete-window)
       '("m" . delete-other-windows)
@@ -564,8 +572,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
       #+begin_src elisp
         (defun spook--exwm-note-template ()
-          (let ((window (or exwm-class-name ""))
-                (title (or exwm-title "%^{TITLE}")))
+          (let ((window (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
+                (title (or (when (boundp 'exwm-title) exwm-title) "%^{TITLE}")))
             (cond
              ;; Putting this in here as an example if title need be extracted in a
              ;; different way for different windows.
