@@ -535,15 +535,59 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         (org-roam-setup))
     #+end_src
 
+    - Templates for capturing dailies. I've decided to give a shot to use
+      org-roam-dailies as my diary. I am gonna extend it to note more than just
+      my thoughts, and also capture the articles I read. I am not sure whether
+      to put ideas in there right now, I put ideas in independent notes with
+      =:idea= tag.
+
+      #+begin_src elisp
+        (setq org-roam-dailies-capture-templates
+              '(("d" "Diary" item "- [%<%H:%M>]\n\n\t%?"
+                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
+                 :empty-lines 1)
+                ("t" "Open today" plain "%?"
+                 :target (file "%<%Y-%m-%d>.org")
+                 :unnarrowed t
+                 :jump-to-captured t)
+                ("r" "Reading" entry (function spook--exwm-note-template)
+                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
+                 :jump-to-captured t)))
+      #+end_src
+
+      A helper to pre-fill the capture template based on which window is open in
+      EXWM. My primary use-case is to take quick notes about what I am reading
+      right now, which is usually in Firefox. EXWM can access the window title,
+      but not the URL of current tab. The URL is prompted right now, but I'll
+      probably create a browser extension to communicate with Emacs when this
+      gets annoying enough and I have some time to spare.
+
+      #+begin_src elisp
+        (defun spook--exwm-note-template ()
+          (let ((window (or exwm-class-name ""))
+                (title (or exwm-title "%^{TITLE}")))
+            (cond
+             ;; Putting this in here as an example if title need be extracted in a
+             ;; different way for different windows.
+             ((string= window "Firefox")
+              (setq title title)))
+            (concat "* " title "\t\t\t\t:reading:\n%^{SOURCE}p%?")))
+      #+end_src
+
     - Keybindings for org-roam
 
       #+begin_src elisp
         (spook--defkeymap
          "spook-notes" "C-c n"
          '("f" . org-roam-node-find)
+         '("b" . org-roam-buffer)
          '("i" . org-roam-node-insert)
          '("I" . org-roam-node-insert-section)
-         '("o" . org-roam-ui-open))
+         '("o" . org-roam-ui-open)
+         '("d" . org-roam-dailies-capture-today)
+         '("D" . org-roam-dailies-capture-date)
+         '("t" . org-roam-dailies-goto-today)
+         '("T" . org-roam-buffer-toggle))
       #+end_src
 
   - Setup =org-roam-ui= for a pretty browser based UI
