@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       ae9bd48a-a42a-4811-8ab8-30858577187b
+:END:
 #+PROPERTY: header-args :tangle ./wm.el
 
 - EXWM config copied from wiki
@@ -31,10 +34,15 @@
 
       (setq exwm-input-global-keys
             `(
-              (,(kbd "s-[") . (lambda () (interactive) (exwm-layout-shrink-window-horizontally 40)))
-              (,(kbd "s-]") . (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 40)))
-              (,(kbd "s-{") . (lambda () (interactive) (exwm-layout-shrink-window 40)))
-              (,(kbd "s-}") . (lambda () (interactive) (exwm-layout-enlarge-window 40)))
+              (,(kbd "s-H") . (lambda () (interactive) (exwm-layout-shrink-window-horizontally 40)))
+              (,(kbd "s-L") . (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 40)))
+              (,(kbd "s-J") . (lambda () (interactive) (exwm-layout-shrink-window 40)))
+              (,(kbd "s-K") . (lambda () (interactive) (exwm-layout-enlarge-window 40)))
+              (,(kbd "s-l") . windmove-right)
+              (,(kbd "s-h") . windmove-left)
+              (,(kbd "s-k") . windmove-up)
+              (,(kbd "s-j") . windmove-down)
+              (,(kbd "s-<tab>") . consult-buffer)
               ([?\s-r] . exwm-reset)
               ([?\s-w] . exwm-workspace-switch)
               ,@(mapcar (lambda (i)
@@ -48,7 +56,7 @@
                            (interactive (list (read-shell-command "$ ")))
                            (start-process-shell-command command nil command)))
               ([?\s-d] . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
-              ([?\s-k] . exwm-input-toggle-keyboard)
+              (,(kbd "s-Q") . exwm-input-toggle-keyboard)
               ([?\s-q] . exwm-input-send-next-key)
               ([?\s-f] . exwm-input-toggle-fullscreen)
               ([?\s-\ ] . ,meow-keymap)
