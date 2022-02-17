@@ -1082,7 +1082,9 @@ says on the box without much fuss.
     :mode "\\.js'"
     :config
     (setq js-indent-level spook--indent-width)
-    :hook ((js-mode . subword-mode)))
+    :hook
+    (((js-mode
+       typescript-mode) . subword-mode)))
 
   (use-package web-mode
     :mode (("\\.html?\\'" . web-mode))
@@ -1109,9 +1111,23 @@ says on the box without much fuss.
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
+  (defun spook--setup-eslint ()
+    (setq-local
+     flycheck-javascript-eslint-executable  (string-trim (shell-command-to-string "which eslint"))
+     flycheck-enabled-checkers '(javascript-eslint))
+    (flycheck-add-next-checker 'javascript-eslint 'lsp)
+    (flycheck-select-checker 'javascript-eslint))
+
+  (setq js-mode-hook nil)
+
+  (add-hook 'js-mode-hook
+            #'spook--setup-eslint)
+
   (use-package typescript-mode
     :mode "\\.ts?\\'"
-    :hook ((typescript-mode . subword-mode)))
+    :hook ((typescript-mode . subword-mode))
+    :config
+    (setq-default typescript-indent-level spook--indent-width))
 
   (use-package css-mode
     :mode "\\.s?css\\'")
