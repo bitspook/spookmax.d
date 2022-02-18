@@ -95,17 +95,20 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       (emacs-lisp-mode +1))
 
     (defun spook--baby-window (&optional baby-size)
-      "A baby-window is a small window below active-window, like
-        DevConsole in a browser. Depending on the active-window,
-        baby-window contains a different application. e.g for Firefox,
-        the baby window will be Emacs frame in capture mode for
-        org-roam-dailies, capturing the \"reading\" template."
+      "Create a baby of active window of BABY-SIZE height.
+    A baby-window is a small window below active-window, like
+    DevConsole in a browser. Depending on the active-window,
+    baby-window contains a different application. e.g for Firefox,
+    the baby window will be Emacs frame in capture mode for
+    org-roam-dailies, capturing the \"reading\" template. If the
+    prefix-arg is non-nil, baby-window always open *scratch* buffer."
       (interactive)
       (let ((window-name (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
-            (lower-window (split-window-below (or baby-size -20))))
-        (select-window lower-window)
+            (baby-window (split-window-below (or baby-size -20)))
+            (scratch? current-prefix-arg))
+        (select-window baby-window)
         (cond
-         ((string= window-name "Firefox")
+         ((and (not scratch?) (string= window-name "Firefox"))
           (org-roam-dailies--capture (current-time) nil "r"))
          (t (spook--get-or-create-scratch)))))
   #+end_src
