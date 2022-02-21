@@ -122,14 +122,17 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   #+begin_src elisp
     (defun spook-exwm--note-template ()
+      "Capture template for org-roam-dailies for a note about current EXWM window."
       (let ((window (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
-            (title (or (when (boundp 'exwm-title) exwm-title) "%^{TITLE}")))
+            (template "* %^{TITLE}%\t\t\t\t:reading:\n%^{SOURCE}p%?"))
         (cond
-         ;; Putting this in here as an example if title need be extracted in a
-         ;; different way for different windows.
          ((string= window "Firefox")
-          (setq title title)))
-        (concat "* " title "\t\t\t\t:reading:\n%^{SOURCE}p%?")))
+          (setq template
+                (let* ((tab (sf--get-active-tab))
+                       (title (plist-get tab :title))
+                       (url (plist-get tab :url)))
+                  (concat "* " title "\t\t\t\t:reading:\n:PROPERTIES:\n:SOURCE:\t" url "\n:END:\n\n%?")))))
+        template))
   #+end_src
 
 ** Preliminary setup
@@ -1181,6 +1184,15 @@ blocked.
   #+begin_src elisp
     (use-package ledger-mode
       :mode "\\.ledger\\'")
+  #+end_src
+
+- spookfox
+
+  #+begin_src elisp
+    (use-package spookfox
+      :straight (spookfox :type git
+                          :local-repo "~/Documents/work/spookfox"
+                          :file "spookfox.el"))
   #+end_src
 
 - org-roam
