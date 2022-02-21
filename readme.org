@@ -547,121 +547,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
               (:name "Habits" :tag "habit" :order 5))))
   #+end_src
 
-- org-roam
-  :PROPERTIES:
-  :ID:       29c74372-5882-4a72-a567-0a0cbc53cede
-  :END:
-
-  For zettelkasten style note taking
-
-  - Setup =org-roam=
-
-    #+begin_src elisp
-      (use-package org-roam
-        :init
-        (setq org-roam-directory (concat org-directory "/notes/")
-              org-roam-tag-sources '(prop)
-              org-roam-v2-ack t)
-        :config
-        (org-roam-setup))
-    #+end_src
-
-    - Templates for capturing dailies. I've decided to give a shot to use
-      org-roam-dailies as my diary. I am gonna extend it to note more than just
-      my thoughts, and also capture the articles I read. I am not sure whether
-      to put ideas in there right now, I put ideas in independent notes with
-      =:idea= tag.
-
-      #+begin_src elisp
-        (setq org-roam-dailies-capture-templates
-              '(("d" "Diary" item "- [%<%H:%M>]\n\n\t%?"
-                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
-                 :empty-lines 1)
-                ("t" "Open today" plain "%?"
-                 :target (file "%<%Y-%m-%d>.org")
-                 :unnarrowed t
-                 :jump-to-captured t)
-                ("r" "Reading" entry (function spook-exwm--note-template)
-                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
-                 :jump-to-captured t)))
-      #+end_src
-
-    - Keybindings for org-roam
-
-      #+begin_src elisp
-        (spook--defkeymap
-         "spook-notes" "C-c n"
-         '("f" . org-roam-node-find)
-         '("b" . org-roam-buffer)
-         '("i" . org-roam-node-insert)
-         '("I" . org-roam-node-insert-section)
-         '("o" . org-roam-ui-open)
-         '("d" . org-roam-dailies-capture-today)
-         '("D" . org-roam-dailies-capture-date)
-         '("t" . org-roam-dailies-goto-today)
-         '("T" . org-roam-buffer-toggle))
-      #+end_src
-
-  - Setup =org-roam-ui= for a pretty browser based UI
-
-    #+begin_src elisp
-      (use-package org-roam-ui
-        :straight
-        (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-        :after org-roam
-        ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-        ;;         a hookable mode anymore, you're advised to pick something yourself
-        ;;         if you don't care about startup time, use
-        ;;  :hook (after-init . org-roam-ui-mode)
-        :config
-        (setq org-roam-ui-sync-theme t
-              org-roam-ui-follow t
-              org-roam-ui-update-on-save t
-              org-roam-ui-open-on-start t))
-    #+end_src
-
-  - Setup =org-roam= as a CRM
-
-    I have a very hard time keeping track of people; whom to talk to, who I
-    talked with, even who someone is. People just somehow disappear from my
-    memory, faster than rest of the stuff. I've found org-roam to be helpful
-    keeping track of meetings, calls, and people in general. Below code create
-    some helper functions which allow using a separate directory for people and
-    stuff.
-
-    #+begin_src elisp
-      (defvar spook--org-roam-crm-dir "~/Documents/org/people"
-        "Directory where org-roam notes related to people are kept.")
-
-      (defun spook--with-org-roam-crm (func &rest args)
-        "Evaluate FUNC with ARGS org-roam set for working as CRM."
-        (let* ((org-roam-directory spook--org-roam-crm-dir)
-               (org-roam-db-location (concat org-roam-directory "/roam.db")))
-          (apply func args)))
-
-      (defun spook-crm--db-sync ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-db-sync))
-
-      (defun spook-crm--find-person ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-node-find))
-
-      (defun spook-crm--insert-person ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-node-insert))
-    #+end_src
-
-    - Keybindings for org-roam
-
-    #+begin_src elisp
-      (spook--defkeymap
-       "spook-people" "C-c P"
-       '("f" . spook-crm--find-person)
-       '("i" . spook-crm--insert-person))
-    #+end_src
-
-
 - org-babel
 
   #+begin_src elisp
@@ -715,17 +600,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   #+begin_src elisp
     (use-package htmlize)
-  #+end_src
-
-- saunf
-
-  Use the local repo; very risky, should change.
-
-  #+begin_src elisp
-    (use-package saunf
-      :straight (saunf :type git
-                       :local-repo "~/Documents/work/saunf"
-                       :file "saunf.el"))
   #+end_src
 
 ** Modal editing with Meow
@@ -1309,8 +1183,133 @@ blocked.
       :mode "\\.ledger\\'")
   #+end_src
 
+- org-roam
+  :PROPERTIES:
+  :ID:       29c74372-5882-4a72-a567-0a0cbc53cede
+  :END:
+
+  For zettelkasten style note taking
+
+  - Setup =org-roam=
+
+    #+begin_src elisp
+      (use-package org-roam
+        :init
+        (setq org-roam-directory (concat org-directory "/notes/")
+              org-roam-tag-sources '(prop)
+              org-roam-v2-ack t)
+        :config
+        (org-roam-setup))
+    #+end_src
+
+    - Templates for capturing dailies. I've decided to give a shot to use
+      org-roam-dailies as my diary. I am gonna extend it to note more than just
+      my thoughts, and also capture the articles I read. I am not sure whether
+      to put ideas in there right now, I put ideas in independent notes with
+      =:idea= tag.
+
+      #+begin_src elisp
+        (setq org-roam-dailies-capture-templates
+              '(("d" "Diary" item "- [%<%H:%M>]\n\n\t%?"
+                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
+                 :empty-lines 1)
+                ("t" "Open today" plain "%?"
+                 :target (file "%<%Y-%m-%d>.org")
+                 :unnarrowed t
+                 :jump-to-captured t)
+                ("r" "Reading" entry (function spook-exwm--note-template)
+                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
+                 :jump-to-captured t)))
+      #+end_src
+
+    - Keybindings for org-roam
+
+      #+begin_src elisp
+        (spook--defkeymap
+         "spook-notes" "C-c n"
+         '("f" . org-roam-node-find)
+         '("b" . org-roam-buffer)
+         '("i" . org-roam-node-insert)
+         '("I" . org-roam-node-insert-section)
+         '("o" . org-roam-ui-open)
+         '("d" . org-roam-dailies-capture-today)
+         '("D" . org-roam-dailies-capture-date)
+         '("t" . org-roam-dailies-goto-today)
+         '("T" . org-roam-buffer-toggle))
+      #+end_src
+
+  - Setup =org-roam-ui= for a pretty browser based UI
+
+    #+begin_src elisp
+      (use-package org-roam-ui
+        :straight
+        (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+        :after org-roam
+        ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+        ;;         a hookable mode anymore, you're advised to pick something yourself
+        ;;         if you don't care about startup time, use
+        ;;  :hook (after-init . org-roam-ui-mode)
+        :config
+        (setq org-roam-ui-sync-theme t
+              org-roam-ui-follow t
+              org-roam-ui-update-on-save t
+              org-roam-ui-open-on-start t))
+    #+end_src
+
+  - Setup =org-roam= as a CRM
+
+    I have a very hard time keeping track of people; whom to talk to, who I
+    talked with, even who someone is. People just somehow disappear from my
+    memory, faster than rest of the stuff. I've found org-roam to be helpful
+    keeping track of meetings, calls, and people in general. Below code create
+    some helper functions which allow using a separate directory for people and
+    stuff.
+
+    #+begin_src elisp
+      (defvar spook--org-roam-crm-dir "~/Documents/org/people"
+        "Directory where org-roam notes related to people are kept.")
+
+      (defun spook--with-org-roam-crm (func &rest args)
+        "Evaluate FUNC with ARGS org-roam set for working as CRM."
+        (let* ((org-roam-directory spook--org-roam-crm-dir)
+               (org-roam-db-location (concat org-roam-directory "/roam.db")))
+          (apply func args)))
+
+      (defun spook-crm--db-sync ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-db-sync))
+
+      (defun spook-crm--find-person ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-node-find))
+
+      (defun spook-crm--insert-person ()
+        (interactive)
+        (spook--with-org-roam-crm #'org-roam-node-insert))
+    #+end_src
+
+    - Keybindings for org-roam
+
+    #+begin_src elisp
+      (spook--defkeymap
+       "spook-people" "C-c P"
+       '("f" . spook-crm--find-person)
+       '("i" . spook-crm--insert-person))
+    #+end_src
+
 - Sync org-crm
 
   #+begin_src elisp
     (spook-crm--db-sync)
+  #+end_src
+
+- saunf
+
+  Use the local repo; very risky, should change.
+
+  #+begin_src elisp
+    (use-package saunf
+      :straight (saunf :type git
+                       :local-repo "~/Documents/work/saunf"
+                       :file "saunf.el"))
   #+end_src
