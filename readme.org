@@ -1060,7 +1060,8 @@ says on the box without much fuss.
     :mode "\\.ts?\\'"
     :hook ((typescript-mode . subword-mode))
     :config
-    (setq-default typescript-indent-level spook--indent-width))
+    (setq-default typescript-indent-level spook--indent-width)
+    (add-hook 'typescript-mode-hook #'spook--setup-eslint))
 
   (use-package css-mode
     :mode "\\.s?css\\'")
