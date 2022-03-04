@@ -39,6 +39,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 :END:
 
 #+begin_src elisp :tangle ./init.el
+  ;; -*- lexical-binding: t -*-
+
   (defvar bootstrap-version)
   (setq straight-use-package-by-default t)
   (let ((bootstrap-file
@@ -1193,7 +1195,9 @@ blocked.
     (use-package spookfox
       :straight (spookfox :type git
                           :local-repo "~/Documents/work/spookfox"
-                          :file "spookfox.el"))
+                          :file "spookfox.el")
+      :config
+      (setq spookfox-saved-tabs-target `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs")))
   #+end_src
 
 - org-roam
