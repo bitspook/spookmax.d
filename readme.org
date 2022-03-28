@@ -89,13 +89,16 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 - Utilities for helping with scratch buffer
 
-  #+begin_src elisp
-    (defun spook--get-or-create-scratch ()
-      "Switch to *scratch* buffer. Create if it doesn't already exist"
-      (interactive)
-      (switch-to-buffer (get-buffer-create "*scratch*"))
-      (emacs-lisp-mode +1))
+  For firefox, I want to capture whatever I am reading and open the captured
+  content in baby-window. But there is a fuck-up here that I've been unable to
+  fix. On aborting the capture, the window layout gets messed up. Primary reason
+  for that is that org-roam don't provide any hook to control capture behavior,
+  or get notified when capture finishes. It will need more work to use plain org
+  capture to achieve this same functionality. So I am living with this for now.
+  Hopefully, I'll be able to find a work around this. I have a growing disdain
+  for org-roam codebase, it feels like it isn't a very well thought out one.
 
+  #+begin_src elisp
     (defun spook--baby-window (&optional baby-size)
       "Create a baby of active window of BABY-SIZE height.
     A baby-window is a small window below active-window, like
@@ -103,14 +106,13 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     baby-window contains a different application. e.g for Firefox,
     the baby window will be Emacs frame in capture mode for
     org-roam-dailies, capturing the \"reading\" template. If the
-    prefix-arg is non-nil, baby-window always open *scratch* buffer."
+    prefix-arg is nil, baby-window always open *scratch* buffer."
       (interactive)
       (let ((window-name (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
-            (baby-window (split-window-below (or baby-size -20)))
-            (scratch? current-prefix-arg))
+            (baby-window (split-window-below (or baby-size -20))))
         (select-window baby-window)
         (cond
-         ((and (not scratch?) (string= window-name "Firefox"))
+         ((and current-prefix-arg (string= window-name "Firefox"))
           (org-roam-dailies--capture (current-time) nil "r"))
          (t (spook--get-or-create-scratch)))))
   #+end_src
@@ -130,7 +132,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         (cond
          ((string= window "Firefox")
           (setq template
-                (let* ((tab (sf--get-active-tab))
+                (let* ((tab (sf--request-active-tab))
                        (title (plist-get tab :title))
                        (url (plist-get tab :url)))
                   (concat "* " title "\t\t\t\t:reading:\n:PROPERTIES:\n:SOURCE:\t" url "\n:END:\n\n%?")))))
@@ -423,10 +425,11 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   - Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
 
+    Commenting it out for now because it makes magit very unresponsive when
+    there are a lot of changed files.
     #+begin_src elisp
-      (use-package magit-delta
-        :ensure t
-        :hook (magit-mode . magit-delta-mode))
+      ;; (use-package magit-delta
+      ;;   :hook (magit-mode . magit-delta-mode))
     #+end_src
 
 - Keep backup/auto-save files out of my vc
@@ -456,7 +459,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :commands (flyspell-correct-at-point
                  flyspell-correct-wrapper))
   #+end_src
-
 
 ** Org mode
 :PROPERTIES:

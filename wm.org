@@ -20,8 +20,11 @@
                             (string-prefix-p "sun-awt-X11-" exwm-instance-name))
                     (exwm-workspace-rename-buffer exwm-title))))
 
-      (require 'exwm-systemtray)
-      (exwm-systemtray-enable)
+      ;; Disabling these for now. There seem to be some bug which is causing
+      ;; systemtray to show up on an entire workspace and causing other problems.
+      ;; Hoping this will fix itself in a future update
+      ;; (require 'exwm-systemtray)
+      ;; (exwm-systemtray-enable)
 
       (require 'exwm-randr)
       (exwm-randr-enable)
