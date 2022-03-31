@@ -89,6 +89,14 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 - Utilities for helping with scratch buffer
 
+  #+begin_src elisp
+    (defun spook--get-or-create-scratch ()
+      "Switch to *scratch* buffer. Create if it doesn't already exist"
+      (interactive)
+      (switch-to-buffer (get-buffer-create "*scratch*"))
+      (emacs-lisp-mode +1))
+  #+end_src
+
   For firefox, I want to capture whatever I am reading and open the captured
   content in baby-window. But there is a fuck-up here that I've been unable to
   fix. On aborting the capture, the window layout gets messed up. Primary reason
@@ -408,10 +416,10 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+end_src
 
   #+begin_src elisp
-  (use-package magit
-    :config
-    (setq magit-display-buffer-function
-          'magit-display-buffer-fullframe-status-v1))
+    (use-package magit
+      :config
+      (setq magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1
+            magit-bury-buffer-function #'magit-restore-window-configuration))
   #+end_src
 
   - Buncha nice keybindings.
@@ -1331,4 +1339,12 @@ blocked.
       :straight (saunf :type git
                        :local-repo "~/Documents/work/saunf"
                        :file "saunf.el"))
+  #+end_src
+
+- org-noter
+
+  #+begin_src elisp
+    (use-package nov
+      :mode ("\\.epub\\'" . nov-mode))
+    (use-package org-noter)
   #+end_src
