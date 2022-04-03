@@ -1,7 +1,10 @@
-:PROPERTIES:
-:ID:       ae9bd48a-a42a-4811-8ab8-30858577187b
-:END:
 #+PROPERTY: header-args :tangle ./wm.el
+
+- Load the common code
+
+  #+begin_src elisp
+    (load-file "./common.el")
+  #+end_src
 
 - EXWM config copied from wiki
 
@@ -28,11 +31,16 @@
 
       (require 'exwm-randr)
       (exwm-randr-enable)
+
+      ;; When on small screen, set the resolution to fullHD
+      (let ((monitor (cdr (cl-assoc 'small-screen spook--active-profiles))))
+        (when monitor
+          (start-process "" "*wm-startup*" "xrandr" "--output" monitor "--mode" "1920x1080")))
+
       ;; If HDMI cable is connected, turn off laptop monitor
-      (let ((hdmi (seq-find (lambda (el) (string-match "HDMI" el))
-                            (split-string (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3") "[\n]" t nil))))
+      (let ((hdmi (cdr (cl-assoc 'has-hdmi spook--active-profiles))))
         (when hdmi
-          (start-process "" "*wm-startup*" "xrandr" "--output" (replace-regexp-in-string "[\+\*]" "" hdmi) "--auto" "--output" "eDP-1" "--off")
+          (start-process "" "*wm-startup*" "xrandr" "--output" hdmi "--auto" "--output" "eDP-1" "--off")
           (start-process-shell-command "" "*wm-startup*" "feh --bg-fill --randomize /home/channi/Pictures/wallpaper")))
 
       (setq exwm-input-global-keys
