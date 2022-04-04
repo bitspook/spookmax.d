@@ -148,7 +148,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+end_src
 
   #+begin_src elisp
-    (load-file "./common.el")
+    (load-file (expand-file-name "./common.el" user-emacs-directory))
   #+end_src
 
 *** Common
@@ -172,15 +172,15 @@ Code shared b/w emacs and exwm
     (defvar spook--active-profiles '()
       "Change things slightly based on different profiles.")
 
-    (defvar spook--monitors (split-string (s-replace-regexp "[\+\*]*" "" (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3")) "[\n]" t nil)
+    (defvar spook--monitors (split-string (replace-regexp-in-string "[\+\*]*" "" (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3")) "[\n]" t nil)
       "List of available monitors.")
 
-    (when (s-contains-p "kajal" (system-name))
+    (when (string-match-p "kajal" (system-name))
       (push `(small-screen . ,(car spook--monitors)) spook--active-profiles))
 
     (let ((hdmi (seq-find (lambda (el) (string-match "HDMI" el)) spook--monitors)))
       (when hdmi
-        (push '(has-hadmi . hdmi) spook--active-profiles)))
+	(push '(has-hadmi . hdmi) spook--active-profiles)))
   #+end_src
 
 ** Preliminary setup
@@ -446,7 +446,7 @@ Code shared b/w emacs and exwm
 
   #+begin_src elisp
     (defvar spook--font-size 11)
-    (when (seq-contains-p spook--active-profiles 'small-screen)
+    (when (assoc 'small-screen spook--active-profiles)
       (setq spook--font-size 13))
     (set-face-attribute 'default nil :height (* 10 spook--font-size))
   #+end_src

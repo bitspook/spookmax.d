@@ -3,7 +3,7 @@
 - Load the common code
 
   #+begin_src elisp
-    (load-file "./common.el")
+    (load-file (expand-file-name "./common.el" user-emacs-directory))
   #+end_src
 
 - EXWM config copied from wiki
