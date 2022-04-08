@@ -94,7 +94,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       "Switch to *scratch* buffer. Create if it doesn't already exist"
       (interactive)
       (switch-to-buffer (get-buffer-create "*scratch*"))
-      (emacs-lisp-mode +1))
+      (emacs-lisp-mode))
   #+end_src
 
   For firefox, I want to capture whatever I am reading and open the captured
@@ -436,8 +436,10 @@ Code shared b/w emacs and exwm
   #+begin_src elisp
     (spook--defkeymap
      "spook-buffers" "C-c b"
+     '("b" . switch-to-buffer)
      '("n" . next-buffer)
      '("p" . previous-buffer)
+     '("n" . next-buffer)
      '("d" . kill-current-buffer)
      '("s" . spook--get-or-create-scratch))
   #+end_src
@@ -1430,6 +1432,38 @@ blocked.
                 'bash-completion-dynamic-complete))
   #+end_src
 
+  - Enable listing shelldon buffers.
+    
+    Shelldon hides its buffers as soon as output window is hidden. That is fine
+    for one-off commands, but I also run long-running commands like dev-servers
+    etc, which need to be closed manually and also need to check the output for
+    errors.
+
+    #+begin_src elisp
+      (defvar shell-output-history nil)
+      (defun spook--switch-shell-output ()
+        "Select shelldon output buffers."
+        (interactive)
+        (consult-buffer
+         (list
+          `(:name "Shell Output"
+            :narrow 98
+            :category buffer
+            :face consult-buffer
+            :history shell-output-history
+            :state consult--buffer-state
+            :default t
+            :items
+            (lambda ()
+              (consult--buffer-query
+               :exclude nil
+               :include "shelldon"
+               :as #'buffer-name
+               ))))))
+
+      (define-key spook-buffers-keymap (kbd "o") #'spook--switch-shell-output)
+    #+end_src
+
 - Fireword
 
   A helper utility because using fireword+xclip the way I used to do need me to
@@ -1442,6 +1476,6 @@ blocked.
       (interactive)
       (let ((fw-location "~/Documents/work/fireword/fireword")
             (pass (or pass (read-passwd "Password: ")))
-            (len (or len (read-number "Length: "))))
+            (len (or len (read-passwd "Length: "))))
         (kill-new (shell-command-to-string (format "%s %s %d" fw-location pass len)))))
   #+end_src
