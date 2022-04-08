@@ -1233,6 +1233,9 @@ Modeline
 #+end_src
 
 ** Applications
+:PROPERTIES:
+:ID:       9061cb70-e3e7-49d5-8fec-476f36ea3d47
+:END:
 
 Non crucial things which should be loaded last. If they fail, nothing crucial is
 blocked.
@@ -1243,7 +1246,7 @@ blocked.
     (use-package ledger-mode
       :mode "\\.ledger\\'")
   #+end_src
-
+  
 - spookfox
 
   #+begin_src elisp
@@ -1392,4 +1395,53 @@ blocked.
     (use-package nov
       :mode ("\\.epub\\'" . nov-mode))
     (use-package org-noter)
+  #+end_src
+
+- Shelldon
+
+  Let's try replacing alacritty with async-shell-command
+
+  #+begin_src elisp
+    (use-package shelldon
+      :straight (shelldon :type git
+                          :host github
+                          :repo "Overdr0ne/shelldon"
+                          :branch "master"
+                          :files ("shelldon.el"))
+      :config
+      (setq shell-command-switch "-ic")
+      (add-hook 'shelldon-mode-hook 'ansi-color-for-comint-mode-on)
+      (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
+      (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
+
+      (global-set-key (kbd "M-s") #'shelldon)
+      (global-set-key (kbd "M-S") #'shelldon-loop))
+  #+end_src
+
+  Shelldon recommends installing bash-complete.
+
+  #+begin_src elisp
+    (use-package bash-completion
+      :config
+      (autoload 'bash-completion-dynamic-complete
+        "bash-completion"
+        "BASH completion hook")
+      (add-hook 'shell-dynamic-complete-functions
+                'bash-completion-dynamic-complete))
+  #+end_src
+
+- Fireword
+
+  A helper utility because using fireword+xclip the way I used to do need me to
+  launch a terminal emulator. I am trying to stop using terminal-emulator in
+  favor our async-shell-command and shelldon.
+
+  #+begin_src elisp
+    (defun spook--fireword (&optional pass len)
+      "Create a fireword with PASS and LEN and kill it."
+      (interactive)
+      (let ((fw-location "~/Documents/work/fireword/fireword")
+            (pass (or pass (read-passwd "Password: ")))
+            (len (or len (read-number "Length: "))))
+        (kill-new (shell-command-to-string (format "%s %s %d" fw-location pass len)))))
   #+end_src
