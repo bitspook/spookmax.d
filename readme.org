@@ -1477,5 +1477,5 @@ blocked.
       (let ((fw-location "~/Documents/work/fireword/fireword")
             (pass (or pass (read-passwd "Password: ")))
             (len (or len (read-passwd "Length: "))))
-        (kill-new (shell-command-to-string (format "%s %s %d" fw-location pass len)))))
+        (kill-new (shell-command-to-string (format "%s %s %s" fw-location pass len)))))
   #+end_src
