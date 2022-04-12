@@ -1043,8 +1043,9 @@ shot!
 Lispy for some nasty lisp structural editing.
 
 #+begin_src elisp
-  (use-package lispy
-    :hook (emacs-lisp-mode . lispy-mode))
+    (use-package lispy
+      :hook ((emacs-lisp-mode . lispy-mode)
+             (common-lisp-mode . lispy-mode)))
 #+end_src
 
 Elsa provides very nice static-analysis and more for elisp
@@ -1056,6 +1057,13 @@ says on the box without much fuss.
     :after elsa
     :hook (emacs-lisp-mode . flycheck-elsa-setup))
 #+end_src
+
+- Common Lisp
+
+  #+begin_src elisp
+    (use-package sly
+      :hook (common-lisp-mode . sly-mode))
+  #+end_src
 
 *** Nix
 #+begin_src elisp
