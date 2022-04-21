@@ -515,6 +515,14 @@ Code shared b/w emacs and exwm
                  flyspell-correct-wrapper))
   #+end_src
 
+- Setup PATH from shell
+
+  #+begin_src elisp
+    (use-package exec-path-from-shell
+      :config
+      (exec-path-from-shell-initialize))
+  #+end_src
+
 ** Org mode
 :PROPERTIES:
 :ID:       8b2528d8-3fd2-4076-8b1e-791df8ed9a67
@@ -536,7 +544,6 @@ Code shared b/w emacs and exwm
      org-agenda-window-setup "only-window"
      org-directory "~/Documents/org"
      org-agenda-diary-file (concat org-directory "/diary.org.gpg")
-     org-ideas-file (concat org-directory "/ideas.org")
      org-inbox-file (concat org-directory "/TODOs.org")
      org-agenda-files (list org-inbox-file)
      ;;Todo keywords I need
@@ -547,8 +554,7 @@ Code shared b/w emacs and exwm
      org-default-notes-file (concat org-directory "/refile.org")
      org-refile-targets '((org-agenda-files . (:maxlevel . 6)))
      org-capture-templates
-     '(("d" "Diary Entry" plain (file+datetree org-agenda-diary-file) "\n<%<%I:%M %p>>\n%?\n")
-       ("i" "Idea" entry (file+headline org-inbox-file "Inbox") "* %?\n%T")
+     '(("i" "Idea" entry (file+headline org-inbox-file "Inbox") "* %?\t\t:idea:\n%U")
        ("t" "Todo" entry (file+headline org-inbox-file "Inbox") "* TODO %?\n%U\n[[%F]]"))
      org-log-into-drawer "LOGBOOK"
      org-log-done "time"
@@ -997,7 +1003,8 @@ shot!
         js-mode
         js-jsx-mode
         python-mode
-        web-mode) . lsp)
+        web-mode
+        haskell-mode) . lsp)
       :config
       (setq lsp-auto-guess-root t)
       (setq lsp-enable-symbol-highlighting nil)
@@ -1166,6 +1173,17 @@ says on the box without much fuss.
     (push 'rustic-clippy flycheck-checkers))
 #+end_src
 
+*** Haskell
+#+begin_src elisp
+  (use-package haskell-mode
+    :mode "\\.hs\\'"
+    :config
+    (define-key haskell-mode-map (kbd "C-c , c") #'haskell-process-load-or-reload)
+    (define-key haskell-mode-map (kbd "C-c , s") #'haskell-interactive-switch)
+    (define-key haskell-mode-map (kbd "C-c , l") #'haskell-interactive-mode-clear))
+
+  (use-package lsp-haskell)
+#+end_src
 *** Yaml
 
 #+begin_src elisp
