@@ -1180,7 +1180,9 @@ says on the box without much fuss.
     :config
     (define-key haskell-mode-map (kbd "C-c , c") #'haskell-process-load-or-reload)
     (define-key haskell-mode-map (kbd "C-c , s") #'haskell-interactive-switch)
-    (define-key haskell-mode-map (kbd "C-c , l") #'haskell-interactive-mode-clear))
+    (define-key haskell-mode-map (kbd "C-c , l") #'haskell-interactive-mode-clear)
+    (define-key haskell-mode-map (kbd "C-c , T") #'haskell-doc-show-type)
+    (define-key haskell-mode-map (kbd "C-c , t") #'haskell-mode-show-type-at))
 
   (use-package lsp-haskell)
 #+end_src
