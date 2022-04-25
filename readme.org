@@ -172,7 +172,12 @@ Code shared b/w emacs and exwm
     (defvar spook--active-profiles '()
       "Change things slightly based on different profiles.")
 
-    (defvar spook--monitors (split-string (replace-regexp-in-string "[\+\*]*" "" (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3")) "[\n]" t nil)
+    (defvar spook--monitors
+      (split-string
+       (replace-regexp-in-string
+        "[\+\*]*" ""
+        (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3"))
+       "[\n]" t nil)
       "List of available monitors.")
 
     (when (string-match-p "kajal" (system-name))
@@ -180,7 +185,11 @@ Code shared b/w emacs and exwm
 
     (let ((hdmi (seq-find (lambda (el) (string-match "HDMI" el)) spook--monitors)))
       (when hdmi
-	(push '(has-hadmi . hdmi) spook--active-profiles)))
+        (push
+         `(has-hdmi . ,(seq-find
+                        (lambda (i) (string-match "hdmi" i))
+                        spook--monitors))
+         spook--active-profiles)))
   #+end_src
 
 ** Preliminary setup
