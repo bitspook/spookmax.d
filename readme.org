@@ -633,7 +633,8 @@ Code shared b/w emacs and exwm
        '((emacs-lisp . t)
          (plantuml . t)
          (shell . t)
-         (sql . t))))
+         (sql . t)
+         (lisp . t))))
   #+end_src
 
 - Allow adding HTML class/id to exported src blocks
@@ -1059,9 +1060,9 @@ shot!
 Lispy for some nasty lisp structural editing.
 
 #+begin_src elisp
-    (use-package lispy
-      :hook ((emacs-lisp-mode . lispy-mode)
-             (common-lisp-mode . lispy-mode)))
+  (use-package lispy
+    :hook ((emacs-lisp-mode . lispy-mode)
+           (lisp-mode . lispy-mode)))
 #+end_src
 
 Elsa provides very nice static-analysis and more for elisp
@@ -1078,7 +1079,10 @@ says on the box without much fuss.
 
   #+begin_src elisp
     (use-package sly
-      :hook (common-lisp-mode . sly-mode))
+      :hook ((lisp-mode . sly-mode))
+      :config
+      (setq org-babel-lisp-eval-fn #'sly-eval)
+      (setq inferior-lisp-program "sbcl"))
   #+end_src
 
 *** Nix
@@ -1187,6 +1191,8 @@ says on the box without much fuss.
   (use-package haskell-mode
     :mode "\\.hs\\'"
     :config
+    (add-hook 'haskell-mode-hook #'subword-mode)
+
     (define-key haskell-mode-map (kbd "C-c , c") #'haskell-process-load-or-reload)
     (define-key haskell-mode-map (kbd "C-c , s") #'haskell-interactive-switch)
     (define-key haskell-mode-map (kbd "C-c , l") #'haskell-interactive-mode-clear)
@@ -1250,6 +1256,17 @@ says on the box without much fuss.
       :after (treemacs)
       :config
       (treemacs-load-theme 'all-the-icons))
+  #+end_src
+
+- Ace Jump
+
+  #+begin_src elisp
+    (spook--defkeymap
+     "spook-jump" "C-c q"
+     '("q" . ace-jump-mode)
+     '("w" . ace-jump-word-mode))
+
+    (use-package ace-jump-mode)
   #+end_src
 ** Looks
 :PROPERTIES:
