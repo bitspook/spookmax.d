@@ -923,6 +923,17 @@ shot!
     (use-package wgrep)
   #+end_src
 
+- =undo-tree-mode= for more powerful undo
+
+  #+begin_src elisp
+    (use-package undo-tree
+      :config
+      (global-undo-tree-mode t) 
+      (global-set-key (kbd "C-/") #'undo)
+      (global-set-key (kbd "C-S-/") #'undo-tree-redo)
+      (setq undo-tree-history-directory-alist `(("." . ,(expand-file-name ".cache" user-emacs-directory)))))
+  #+end_src
+
 ** Programming
 :PROPERTIES:
 :ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
