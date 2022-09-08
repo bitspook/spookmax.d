@@ -1544,3 +1544,16 @@ blocked.
             (len (or len (read-passwd "Length: "))))
         (kill-new (shell-command-to-string (format "%s %s %s" fw-location pass len)))))
   #+end_src
+
+- Irc
+
+  Small utility to quickly connect to irc.
+
+  #+begin_src elisp
+    (defun spook-erc-connect ()
+      (interactive)
+      (erc :server "irc.libera.chat"
+         :port 6667
+         :nick "bitspook"
+         :password (string-trim (eshell-command-result "pass show libera.chat/bitspook | head -n 1"))))
+  #+end_src

@@ -6,6 +6,13 @@
     (load-file (expand-file-name "./common.el" user-emacs-directory))
   #+end_src
 
+- Add app-launcher so I can use it in exwm to launch desktop apps
+
+  #+begin_src elisp
+    (straight-use-package
+      '(app-launcher :type git :host github :repo "SebastienWae/app-launcher"))
+  #+end_src
+
 - EXWM config copied from wiki
 
   #+begin_src elisp
@@ -63,9 +70,7 @@
                               (exwm-workspace-switch-create ,i))))
                         (number-sequence 0 9))
               ([?\s-`] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
-              ([?\s-&] . (lambda (command)
-                           (interactive (list (read-shell-command "$ ")))
-                           (start-process-shell-command command nil command)))
+              ([?\s-&] . (lambda () (interactive) (app-launcher-run-app)))
               ([?\s-d] . (lambda () (interactive) (start-process-shell-command "rofi" "*wm-shortcuts*" "rofi -show run")))
               (,(kbd "s-Q") . exwm-input-toggle-keyboard)
               ([?\s-q] . exwm-input-send-next-key)
