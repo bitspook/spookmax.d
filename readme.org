@@ -412,8 +412,31 @@ Code shared b/w emacs and exwm
 
 - Window management
 
+  - Install [[https://github.com/abo-abo/ace-window][ace-window]] for some nice utilities.
+
+    #+begin_src elisp
+      (use-package ace-window
+        :config
+        (setq aw-dispatch-always t)
+        (global-set-key (kbd "C-c w") 'ace-window)
+        (setq aw-dispatch-alist
+              '((?d aw-delete-window "Delete Window")
+                (?s aw-swap-window "Swap Windows")
+                (?S aw-move-window "Move Window")
+                (?c aw-copy-window "Copy Window")
+                (?w aw-flip-window)
+                (?b aw-switch-buffer-in-window "Select Buffer")
+                (?B aw-switch-buffer-other-window "Switch Buffer Other Window")
+                (?= aw-split-window-fair "Split Fair Window")
+                (?- aw-split-window-vert "Split Vert Window")
+                (?/ aw-split-window-horz "Split Horz Window")
+                (?m delete-other-windows "Delete Other Windows")
+                (?? aw-show-dispatch-help))
+              aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+    #+end_src
+
   #+begin_src elisp
-    (spook--defkeymap "spook-windows" "C-c w"
+    (spook--defkeymap "spook-windows" "C-c W"
       '("-" . split-window-below)
       '("_" . spook--baby-window)
       '("/" . split-window-right)
@@ -424,7 +447,8 @@ Code shared b/w emacs and exwm
       '("h" . windmove-left)
       '("j" . windmove-down)
       '("k" . windmove-up)
-      '("l" . windmove-right))
+      '("l" . windmove-right)
+      '("w" . ace-window))
   #+end_src
 
   - Workspace management with perspective
