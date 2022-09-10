@@ -432,7 +432,7 @@ Code shared b/w emacs and exwm
                 (?/ aw-split-window-horz "Split Horz Window")
                 (?m delete-other-windows "Delete Other Windows")
                 (?? aw-show-dispatch-help))
-              aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+              aw-keys '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
     #+end_src
 
   #+begin_src elisp
