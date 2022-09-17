@@ -111,52 +111,13 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       "Create a baby of active window of BABY-SIZE height.
     A baby-window is a small window below active-window, like
     DevConsole in a browser. Depending on the active-window,
-    baby-window contains a different application. e.g for Firefox,
-    the baby window will be Emacs frame in capture mode for
-    org-roam-dailies, capturing the \"reading\" template. If the
-    prefix-arg is nil, baby-window always open *scratch* buffer."
+    baby-window contains a different application. If the prefix-arg
+    is nil, baby-window always open *scratch* buffer."
       (interactive)
-      (let ((window-name (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
-            (baby-window (split-window-below (or baby-size -20))))
+      (let ((baby-window (split-window-below (or baby-size -20))))
         (select-window baby-window)
-        (cond
-         ((and current-prefix-arg (string= window-name "Firefox"))
-          (org-roam-dailies--capture (current-time) nil "r"))
-         (t (spook--get-or-create-scratch)))))
+        (spook--get-or-create-scratch)))
   #+end_src
-
-  A helper to pre-fill the capture template based on which window is open in
-  EXWM. My primary use-case is to take quick notes about what I am reading right
-  now, which is usually in Firefox. EXWM can access the window title, but not
-  the URL of current tab. The URL is prompted right now, but I'll probably
-  create a browser extension to communicate with Emacs when this gets annoying
-  enough and I have some time to spare.
-
-  #+begin_src elisp
-    (defun spook-exwm--note-template ()
-      "Capture template for org-roam-dailies for a note about current EXWM window."
-      (let ((window (or (when (boundp 'exwm-class-name) exwm-class-name) ""))
-            (template "* %^{TITLE}%\t\t\t\t:reading:\n%^{SOURCE}p%?"))
-        (cond
-         ((string= window "Firefox")
-          (setq template
-                (let* ((tab (sf--request-active-tab))
-                       (title (plist-get tab :title))
-                       (url (plist-get tab :url)))
-                  (concat "* " title "\t\t\t\t:reading:\n:PROPERTIES:\n:SOURCE:\t" url "\n:END:\n\n%?")))))
-        template))
-  #+end_src
-
-  #+begin_src elisp
-    (load-file (expand-file-name "./common.el" user-emacs-directory))
-  #+end_src
-
-*** Common
-:PROPERTIES:
-:header-args: :tangle ./common.el
-:END:
-
-Code shared b/w emacs and exwm
 
 - Profiles
 
@@ -171,25 +132,6 @@ Code shared b/w emacs and exwm
   #+begin_src elisp
     (defvar spook--active-profiles '()
       "Change things slightly based on different profiles.")
-
-    (defvar spook--monitors
-      (split-string
-       (replace-regexp-in-string
-        "[\+\*]*" ""
-        (eshell-command-result "xrandr --listmonitors | cut -d \" \" -f 3"))
-       "[\n]" t nil)
-      "List of available monitors.")
-
-    (when (string-match-p "kajal" (system-name))
-      (push `(small-screen . ,(car spook--monitors)) spook--active-profiles))
-
-    (let ((hdmi (seq-find (lambda (el) (string-match "HDMI" el)) spook--monitors)))
-      (when hdmi
-        (push
-         `(has-hdmi . ,(seq-find
-                        (lambda (i) (string-match "hdmi" i))
-                        spook--monitors))
-         spook--active-profiles)))
   #+end_src
 
 ** Preliminary setup
@@ -412,6 +354,24 @@ Code shared b/w emacs and exwm
 
 - Window management
 
+  - Custom window keybindings
+
+    #+begin_src elisp
+    (spook--defkeymap "spook-windows" "C-c s-w"
+      '("-" . split-window-below)
+      '("_" . spook--baby-window)
+      '("/" . split-window-right)
+      '("d" . delete-window)
+      '("m" . delete-other-windows)
+      '("M" . window-swap-states)
+      '("o" . other-window)
+      '("h" . windmove-left)
+      '("j" . windmove-down)
+      '("k" . windmove-up)
+      '("l" . windmove-right)
+      '("w" . ace-window))
+    #+end_src
+
   - Install [[https://github.com/abo-abo/ace-window][ace-window]] for some nice utilities.
 
     #+begin_src elisp
@@ -435,34 +395,18 @@ Code shared b/w emacs and exwm
               aw-keys '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
     #+end_src
 
+- Workspace management with perspective
+
+  I was using eyebrowse earlier, but I don't like its reliance on desktop-mode
+  to save state. Let's give perspective a shot
+
   #+begin_src elisp
-    (spook--defkeymap "spook-windows" "C-c W"
-      '("-" . split-window-below)
-      '("_" . spook--baby-window)
-      '("/" . split-window-right)
-      '("d" . delete-window)
-      '("m" . delete-other-windows)
-      '("M" . window-swap-states)
-      '("o" . other-window)
-      '("h" . windmove-left)
-      '("j" . windmove-down)
-      '("k" . windmove-up)
-      '("l" . windmove-right)
-      '("w" . ace-window))
+    (use-package perspective
+      :init
+      (setq persp-mode-prefix-key (kbd "C-c C-w"))
+      :config
+      (persp-mode +1))
   #+end_src
-
-  - Workspace management with perspective
-
-    I was using eyebrowse earlier, but I don't like its reliance on desktop-mode
-    to save state. Let's give perspective a shot
-
-    #+begin_src elisp
-      (use-package perspective
-        :init
-        (setq persp-mode-prefix-key (kbd "C-c C-w"))
-        :config
-        (persp-mode +1))
-    #+end_src
 
 - Buffer management
 
@@ -827,7 +771,7 @@ shot!
      '("l" . lsp-mode-map)
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
-     '("w" . spook-windows)
+     '("w" . ace-window)
      '("b" . spook-buffers)
      '("G" . spook-git)
      '("o" . spook-org)
@@ -1382,9 +1326,6 @@ blocked.
                 ("t" "Open today" plain "%?"
                  :target (file "%<%Y-%m-%d>.org")
                  :unnarrowed t
-                 :jump-to-captured t)
-                ("r" "Reading" entry (function spook-exwm--note-template)
-                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
                  :jump-to-captured t)))
       #+end_src
 
