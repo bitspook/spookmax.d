@@ -144,7 +144,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+begin_src elisp
     (server-start)
   #+end_src
-
+  
 - Unset annoying keybindings
 
   #+begin_src elisp
@@ -407,7 +407,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       :config
       (persp-mode +1))
   #+end_src
-
+  
 - Buffer management
 
   #+begin_src elisp
@@ -472,24 +472,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      backup-directory-alist `((".*" . ,backup-dir))
      auto-save-file-name-transforms `((".*" ,backup-dir t))
      create-lockfiles nil)
-  #+end_src
-
-- Spell checking
-
-  #+begin_src elisp
-    (use-package flyspell
-      :hook
-      (text-mode . flyspell-mode)
-      (prog-mode . flyspell-prog-mode)
-      :config
-      (define-key flyspell-mode-map (kbd "C-,") nil t)
-      (define-key flyspell-mode-map (kbd "C-.") nil t)
-      (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
-
-    (use-package flyspell-correct
-      :after (flyspell)
-      :commands (flyspell-correct-at-point
-                 flyspell-correct-wrapper))
   #+end_src
 
 - Setup PATH from shell
@@ -602,6 +584,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
          (plantuml . t)
          (shell . t)
          (sql . t)
+         (sqlite . t)
          (lisp . t))))
   #+end_src
 
@@ -1274,6 +1257,33 @@ Modeline
 
 Non crucial things which should be loaded last. If they fail, nothing crucial is
 blocked.
+
+- Spell checking
+
+  #+begin_src elisp
+    (with-eval-after-load "ispell"
+      (setq ispell-program-name "hunspell")
+      (setq ispell-dictionary "en_US,de_DE")
+      (ispell-set-spellchecker-params)
+      (ispell-hunspell-add-multi-dic "en_US,de_DE")
+      (setq ispell-personal-dictionary "~/.emacs.d/.hunspell_per_dic"))
+  #+end_src
+
+  #+begin_src elisp
+    (use-package flyspell
+      :hook
+      (text-mode . flyspell-mode)
+      (prog-mode . flyspell-prog-mode)
+      :config
+      (define-key flyspell-mode-map (kbd "C-,") nil t)
+      (define-key flyspell-mode-map (kbd "C-.") nil t)
+      (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
+
+    (use-package flyspell-correct
+      :after (flyspell)
+      :commands (flyspell-correct-at-point
+                 flyspell-correct-wrapper))
+  #+end_src  
 
 - Ledger
 
