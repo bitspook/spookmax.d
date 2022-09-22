@@ -631,6 +631,32 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (use-package htmlize)
   #+end_src
 
+- Custom links
+
+  - =yt://=  links
+
+    - Open =yt://= links in =mpv= if mpv is present
+    - Open =yt://= links in browser if mpv isn't installed or prefix-argument is
+      provided with =org-open-at-point= (i.e =C-c C-o=)
+
+    #+begin_src elisp
+      (defun spook-org--follow-yt-link (path prefix)
+        (let* ((url (format "https:%s" path))
+               (display-buffer-alist `((,shell-command-buffer-name-async . (display-buffer-no-window)))))
+          (if (and prefix (executable-find "mpv"))
+              (browse-url url)
+            (async-shell-command (format "mpv \"%s\"" url))
+            (message "Launched mpv with \"%s\"" url))))
+
+      (defun spook-org--export-yt-link (path desc backend)
+        (let ((url (format "%s" path)))
+          (format
+           "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
+           url desc)))
+
+      (org-link-set-parameters "yt" :follow #'spook-org--follow-yt-link :export #'spook-org--export-yt-link)
+    #+end_src
+
 ** Modal editing with Meow
 :PROPERTIES:
 :ID:       17c2eeec-133f-49f3-b2ce-95bf3dab1188
