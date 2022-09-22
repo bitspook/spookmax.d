@@ -649,10 +649,13 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
             (message "Launched mpv with \"%s\"" url))))
 
       (defun spook-org--export-yt-link (path desc backend)
-        (let ((url (format "%s" path)))
-          (format
-           "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
-           url desc)))
+        (when (eq backend 'html)
+          (let* ((video-id (cadar (url-parse-query-string path)))
+                 (url (if (string-empty-p video-id) path
+                        (format "//youtube.com/embed/%s" video-id))))
+            (format
+             "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
+             url desc))))
 
       (org-link-set-parameters "yt" :follow #'spook-org--follow-yt-link :export #'spook-org--export-yt-link)
     #+end_src
@@ -1123,7 +1126,7 @@ says on the box without much fuss.
     (setq-local
      flycheck-javascript-eslint-executable  (string-trim (shell-command-to-string "which eslint"))
      flycheck-enabled-checkers '(javascript-eslint))
-    (flycheck-add-next-checker 'javascript-eslint 'lsp)
+    ;; (flycheck-add-next-checker 'javascript-eslint 'lsp)
     (flycheck-select-checker 'javascript-eslint))
 
   (setq js-mode-hook nil)
