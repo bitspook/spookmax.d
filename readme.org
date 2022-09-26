@@ -642,11 +642,11 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     #+begin_src elisp
       (defun spook-org--follow-yt-link (path prefix)
         (let* ((url (format "https:%s" path))
-               (display-buffer-alist `((,shell-command-buffer-name-async . (display-buffer-no-window)))))
+               (proc-name (format "*yt://%s*" url)))
           (if (and prefix (executable-find "mpv"))
               (browse-url url)
-            (async-shell-command (format "mpv \"%s\"" url))
-            (message "Launched mpv with \"%s\"" url))))
+            (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
+            (message "Launched mpv in buffer: %s" proc-name))))
 
       (defun spook-org--export-yt-link (path desc backend)
         (when (eq backend 'html)
@@ -739,7 +739,7 @@ shot!
        '("o" . meow-block)
        '("O" . meow-to-block)
        '("p" . meow-yank)
-       '("q" . meow-quit)
+       ;; '("q" . meow-quit)
        ;; '("Q" . meow-goto-line)
        '("r" . meow-replace)
        '("R" . meow-swap-grab)
@@ -758,7 +758,7 @@ shot!
        '("'" . repeat)
        '("<escape>" . ignore)))
   #+end_src
-
+  
 #+begin_src elisp
   (use-package meow
     :config
@@ -902,7 +902,7 @@ shot!
   #+begin_src elisp
     (use-package wgrep)
   #+end_src
-
+  
 - =undo-tree-mode= for more powerful undo
 
   #+begin_src elisp
@@ -912,6 +912,16 @@ shot!
       (global-set-key (kbd "C-/") #'undo)
       (global-set-key (kbd "C-S-/") #'undo-tree-redo)
       (setq undo-tree-history-directory-alist `(("." . ,(expand-file-name ".cache" user-emacs-directory)))))
+  #+end_src
+
+- =embrace= for wrapping pair manipulation
+
+  #+begin_src elisp
+    (use-package embrace
+      :config
+      (add-hook 'org-mode-hook 'embrace-org-mode-hook)
+      (meow-normal-define-key
+       '("S" . embrace-commander)))
   #+end_src
 
 ** Programming
