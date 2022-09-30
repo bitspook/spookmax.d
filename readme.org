@@ -788,7 +788,6 @@ shot!
      '("G" . spook-git)
      '("o" . spook-org)
      '("n" . spook-notes)
-     '("P" . spook-people)
      '("t" . spook-tree))
   #+end_src
 
@@ -1001,6 +1000,26 @@ shot!
       :hook (company-mode . company-box-mode))
   #+end_src
 
+- [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
+
+  #+begin_src elisp
+    (use-package reformatter
+      :config
+      (reformatter-define prettier-format
+        :program (expand-file-name "node_modules/.bin/prettier"
+                                   (locate-dominating-file (buffer-file-name) "node_modules"))
+        :args `("--stdin-filepath" ,(buffer-file-name)))
+      :hook (web-mode . prettier-format-on-save-mode))
+  #+end_src
+
+- Direnv is pretty essential for my dev workflow.
+
+  #+begin_src elisp
+    (use-package direnv
+     :config
+     (direnv-mode))
+  #+end_src
+
 - LSP provides support for many languages with little cost of
   configuring. So LSP we do.
 
@@ -1031,26 +1050,6 @@ shot!
       (setq lsp-ui-doc-show-with-cursor t
             lsp-ui-doc-delay 1
             lsp-ui-doc-position 'at-point))
-  #+end_src
-
-- [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
-
-  #+begin_src elisp
-    (use-package reformatter
-      :config
-      (reformatter-define prettier-format
-        :program (expand-file-name "node_modules/.bin/prettier"
-                                   (locate-dominating-file (buffer-file-name) "node_modules"))
-        :args `("--stdin-filepath" ,(buffer-file-name)))
-      :hook (web-mode . prettier-format-on-save-mode))
-  #+end_src
-
-- Direnv is pretty essential for my dev workflow.
-
-  #+begin_src elisp
-    (use-package direnv
-     :config
-     (direnv-mode))
   #+end_src
 
 *** Lisp
@@ -1343,9 +1342,6 @@ blocked.
   #+end_src
 
 - org-roam
-  :PROPERTIES:
-  :ID:       29c74372-5882-4a72-a567-0a0cbc53cede
-  :END:
 
   For zettelkasten style note taking
 
@@ -1383,80 +1379,21 @@ blocked.
       #+begin_src elisp
         (spook--defkeymap
          "spook-notes" "C-c n"
-         '("f" . org-roam-node-find)
-         '("b" . org-roam-buffer)
-         '("i" . org-roam-node-insert)
-         '("I" . org-roam-node-insert-section)
-         '("o" . org-roam-ui-open)
+         '("f" . denote-open-or-create)
+         '("i" . denote-link-or-create)
+         '("b" . denote-link-backlinks)
          '("d" . org-roam-dailies-capture-today)
-         '("D" . org-roam-dailies-capture-date)
-         '("t" . org-roam-dailies-goto-today)
-         '("T" . org-roam-buffer-toggle))
+         '("t" . org-roam-dailies-goto-today))
       #+end_src
 
-  - Setup =org-roam-ui= for a pretty browser based UI
-
-    #+begin_src elisp
-      (use-package org-roam-ui
-        :straight
-        (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-        :after org-roam
-        ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-        ;;         a hookable mode anymore, you're advised to pick something yourself
-        ;;         if you don't care about startup time, use
-        ;;  :hook (after-init . org-roam-ui-mode)
-        :config
-        (setq org-roam-ui-sync-theme t
-              org-roam-ui-follow t
-              org-roam-ui-update-on-save t
-              org-roam-ui-open-on-start t))
-    #+end_src
-
-  - Setup =org-roam= as a CRM
-
-    I have a very hard time keeping track of people; whom to talk to, who I
-    talked with, even who someone is. People just somehow disappear from my
-    memory, faster than rest of the stuff. I've found org-roam to be helpful
-    keeping track of meetings, calls, and people in general. Below code create
-    some helper functions which allow using a separate directory for people and
-    stuff.
-
-    #+begin_src elisp
-      (defvar spook--org-roam-crm-dir "~/Documents/org/people"
-        "Directory where org-roam notes related to people are kept.")
-
-      (defun spook--with-org-roam-crm (func &rest args)
-        "Evaluate FUNC with ARGS org-roam set for working as CRM."
-        (let* ((org-roam-directory spook--org-roam-crm-dir)
-               (org-roam-db-location (concat org-roam-directory "/roam.db")))
-          (apply func args)))
-
-      (defun spook-crm--db-sync ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-db-sync))
-
-      (defun spook-crm--find-person ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-node-find))
-
-      (defun spook-crm--insert-person ()
-        (interactive)
-        (spook--with-org-roam-crm #'org-roam-node-insert))
-    #+end_src
-
-    - Keybindings for org-roam
-
-    #+begin_src elisp
-      (spook--defkeymap
-       "spook-people" "C-c P"
-       '("f" . spook-crm--find-person)
-       '("i" . spook-crm--insert-person))
-    #+end_src
-
-- Sync org-crm
+- Notes using denotes
 
   #+begin_src elisp
-    (spook-crm--db-sync)
+    (use-package denote
+      :config
+      (setq denote-directory (expand-file-name "denotes" org-directory)
+            denote-date-prompt-use-org-read-date t)
+      (add-hook 'dired-mode-hook #'denote-dired-mode))
   #+end_src
 
 - saunf
