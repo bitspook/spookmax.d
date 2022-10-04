@@ -375,6 +375,15 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   - Install [[https://github.com/abo-abo/ace-window][ace-window]] for some nice utilities.
 
     #+begin_src elisp
+      (defun spook--aw-kill-buffer-in-window (win)
+        "Kill the buffer shown in window WIN."
+        (kill-buffer (window-buffer win)))
+
+      (defun spook--aw-kill-buffer-and-window (win)
+        "Kill the buffer shown in window WIN and window itself."
+        (kill-buffer (window-buffer win))
+        (delete-window win))
+
       (use-package ace-window
         :config
         (setq aw-dispatch-always t)
@@ -387,6 +396,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
                 (?w aw-flip-window)
                 (?b aw-switch-buffer-in-window "Select Buffer")
                 (?B aw-switch-buffer-other-window "Switch Buffer Other Window")
+                (?k spook--aw-kill-buffer-in-window "Kill buffer in window")
+                (?K spook--aw-kill-buffer-and-window "Kill buffer in window")
                 (?= aw-split-window-fair "Split Fair Window")
                 (?- aw-split-window-vert "Split Vert Window")
                 (?/ aw-split-window-horz "Split Horz Window")
