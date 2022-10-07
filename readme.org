@@ -1346,7 +1346,7 @@ blocked.
       "Go to today's diary entry."
       (interactive)
       (denote (format-time-string "%Y-%m-%d")
-              '("diary") "org" "diary"))
+              '("diary") "org" (expand-file-name "diary" denote-directory)))
   #+end_src
 
   Setup for taking notes for reading/video-watching I do in Firefox.
@@ -1395,7 +1395,7 @@ blocked.
           (push "video" tags))
 
         (denote (denote-title-prompt (plist-get tab :title))
-                tags "org" "reading")
+                tags "org" (expand-file-name "reading" denote-directory))
         (when yt-p (spook-notes-mode))
         (delete-region (point) (line-beginning-position 0))
         (insert (concat "#+source: " url "\n\n"))))
