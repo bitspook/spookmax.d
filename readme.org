@@ -1347,16 +1347,63 @@ blocked.
       (interactive)
       (denote (format-time-string "%Y-%m-%d")
               '("diary") "org" "diary"))
+  #+end_src
+
+  Setup for taking notes for reading/video-watching I do in Firefox.
+
+  #+begin_src elisp
+    (defvar spook-notes-mode-map (make-sparse-keymap))
+
+    (define-key spook-notes-mode-map (kbd "C-c i t") #'spook--insert-yt-ts-note)
+
+    (define-minor-mode spook-notes-mode
+      "Minor mode for taking spooky notes.
+    It is used to set local keybindings depending on the kind of note
+    being taken."
+      :keymap spook-notes-mode-map)
+
+    (defun spook--get-ff-yt-current-time ()
+      "Return current time of youtube video running in Firefox's active tab."
+      (spookfox-eval-js-in-active-tab
+       (concat
+        "(function () {"
+        "try {"
+        "const player = document.querySelector('.video-stream');"
+        "return { time: player.currentTime, url: `${window.location.href}&t=${Math.floor(player.currentTime)}` };"
+        "} catch(e) { return 0; }"
+        "})()") t))
+
+    (defun spook--insert-yt-ts-note (&optional url)
+      "Insert note for current timestamp in youtube.
+    Inserted time is an org yt:// link to youtube video at that time."
+      (interactive)
+      (let* ((result (spook--get-ff-yt-current-time))
+             (time (plist-get result :time))
+             (url (string-replace "https" "yt" (plist-get result :url))))
+        (insert (concat "- At [[" url "]["
+                        (format-seconds "%m:%s" time)
+                        "]]\n"))))
 
     (defun spook--denote-ff-tab ()
       "Create a new denote for current Firefox tab."
       (interactive)
-      (let ((tab (spookfox-request-active-tab)))
-        (denote (denote-title-prompt (plist-get tab :title))
-                '("reading") "org" "reading")
-        (delete-region (point) (line-beginning-position 0))
-        (insert (concat "#+source: " (plist-get tab :url) "\n\n"))))
+      (let* ((tab (spookfox-request-active-tab))
+             (url (plist-get tab :url))
+             (yt-p (string-match-p "youtube.com" url))
+             (tags '("reading")))
+        (when yt-p
+          (push "video" tags))
 
+        (denote (denote-title-prompt (plist-get tab :title))
+                tags "org" "reading")
+        (when yt-p (spook-notes-mode))
+        (delete-region (point) (line-beginning-position 0))
+        (insert (concat "#+source: " url "\n\n"))))
+  #+end_src
+
+  Keyboard shortcuts to bind it all together.
+
+  #+begin_src elisp
     (spook--defkeymap
      "spook-notes" "C-c n"
      '("f" . denote-open-or-create)
