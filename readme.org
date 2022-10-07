@@ -1341,52 +1341,45 @@ blocked.
       (setq denote-directory (expand-file-name "denotes" org-directory)
             denote-date-prompt-use-org-read-date t)
       (add-hook 'dired-mode-hook #'denote-dired-mode))
+
+    (defun spook--diary-today ()
+      "Go to today's diary entry."
+      (interactive)
+      (denote (format-time-string "%Y-%m-%d")
+              '("diary") "org" "diary"))
+
+    (defun spook--denote-ff-tab ()
+      "Create a new denote for current Firefox tab."
+      (interactive)
+      (let ((tab (spookfox-request-active-tab)))
+        (denote (denote-title-prompt (plist-get tab :title))
+                '("reading") "org" "reading")
+        (delete-region (point) (line-beginning-position 0))
+        (insert (concat "#+source: " (plist-get tab :url) "\n\n"))))
+
+    (spook--defkeymap
+     "spook-notes" "C-c n"
+     '("f" . denote-open-or-create)
+     '("i" . denote-link-or-create)
+     '("b" . denote-link-backlinks)
+     '("d" . spook--diary-today)
+     '("r" . spook--denote-ff-tab))
   #+end_src
   
 - org-roam
 
-  For zettelkasten style note taking
+  I am not using org-roam anymore (in favor of denote), but I am still keeping
+  it around until I am satisfied that denote can replace it.
 
-  - Setup =org-roam=
-
-    #+begin_src elisp
-      (use-package org-roam
-        :init
-        (setq org-roam-directory (concat org-directory "/notes/")
-              org-roam-tag-sources '(prop)
-              org-roam-v2-ack t)
-        :config
-        (org-roam-setup))
-    #+end_src
-
-    - Templates for capturing dailies. I've decided to give a shot to use
-      org-roam-dailies as my diary. I am gonna extend it to note more than just
-      my thoughts, and also capture the articles I read. I am not sure whether
-      to put ideas in there right now, I put ideas in independent notes with
-      =:idea= tag.
-
-      #+begin_src elisp
-        (setq org-roam-dailies-capture-templates
-              '(("d" "Diary" item "- [%<%H:%M>]\n\n\t%?"
-                 :target (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
-                 :empty-lines 1)
-                ("t" "Open today" plain "%?"
-                 :target (file "%<%Y-%m-%d>.org")
-                 :unnarrowed t
-                 :jump-to-captured t)))
-      #+end_src
-
-    - Keybindings for org-roam
-
-      #+begin_src elisp
-        (spook--defkeymap
-         "spook-notes" "C-c n"
-         '("f" . denote-open-or-create)
-         '("i" . denote-link-or-create)
-         '("b" . denote-link-backlinks)
-         '("d" . org-roam-dailies-capture-today)
-         '("t" . org-roam-dailies-goto-today))
-      #+end_src
+  #+begin_src elisp
+    (use-package org-roam
+      :init
+      (setq org-roam-directory (concat org-directory "/notes/")
+            org-roam-tag-sources '(prop)
+            org-roam-v2-ack t)
+      :config
+      (org-roam-setup))
+  #+end_src
 
 - dirvish for more powerful dired
 
@@ -1396,7 +1389,7 @@ blocked.
       (dirvish-override-dired-mode)
       :config
       (setq dirvish-attributes
-            '(vc-state subtree-state all-the-icons collapse git-msg file-time file-size))
+            '(vc-state subtree-state all-the-icons collapse file-size))
 
       :bind
       (("C-c f" . dirvish-fd)
@@ -1434,9 +1427,11 @@ blocked.
     (use-package spookfox
       :straight (spookfox :type git
                           :local-repo "~/Documents/work/spookfox"
-                          :file "spookfox.el")
+                          :files ("lisp/*.el" "lisp/apps/*.el"))
       :config
-      (setq spookfox-saved-tabs-target `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs")))
+      (setq spookfox-saved-tabs-target
+            `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
+      (spookfox-init))
   #+end_src
 
 - saunf
