@@ -1349,6 +1349,21 @@ blocked.
               '("diary") "org" (expand-file-name "diary" denote-directory)))
   #+end_src
 
+  Enhance denote a bit, don't know why these aren't a part of denote itself.
+
+  #+begin_src elisp
+    (defun spook--denote-split-org-subtree (prefix)
+      "Create new Denote note as an Org file using current Org subtree."
+      (interactive "N")
+      (let ((text (org-get-entry))
+            (heading (org-get-heading :no-tags :no-todo :no-priority :no-comment))
+            (tags (org-get-tags))
+            (subdir (when prefix (denote-subdirectory-prompt))))
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))
+        (denote heading tags 'org subdir)
+        (insert text)))
+  #+end_src
+
   Setup for taking notes for reading/video-watching I do in Firefox.
 
   #+begin_src elisp
