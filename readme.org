@@ -1352,9 +1352,9 @@ blocked.
   Enhance denote a bit, don't know why these aren't a part of denote itself.
 
   #+begin_src elisp
-    (defun spook--denote-split-org-subtree (prefix)
+    (defun spook--denote-split-org-subtree (&optional prefix)
       "Create new Denote note as an Org file using current Org subtree."
-      (interactive "N")
+      (interactive "P")
       (let ((text (org-get-entry))
             (heading (org-get-heading :no-tags :no-todo :no-priority :no-comment))
             (tags (org-get-tags))
