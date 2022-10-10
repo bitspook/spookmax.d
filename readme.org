@@ -816,9 +816,29 @@ shot!
 
   #+begin_src elisp
     (use-package vertico
+      :straight (:files (:defaults "extensions/*.el"))
       :init (vertico-mode +1)
       :config
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
+
+    (use-package vertico-directory
+      :straight nil
+      :after vertico
+      :ensure nil
+      ;; More convenient directory navigation commands
+      :bind (:map vertico-map
+                  ("C-h" . vertico-directory-delete-word))
+      ;; Tidy shadowed file names
+      :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
+    (use-package vertico-quick
+      :straight nil
+      :after vertico
+      :ensure nil
+      :bind (:map vertico-map
+                  ("C-q" . vertico-quick-insert))
+      ;; Tidy shadowed file names
+      :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
