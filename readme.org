@@ -1389,7 +1389,7 @@ blocked.
         "})()") t))
 
     (defun spook--insert-yt-ts-note (&optional url)
-      "Insert note for current timestamp in youtube.
+      "Insert note for current timestamp for URL in youtube.
     Inserted time is an org yt:// link to youtube video at that time."
       (interactive)
       (let* ((result (spook--get-ff-yt-current-time))
@@ -1399,21 +1399,53 @@ blocked.
                         (format-seconds "%m:%s" time)
                         "]]\n"))))
 
+    (defun spook--url-equal-p (url1 url2)
+      "Return t if URL1 and URL2 have same host, query and path."
+      (let ((url1 (url-generic-parse-url url1))
+            (url2 (url-generic-parse-url url2)))
+        (and (equal (url-host url1)
+                    (url-host url2))
+             (equal (url-path-and-query url1)
+                    (url-path-and-query url2)))))
+
+    (defun spook--find-denote-for-ff-tab (url &optional subdir)
+      "Find existing denote entry for firefox tab for URL in denote
+    SUBDIR.
+    If previously a note for URL was being taken, return that file;
+     nil otherwise."
+      (let ((case-fold-search t)
+            (subdir (expand-file-name subdir denote-directory))
+            (source-rx (rx "#+source: " (group (+ any) (not "#")))))
+        (seq-find
+         (lambda (file)
+           (with-temp-buffer
+             (insert-file-contents file)
+             (search-forward-regexp source-rx nil t)
+             (spook--url-equal-p url (string-trim (match-string 1)))))
+         (mapcar
+          (lambda (f) (expand-file-name f subdir))
+          (cl-remove-if-not
+           (lambda (f) (string-match-p ".org$" f))
+           (directory-files subdir))))))
+
     (defun spook--denote-ff-tab ()
       "Create a new denote for current Firefox tab."
       (interactive)
       (let* ((tab (spookfox-request-active-tab))
              (url (plist-get tab :url))
              (yt-p (string-match-p "youtube.com" url))
-             (tags '("reading")))
-        (when yt-p
-          (push "video" tags))
+             (tags '("reading"))
+             (existing-denote (spook--find-denote-for-ff-tab url "reading")))
+        (if existing-denote
+            (find-file existing-denote)
+          (when yt-p
+            (push "video" tags))
 
-        (denote (denote-title-prompt (plist-get tab :title))
-                tags "org" (expand-file-name "reading" denote-directory))
-        (when yt-p (spook-notes-mode))
-        (delete-region (point) (line-beginning-position 0))
-        (insert (concat "#+source: " url "\n\n"))))
+          (denote (denote-title-prompt (plist-get tab :title))
+                  tags "org" (expand-file-name "reading" denote-directory))
+          (when yt-p (spook-notes-mode))
+          (delete-region (point) (line-beginning-position 0))
+          (insert (concat "#+source: " url "\n\n")))))
   #+end_src
 
   Keyboard shortcuts to bind it all together.
