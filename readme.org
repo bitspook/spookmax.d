@@ -770,6 +770,7 @@ shot!
 #+begin_src elisp
   (use-package meow
     :config
+    (setf meow-use-clipboard t)
     (meow-global-mode)
     (meow-setup))
 #+end_src
