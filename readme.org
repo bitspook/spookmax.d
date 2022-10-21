@@ -789,7 +789,6 @@ shot!
   #+begin_src elisp
     (meow-leader-define-key
      '("/" . consult-git-grep)
-     '("l" . lsp-mode-map)
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
      '("w" . ace-window)
@@ -1049,36 +1048,10 @@ shot!
      (direnv-mode))
   #+end_src
 
-- LSP provides support for many languages with little cost of
-  configuring. So LSP we do.
+- Eglot to provide LSP support.
 
-  #+begin_src elisp
-    (use-package lsp-mode
-      :init (setq lsp-keymap-prefix "C-c l")
-      :hook
-      (lsp-mode . lsp-enable-which-key-integration)
-      ((typescript-mode
-        typescript-tsx-mode
-        js-mode
-        js-jsx-mode
-        python-mode
-        web-mode
-        haskell-mode) . lsp)
-      :config
-      (setq lsp-auto-guess-root t)
-      (setq lsp-enable-symbol-highlighting nil)
-      (setq lsp-enable-on-type-formatting nil)
-      (setq lsp-enable-imenu nil)
-      (setq read-process-output-max (* 1024 1024)) ;; 1mb
-      (add-to-list 'lsp-language-id-configuration '(js-jsx-mode . "javascriptreact"))
-      :commands lsp-deferred)
-
-    (use-package lsp-ui
-      :commands lsp-ui-mode
-      :config
-      (setq lsp-ui-doc-show-with-cursor t
-            lsp-ui-doc-delay 1
-            lsp-ui-doc-position 'at-point))
+    #+begin_src elisp
+    (use-package eglot)
   #+end_src
 
 *** Lisp
@@ -1160,24 +1133,34 @@ says on the box without much fuss.
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
-  (defun spook--setup-eslint ()
+  (defun spook--setup-ts-js ()
+    "Setup Javascript and Typescript for current buffer."
+    ;; Add node_modules/.bin of current project to exec-path.
+    (let ((bin-dir
+           (expand-file-name
+            "node_modules/.bin/"
+            (locate-dominating-file default-directory ".dir-locals.el"))))
+      (when (file-exists-p bin-dir)
+        (add-to-list 'exec-path bin-dir)))
+
+    ;; Setup flycheck. It don't enable eslint for ts buffers for some reason
     (setq-local
-     flycheck-javascript-eslint-executable  (string-trim (shell-command-to-string "which eslint"))
+     flycheck-javascript-eslint-executable "eslint"
      flycheck-enabled-checkers '(javascript-eslint))
-    ;; (flycheck-add-next-checker 'javascript-eslint 'lsp)
-    (flycheck-select-checker 'javascript-eslint))
+    (flycheck-select-checker 'javascript-eslint)
+
+    ;; For 95% of cases this is what I want
+    (prettier-format-on-save-mode))
 
   (setq js-mode-hook nil)
-
-  (add-hook 'js-mode-hook
-            #'spook--setup-eslint)
+  (add-hook 'js-mode-hook #'spook--setup-ts-js)
 
   (use-package typescript-mode
     :mode "\\.ts?\\'"
     :hook ((typescript-mode . subword-mode))
     :config
     (setq-default typescript-indent-level spook--indent-width)
-    (add-hook 'typescript-mode-hook #'spook--setup-eslint))
+    (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
 
   (use-package css-mode
     :mode "\\.s?css\\'")
@@ -1210,8 +1193,7 @@ says on the box without much fuss.
 #+begin_src elisp
   (use-package rustic
     :init
-    (setq rustic-cargo-bin "cargo"
-          lsp-rust-analyzer-cargo-watch-command "clippy")
+    (setq rustic-cargo-bin "cargo")
     (push 'rustic-clippy flycheck-checkers))
 #+end_src
 
@@ -1227,8 +1209,6 @@ says on the box without much fuss.
     (define-key haskell-mode-map (kbd "C-c , l") #'haskell-interactive-mode-clear)
     (define-key haskell-mode-map (kbd "C-c , T") #'haskell-doc-show-type)
     (define-key haskell-mode-map (kbd "C-c , t") #'haskell-mode-show-type-at))
-
-  (use-package lsp-haskell)
 #+end_src
 *** Yaml
 
