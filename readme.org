@@ -1135,7 +1135,7 @@ says on the box without much fuss.
     (let ((bin-dir
            (expand-file-name
             "node_modules/.bin/"
-            (locate-dominating-file default-directory ".dir-locals.el"))))
+            (locate-dominating-file default-directory "node_modules"))))
       (when (file-exists-p bin-dir)
         (add-to-list 'exec-path bin-dir)))
 
@@ -1308,8 +1308,14 @@ blocked.
     (defun spook--diary-today ()
       "Go to today's diary entry."
       (interactive)
-      (denote (format-time-string "%Y-%m-%d")
-              '("diary") "org" (expand-file-name "diary" denote-directory)))
+      (let ((denote-directory (expand-file-name "diary" denote-directory))
+            (title (format-time-string "%Y-%m-%d")))
+        (or (when-let ((file (seq-find
+                              (lambda (f) (string-match-p title f))
+                              (directory-files denote-directory))))
+              (find-file (expand-file-name file denote-directory))
+              (goto-char (point-max)))
+            (denote title '("diary")))))
   #+end_src
 
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
