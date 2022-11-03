@@ -205,10 +205,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
     #+begin_src elisp
       ;;; Cursor
-
-      ;; The blinking cursor is distracting, but also interferes with cursor settings
-      ;; in some minor modes that try to change it buffer-locally (like treemacs) and
-      ;; can cause freezing for folks (esp on macOS) with customized & color cursors.
       (blink-cursor-mode -1)
 
       ;; Don't blink the paren matching the one at point, it's too distracting.
@@ -1241,40 +1237,6 @@ Nice to have features but not necessary.
 
     (use-package ace-jump-mode)
   #+end_src
-
-- Treemacs for occasional sidebar
-
-  #+begin_src elisp
-    (use-package treemacs
-      :config
-      (progn
-        (treemacs-follow-mode t)
-        (treemacs-filewatch-mode t)
-        (treemacs-fringe-indicator-mode 'always)
-        (treemacs-git-mode 'deferred)
-        (treemacs-git-mode 'simple)
-        (treemacs-hide-gitignored-files-mode nil))
-      (spook--defkeymap "spook-tree" "C-c t"
-                       '("0" . treemacs-select-window)
-                       '("1" . treemacs-delete-other-windows)
-                       '("t" . treemacs)
-                       '("d" . treemacs-select-directory)
-                       '("p" . treemacs-projectile)
-                       '("B" . treemacs-bookmark)
-                       '("C-t" . treemacs-find-file)
-                       '("M-t" . treemacs-find-tag)))
-
-    (use-package treemacs-projectile
-      :after (treemacs projectile))
-
-    (use-package treemacs-magit
-      :after (treemacs magit))
-
-    (use-package treemacs-all-the-icons
-      :after (treemacs)
-      :config
-      (treemacs-load-theme 'all-the-icons))
-  #+end_src
 ** Looks
 :PROPERTIES:
 :ID:       baaa3b17-3676-4759-b2a0-dc792897862b
@@ -1350,116 +1312,136 @@ blocked.
               '("diary") "org" (expand-file-name "diary" denote-directory)))
   #+end_src
 
-  Enhance denote a bit, don't know why these aren't a part of denote itself.
+  - Enhance denote a bit, don't know why these aren't a part of denote itself.
 
-  #+begin_src elisp
-    (defun spook--denote-split-org-subtree (&optional prefix)
-      "Create new Denote note as an Org file using current Org subtree."
-      (interactive "P")
-      (let ((text (org-get-entry))
-            (heading (org-get-heading :no-tags :no-todo :no-priority :no-comment))
-            (tags (org-get-tags))
-            (subdir (when prefix (denote-subdirectory-prompt))))
-        (delete-region (org-entry-beginning-position) (org-entry-end-position))
-        (denote heading tags 'org subdir)
-        (insert text)))
-  #+end_src
+    #+begin_src elisp
+      (defun spook--denote-split-org-subtree (&optional prefix)
+        "Create new Denote note as an Org file using current Org subtree."
+        (interactive "P")
+        (let ((text (org-get-entry))
+              (heading (org-get-heading :no-tags :no-todo :no-priority :no-comment))
+              (tags (org-get-tags))
+              (subdir (when prefix (denote-subdirectory-prompt))))
+          (delete-region (org-entry-beginning-position) (org-entry-end-position))
+          (denote heading tags 'org subdir)
+          (insert text)))
+    #+end_src
 
-  Setup for taking notes for reading/video-watching I do in Firefox.
+  - Setup for taking notes for reading/video-watching I do in Firefox.
 
-  #+begin_src elisp
-    (defvar spook-notes-mode-map (make-sparse-keymap))
+    #+begin_src elisp
+      (defvar spook-notes-mode-map (make-sparse-keymap))
 
-    (define-key spook-notes-mode-map (kbd "C-c i t") #'spook--insert-yt-ts-note)
+      (define-key spook-notes-mode-map (kbd "C-c i t") #'spook--insert-yt-ts-note)
 
-    (define-minor-mode spook-notes-mode
-      "Minor mode for taking spooky notes.
-    It is used to set local keybindings depending on the kind of note
-    being taken."
-      :keymap spook-notes-mode-map)
+      (define-minor-mode spook-notes-mode
+        "Minor mode for taking spooky notes.
+      It is used to set local keybindings depending on the kind of note
+      being taken."
+        :keymap spook-notes-mode-map)
 
-    (defun spook--get-ff-yt-current-time ()
-      "Return current time of youtube video running in Firefox's active tab."
-      (spookfox-eval-js-in-active-tab
-       (concat
-        "(function () {"
-        "try {"
-        "const player = document.querySelector('.video-stream');"
-        "return { time: player.currentTime, url: `${window.location.href}&t=${Math.floor(player.currentTime)}` };"
-        "} catch(e) { return 0; }"
-        "})()") t))
+      (defun spook--get-ff-yt-current-time ()
+        "Return current time of youtube video running in Firefox's active tab."
+        (spookfox-eval-js-in-active-tab
+         (concat
+          "(function () {"
+          "try {"
+          "const player = document.querySelector('.video-stream');"
+          "return { time: player.currentTime, url: `${window.location.href}&t=${Math.floor(player.currentTime)}` };"
+          "} catch(e) { return 0; }"
+          "})()") t))
 
-    (defun spook--insert-yt-ts-note (&optional url)
-      "Insert note for current timestamp for URL in youtube.
-    Inserted time is an org yt:// link to youtube video at that time."
-      (interactive)
-      (let* ((result (spook--get-ff-yt-current-time))
-             (time (plist-get result :time))
-             (url (string-replace "https" "yt" (plist-get result :url))))
-        (insert (concat "- At [[" url "]["
-                        (format-seconds "%m:%s" time)
-                        "]]\n"))))
+      (defun spook--insert-yt-ts-note (&optional url)
+        "Insert note for current timestamp for URL in youtube.
+      Inserted time is an org yt:// link to youtube video at that time."
+        (interactive)
+        (let* ((result (spook--get-ff-yt-current-time))
+               (time (plist-get result :time))
+               (url (string-replace "https" "yt" (plist-get result :url))))
+          (insert (concat "- At [[" url "]["
+                          (format-seconds "%m:%s" time)
+                          "]]\n"))))
 
-    (defun spook--url-equal-p (url1 url2)
-      "Return t if URL1 and URL2 have same host, query and path."
-      (let ((url1 (url-generic-parse-url url1))
-            (url2 (url-generic-parse-url url2)))
-        (and (equal (url-host url1)
-                    (url-host url2))
-             (equal (url-path-and-query url1)
-                    (url-path-and-query url2)))))
+      (defun spook--url-equal-p (url1 url2)
+        "Return t if URL1 and URL2 have same host, query and path."
+        (let ((url1 (url-generic-parse-url url1))
+              (url2 (url-generic-parse-url url2)))
+          (and (equal (url-host url1)
+                      (url-host url2))
+               (equal (url-path-and-query url1)
+                      (url-path-and-query url2)))))
 
-    (defun spook--find-denote-for-ff-tab (url &optional subdir)
-      "Find existing denote entry for firefox tab for URL in denote
-    SUBDIR.
-    If previously a note for URL was being taken, return that file;
-     nil otherwise."
-      (let ((case-fold-search t)
-            (subdir (expand-file-name subdir denote-directory))
-            (source-rx (rx "#+source: " (group (+ any) (not "#")))))
-        (seq-find
-         (lambda (file)
-           (with-temp-buffer
-             (insert-file-contents file)
-             (search-forward-regexp source-rx nil t)
-             (spook--url-equal-p url (string-trim (match-string 1)))))
-         (mapcar
-          (lambda (f) (expand-file-name f subdir))
-          (cl-remove-if-not
-           (lambda (f) (string-match-p ".org$" f))
-           (directory-files subdir))))))
+      (defun spook--find-denote-for-ff-tab (url &optional subdir)
+        "Find existing denote entry for firefox tab for URL in denote
+      SUBDIR.
+      If previously a note for URL was being taken, return that file;
+       nil otherwise."
+        (let ((case-fold-search t)
+              (subdir (expand-file-name subdir denote-directory))
+              (source-rx (rx "#+source: " (group (+ any) (not "#")))))
+          (seq-find
+           (lambda (file)
+             (with-temp-buffer
+               (insert-file-contents file)
+               (search-forward-regexp source-rx nil t)
+               (spook--url-equal-p url (string-trim (match-string 1)))))
+           (mapcar
+            (lambda (f) (expand-file-name f subdir))
+            (cl-remove-if-not
+             (lambda (f) (string-match-p ".org$" f))
+             (directory-files subdir))))))
 
-    (defun spook--denote-ff-tab ()
-      "Create a new denote for current Firefox tab."
-      (interactive)
-      (let* ((tab (spookfox-request-active-tab))
-             (url (plist-get tab :url))
-             (yt-p (string-match-p "youtube.com" url))
-             (tags '("reading"))
-             (existing-denote (spook--find-denote-for-ff-tab url "reading")))
-        (if existing-denote
-            (find-file existing-denote)
-          (when yt-p
-            (push "video" tags))
+      (defun spook--denote-ff-tab ()
+        "Create a new denote for current Firefox tab."
+        (interactive)
+        (let* ((tab (spookfox-request-active-tab))
+               (url (plist-get tab :url))
+               (yt-p (string-match-p "youtube.com" url))
+               (tags '("reading"))
+               (existing-denote (spook--find-denote-for-ff-tab url "reading")))
+          (if existing-denote
+              (find-file existing-denote)
+            (when yt-p
+              (push "video" tags))
 
-          (denote (denote-title-prompt (plist-get tab :title))
-                  tags "org" (expand-file-name "reading" denote-directory))
-          (when yt-p (spook-notes-mode))
-          (delete-region (point) (line-beginning-position 0))
-          (insert (concat "#+source: " url "\n\n")))))
-  #+end_src
+            (denote (denote-title-prompt (plist-get tab :title))
+                    tags "org" (expand-file-name "reading" denote-directory))
+            (when yt-p (spook-notes-mode))
+            (delete-region (point) (line-beginning-position 0))
+            (insert (concat "#+source: " url "\n\n")))))
+    #+end_src
 
-  Keyboard shortcuts to bind it all together.
+  - CRM   
 
-  #+begin_src elisp
-    (spook--defkeymap
-     "spook-notes" "C-c n"
-     '("f" . denote-open-or-create)
-     '("i" . denote-link-or-create)
-     '("b" . denote-link-backlinks)
-     '("d" . spook--diary-today)
-     '("r" . spook--denote-ff-tab))
-  #+end_src
+    #+begin_src elisp
+      (defvar crm-directory (expand-file-name "crm" denote-directory))
+
+      (defun spook-crm--open-or-create ()
+        "Find or create CRM entry."
+        (interactive)
+        (let ((denote-directory crm-directory))
+          (call-interactively #'denote-open-or-create)))
+
+      (defun spook-crm--link-or-create ()
+        "Find or create CRM entry."
+        (interactive)
+        (let ((denote-directory crm-directory))
+          (call-interactively #'denote-link-or-create)))
+    #+end_src
+
+  - Keyboard shortcuts to bind it all together.
+
+    #+begin_src elisp
+      (spook--defkeymap
+       "spook-notes" "C-c n"
+       '("f" . denote-open-or-create)
+       '("i" . denote-link-or-create)
+       '("b" . denote-link-backlinks)
+       '("d" . spook--diary-today)
+       '("r" . spook--denote-ff-tab)
+       '("p" . spook-crm--open-or-create)
+       '("P" . spook-crm--link-or-create))
+    #+end_src
   
 - org-roam
 
@@ -1479,6 +1461,7 @@ blocked.
 - dirvish for more powerful dired
 
   #+begin_src elisp
+    (use-package all-the-icons)
     (use-package dirvish
       :init
       (dirvish-override-dired-mode)
