@@ -1305,17 +1305,39 @@ blocked.
             denote-date-prompt-use-org-read-date t)
       (add-hook 'dired-mode-hook #'denote-dired-mode))
 
+    (defun spook--find-habit (title)
+      "Find the habit with TITLE in current buffer."
+      (cl-block 'spook--find-habit
+        (org-map-entries
+         (lambda ()
+           (let ((el (org-element-at-point-no-context)))
+             (when (and (seq-contains-p (org-get-tags el) "habit" #'equal)
+                        (equal (downcase (org-element-property :raw-value el))
+                               (downcase title)))
+               (cl-return-from 'spook--find-habit el)))))))
+
+    (defun spook--mark-habit-as-done (habit)
+      "Mark HABIT as done."
+      (with-current-buffer (find-file-noselect (expand-file-name "TODOs.org" org-directory))
+        (org-mode)
+        (let ((el (cl-case habit
+                    (diary (spook--find-habit "write diary entry")))))
+          (goto-char (org-element-property :begin el))
+          (org-todo 'done))))
+
     (defun spook--diary-today ()
       "Go to today's diary entry."
       (interactive)
       (let ((denote-directory (expand-file-name "diary" denote-directory))
             (title (format-time-string "%Y-%m-%d")))
-        (or (when-let ((file (seq-find
-                              (lambda (f) (string-match-p title f))
-                              (directory-files denote-directory))))
+        (if-let ((file (seq-find
+                        (lambda (f) (string-match-p title f))
+                        (directory-files denote-directory))))
+            (progn
               (find-file (expand-file-name file denote-directory))
               (goto-char (point-max)))
-            (denote title '("diary")))))
+          (spook--mark-habit-as-done 'diary)
+          (denote title '("diary")))))
   #+end_src
 
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
@@ -1615,3 +1637,4 @@ blocked.
          :nick "bitspook"
          :password (string-trim (eshell-command-result "pass show libera.chat/bitspook | head -n 1"))))
   #+end_src
+  
