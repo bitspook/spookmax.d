@@ -498,7 +498,9 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   of older version pre-packaged with emacs
 
   #+begin_src elisp
-    (use-package org)
+    (use-package org
+      :config
+      (add-hook 'org-mode-hook (lambda () (display-line-numbers-mode -1))))
   #+end_src
 
 - Other settings
