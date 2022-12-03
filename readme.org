@@ -99,12 +99,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   For firefox, I want to capture whatever I am reading and open the captured
   content in baby-window. But there is a fuck-up here that I've been unable to
-  fix. On aborting the capture, the window layout gets messed up. Primary reason
-  for that is that org-roam don't provide any hook to control capture behavior,
-  or get notified when capture finishes. It will need more work to use plain org
-  capture to achieve this same functionality. So I am living with this for now.
-  Hopefully, I'll be able to find a work around this. I have a growing disdain
-  for org-roam codebase, it feels like it isn't a very well thought out one.
+  fix. On aborting the capture, the window layout gets messed up. 
 
   #+begin_src elisp
     (defun spook--baby-window (&optional baby-size)
@@ -515,7 +510,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      org-directory "~/Documents/org"
      org-agenda-diary-file (concat org-directory "/diary.org.gpg")
      org-inbox-file (concat org-directory "/TODOs.org")
-     org-agenda-files (list org-inbox-file)
+     org-agenda-files (list org-inbox-file (expand-file-name "work/on.org" org-directory))
      ;;Todo keywords I need
      org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(n)" "|" "DONE(d)" "CANCELED(c@)"))
      org-todo-keyword-faces '(("IN-PLANNING" . org-todo)
@@ -1286,8 +1281,8 @@ blocked.
       (text-mode . flyspell-mode)
       (prog-mode . flyspell-prog-mode)
       :config
-      (define-key flyspell-mode-map (kbd "C-,") nil t)
-      (define-key flyspell-mode-map (kbd "C-.") nil t)
+      (define-key flyspell-mode-map (kbd "C-,") nil)
+      (define-key flyspell-mode-map (kbd "C-.") nil)
       (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 
     (use-package flyspell-correct
@@ -1475,21 +1470,6 @@ blocked.
        '("P" . spook-crm--link-or-create))
     #+end_src
   
-- org-roam
-
-  I am not using org-roam anymore (in favor of denote), but I am still keeping
-  it around until I am satisfied that denote can replace it.
-
-  #+begin_src elisp
-    (use-package org-roam
-      :init
-      (setq org-roam-directory (concat org-directory "/notes/")
-            org-roam-tag-sources '(prop)
-            org-roam-v2-ack t)
-      :config
-      (org-roam-setup))
-  #+end_src
-
 - dirvish for more powerful dired
 
   #+begin_src elisp
