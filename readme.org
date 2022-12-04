@@ -129,6 +129,13 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       "Change things slightly based on different profiles.")
   #+end_src
 
+  - On mac without external monitor
+
+    #+begin_src elisp
+      (when (eq system-type 'darwin)
+        (push '(small-screen . t) spook--active-profiles))
+    #+end_src
+
 ** Preliminary setup
 :PROPERTIES:
 :ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
@@ -428,7 +435,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   #+begin_src elisp
     (defvar spook--font-size 11)
     (when (assoc 'small-screen spook--active-profiles)
-      (setq spook--font-size 13))
+      (setq spook--font-size 14))
     (set-face-attribute 'default nil :height (* 10 spook--font-size))
   #+end_src
 
@@ -1508,7 +1515,9 @@ blocked.
 
   #+begin_src elisp
     (use-package ledger-mode
-      :mode "\\.ledger\\'")
+      :mode "\\.ledger\\'"
+      :config
+      (setq ledger-default-date-format ledger-iso-date-format))
   #+end_src
 
 - spookfox
