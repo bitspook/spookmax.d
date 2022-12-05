@@ -801,6 +801,16 @@ shot!
      '("t" . spook-tree))
   #+end_src
 
+- Keychords
+
+  #+begin_src elisp
+    (use-package key-chord
+      :config
+      (key-chord-mode 1))
+
+    (key-chord-define meow-insert-state-keymap "fd" #'meow-insert-exit)
+  #+end_src
+
 ** Completion UI
 :PROPERTIES:
 :ID:       4b16f866-dede-4d72-8fbf-95044ed1e378
