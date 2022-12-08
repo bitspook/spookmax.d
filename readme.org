@@ -93,8 +93,9 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (defun spook--get-or-create-scratch ()
       "Switch to *scratch* buffer. Create if it doesn't already exist"
       (interactive)
-      (switch-to-buffer (get-buffer-create "*scratch*"))
-      (emacs-lisp-mode))
+      (let ((s-buf (get-buffer "*scratch*")))
+        (switch-to-buffer (get-buffer-create "*scratch*"))
+        (when (not s-buf) (emacs-lisp-mode))))
   #+end_src
 
   For firefox, I want to capture whatever I am reading and open the captured
