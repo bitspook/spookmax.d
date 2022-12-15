@@ -13,6 +13,10 @@ isn't exactly complete. Use it for reference or tricks. I'd recommend
 doom or spacemacs if you're looking for something that'll let you get
 started with Emacs quickly.
 
+This setup make certain assumptions regarding its environment:
+1. Machine in use is Linux or MacOS
+2. Shell in use is =fish=
+
 * Spook max 👻
 My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
 
@@ -114,7 +118,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         (select-window baby-window)
         (spook--get-or-create-scratch)))
   #+end_src
-
+  
 - Profiles
 
   Let's introduce a concept of profiles to change the configuration based on
@@ -175,8 +179,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 - Make emacs a little transparent
  #+begin_src elisp :tangle ./init.el
-   (set-frame-parameter (selected-frame) 'alpha '(90 . 50))
-   (add-to-list 'default-frame-alist '(alpha . (90 . 50)))
+   (set-frame-parameter (selected-frame) 'alpha '(98 . 50))
+   (add-to-list 'default-frame-alist '(alpha . (98 . 50)))
  #+end_src
 
 - UI fixes copied from Doom
@@ -1110,6 +1114,19 @@ says on the box without much fuss.
 :ID:       62e08f15-d996-48fd-90c3-fd6d348555be
 :END:
 
+- Helper utilities
+
+  - Are we using nvm?
+    
+    #+begin_src elisp
+      (defun spook--nvm-p ()
+        (when-let* ((node (string-trim (shell-command-to-string "fish -c 'readlink (which node)'")))
+                    (nvm-bin-dir
+                     (and (string-match-p "\/nvm\/" node)
+                          (file-name-directory node))))
+          nvm-bin-dir))
+    #+end_src
+
 #+begin_src elisp
   (setq css-indent-offset spook--indent-width)
 
@@ -1146,24 +1163,34 @@ says on the box without much fuss.
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
+  ;; Let's try flymake for js/ts since eglot likes it so much
+  (use-package flymake-eslint)
+
   (defun spook--setup-ts-js ()
     "Setup Javascript and Typescript for current buffer."
     ;; Add node_modules/.bin of current project to exec-path.
-    (let ((bin-dir
-           (expand-file-name
-            "node_modules/.bin/"
-            (locate-dominating-file default-directory "node_modules"))))
-      (when (file-exists-p bin-dir)
-        (add-to-list 'exec-path bin-dir)))
+    (flycheck-mode -1)
 
+    (if-let (nvm-bin (spook--nvm-p))
+        (add-to-list 'exec-path nvm-bin)
+      (let ((bin-dir
+             (expand-file-name
+              "node_modules/.bin/"
+              (locate-dominating-file default-directory "node_modules"))))
+        (when (file-exists-p bin-dir)
+          (add-to-list 'exec-path bin-dir))))
+
+    ;; TODO Remove this if flymake-eslint works well enough
     ;; Setup flycheck. It don't enable eslint for ts buffers for some reason
-    (setq-local
-     flycheck-javascript-eslint-executable "eslint"
-     flycheck-enabled-checkers '(javascript-eslint))
-    (flycheck-select-checker 'javascript-eslint)
+    ;; (setq-local
+    ;;  flycheck-javascript-eslint-executable "eslint"
+    ;;  flycheck-enabled-checkers '(javascript-eslint))
+    ;; (flycheck-select-checker 'javascript-eslint)
 
     ;; For 95% of cases this is what I want
-    (prettier-format-on-save-mode))
+    (prettier-format-on-save-mode +1)
+    (eglot-ensure)
+    (flymake-eslint-enable))
 
   (setq js-mode-hook nil)
   (add-hook 'js-mode-hook #'spook--setup-ts-js)
