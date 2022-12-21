@@ -26,3 +26,5 @@
 /nov-places
 /common.el
 /org-persist/
+/forge-database.sqlite
+/var/

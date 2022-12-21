@@ -179,8 +179,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 - Make emacs a little transparent
  #+begin_src elisp :tangle ./init.el
-   (set-frame-parameter (selected-frame) 'alpha '(98 . 50))
-   (add-to-list 'default-frame-alist '(alpha . (98 . 50)))
+   (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
+   (add-to-list 'default-frame-alist '(alpha . (98 . 95)))
  #+end_src
 
 - UI fixes copied from Doom
@@ -469,14 +469,12 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
         '("g" . magit-dispatch))
     #+end_src
 
-  - Use [[https://github.com/dandavison/delta][delta]] for prettier diffs in magit.
+  - Magit Forge
 
-    Commenting it out for now because it makes magit very unresponsive when
-    there are a lot of changed files.
     #+begin_src elisp
-      ;; (use-package magit-delta
-      ;;   :hook (magit-mode . magit-delta-mode))
-    #+end_src
+      (use-package forge
+        :after magit)
+    #+end_src    
 
 - Keep backup/auto-save files out of my vc
 
@@ -1115,7 +1113,7 @@ says on the box without much fuss.
 :END:
 
 - Helper utilities
-
+  
   - Are we using nvm?
     
     #+begin_src elisp
@@ -1165,6 +1163,13 @@ says on the box without much fuss.
 
   ;; Let's try flymake for js/ts since eglot likes it so much
   (use-package flymake-eslint)
+
+  (spook--defkeymap
+   "spook-flymake" "C-c e"
+   '("n" . flymake-goto-next-error)
+   '("p" . flymake-goto-prev-error)
+   '("l" .  flymake-show-buffer-diagnostics)
+   '("L" . flymake-show-project-diagnostics))
 
   (defun spook--setup-ts-js ()
     "Setup Javascript and Typescript for current buffer."
@@ -1226,6 +1231,19 @@ says on the box without much fuss.
       :config
       (tree-sitter-require 'tsx)
       (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx)))
+  #+end_src
+
+- JSON support
+
+  #+begin_src elisp
+    (use-package json-mode
+      :mode "\\.json\\'")
+  #+end_src
+
+- Testing with jest
+
+  #+begin_src elisp
+    (use-package jest)
   #+end_src
 
 *** Rust
@@ -1777,3 +1795,10 @@ blocked.
          :password (string-trim (eshell-command-result "pass show libera.chat/bitspook | head -n 1"))))
   #+end_src
   
+- Azure cloud
+
+  #+begin_src elisp
+    (use-package ecloud
+      :straight (ecloud :type git
+                        :local-repo "~/Documents/work/ecloud"))
+  #+end_src
