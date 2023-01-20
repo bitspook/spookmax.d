@@ -1059,9 +1059,15 @@ shot!
 
   #+begin_src elisp
     (use-package direnv
-     :config
-     (direnv-mode))
+      :config
+      (direnv-mode)
+      (when (not (boundp 'warning-suppress-types))
+        (setq warning-suppress-types nil))
+      (add-to-list 'warning-suppress-types '(direnv)))
   #+end_src
+
+  #+RESULTS:
+  : t
 
 - Eglot to provide LSP support.
 
@@ -1423,8 +1429,8 @@ Nice to have features but not necessary.
 Modeline
 
 #+begin_src elisp
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1))
+  ;; (use-package doom-modeline
+  ;;   :init (doom-modeline-mode 1))
 #+end_src
 
 ** Applications
@@ -1692,7 +1698,7 @@ blocked.
                           :local-repo "~/Documents/work/spookfox"
                           :files ("lisp/*.el" "lisp/apps/*.el"))
       :config
-      (setq spookfox-enabled-apps '(spookfox-tabs spookfox-org-tabs spookfox-js-injection))
+      (setq spookfox-enabled-apps '(spookfox-tabs spookfox-js-injection))
       (setq spookfox-saved-tabs-target
             `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
       (spookfox-init))
