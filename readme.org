@@ -46,7 +46,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   ;; -*- lexical-binding: t -*-
 
   (defvar bootstrap-version)
-  (setq straight-use-package-by-default t)
+  (setq straight-use-package-by-default t
+        ring-bell-function 'ignore)
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
         (bootstrap-version 5))
