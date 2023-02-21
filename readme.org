@@ -599,7 +599,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
          (shell . t)
          (sql . t)
          (sqlite . t)
-         (lisp . t))))
+         (lisp . t)
+         (js . t))))
   #+end_src
 
 - Allow adding HTML class/id to exported src blocks
@@ -1101,12 +1102,22 @@ says on the box without much fuss.
 
 - Common Lisp
 
+  Sly for interactive development.
+
   #+begin_src elisp
     (use-package sly
       :hook ((lisp-mode . sly-mode))
       :config
       (setq org-babel-lisp-eval-fn #'sly-eval)
       (setq inferior-lisp-program "sbcl"))
+  #+end_src
+
+  [[https://github.com/mmgeorge/sly-asdf][sly-asdf]] add asdf integration to sly.
+
+  #+begin_src elisp
+    (use-package sly-asdf
+      :config
+      (add-to-list 'sly-contribs 'sly-asdf 'append))
   #+end_src
 
 *** Nix
@@ -1202,6 +1213,8 @@ says on the box without much fuss.
     ;; For 95% of cases this is what I want
     (prettier-format-on-save-mode +1)
     (eglot-ensure)
+    (setf flymake-eslint-project-root
+          (locate-dominating-file default-directory "package.json"))
     (flymake-eslint-enable))
 
   (setq js-mode-hook nil)
@@ -1801,7 +1814,13 @@ blocked.
          :nick "bitspook"
          :password (string-trim (eshell-command-result "pass show libera.chat/bitspook | head -n 1"))))
   #+end_src
-  
+
+- Terraform
+
+  #+begin_src elisp
+    (use-package terraform-mode)
+  #+end_src
+    
 - Azure cloud
 
   #+begin_src elisp
