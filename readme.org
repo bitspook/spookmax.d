@@ -361,19 +361,18 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   - Custom window keybindings
 
     #+begin_src elisp
-    (spook--defkeymap "spook-windows" "C-c s-w"
-      '("-" . split-window-below)
-      '("_" . spook--baby-window)
-      '("/" . split-window-right)
-      '("d" . delete-window)
-      '("m" . delete-other-windows)
-      '("M" . window-swap-states)
-      '("o" . other-window)
-      '("h" . windmove-left)
-      '("j" . windmove-down)
-      '("k" . windmove-up)
-      '("l" . windmove-right)
-      '("w" . ace-window))
+      (spook--defkeymap "spook-windows" "C-c s-w"
+        '("-" . split-window-below)
+        '("_" . spook--baby-window)
+        '("/" . split-window-right)
+        '("d" . delete-window)
+        '("m" . delete-other-windows)
+        '("o" . other-window)
+        '("h" . windmove-left)
+        '("j" . windmove-down)
+        '("k" . windmove-up)
+        '("l" . windmove-right)
+        '("w" . ace-window))
     #+end_src
 
   - Install [[https://github.com/abo-abo/ace-window][ace-window]] for some nice utilities.
@@ -591,6 +590,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - org-babel
 
   #+begin_src elisp
+    (use-package ob-http)
+
     (with-eval-after-load 'org
       (org-babel-do-load-languages
        'org-babel-load-languages
@@ -600,7 +601,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
          (sql . t)
          (sqlite . t)
          (lisp . t)
-         (js . t))))
+         (js . t)
+         (http . t))))
   #+end_src
 
 - Allow adding HTML class/id to exported src blocks
@@ -1723,10 +1725,11 @@ blocked.
   Use the local repo; very risky, should change.
 
   #+begin_src elisp
-    (use-package saunf
-      :straight (saunf :type git
-                       :local-repo "~/Documents/work/saunf"
-                       :file "saunf.el"))
+    (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
+      (use-package saunf
+        :straight (saunf :type git
+                         :local-repo "~/Documents/work/saunf"
+                         :file "src/saunf.el")))
   #+end_src
 
 - org-noter
@@ -1828,3 +1831,11 @@ blocked.
       :straight (ecloud :type git
                         :local-repo "~/Documents/work/ecloud"))
   #+end_src
+
+** Private work related config 
+
+#+begin_src elisp
+  (let ((private-config (expand-file-name "./private.el" user-emacs-directory)))
+    (when (file-exists-p private-config)
+      (load-file private-config)))
+#+end_src
