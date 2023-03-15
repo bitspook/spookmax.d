@@ -1530,6 +1530,21 @@ blocked.
               (goto-char (point-max)))
           (spook--mark-habit-as-done 'diary)
           (denote title '("diary")))))
+
+    (defun spook--workday (prefix)
+      "Go to work notes for today plus PREFIX days."
+      (interactive "P")
+      (let* ((days (if prefix (prefix-numeric-value prefix) 0))
+             (denote-directory (expand-file-name "work" denote-directory))
+             (date (time-add (current-time) (days-to-time days)))
+             (title (format-time-string "%Y-%m-%d" date)))
+        (if-let ((file (seq-find
+                        (lambda (f) (string-match-p title f))
+                        (directory-files denote-directory))))
+            (progn
+              (find-file (expand-file-name file denote-directory))
+              (goto-char (point-max)))
+          (denote title '("work") "org" nil title))))
   #+end_src
 
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
@@ -1658,6 +1673,7 @@ blocked.
        '("i" . denote-link-or-create)
        '("b" . denote-link-backlinks)
        '("d" . spook--diary-today)
+       '("w" . spook--workday)
        '("r" . spook--denote-ff-tab)
        '("p" . spook-crm--open-or-create)
        '("P" . spook-crm--link-or-create))
@@ -1728,8 +1744,8 @@ blocked.
     (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
       (use-package saunf
         :straight (saunf :type git
-                         :local-repo "~/Documents/work/saunf"
-                         :file "src/saunf.el")))
+                         :local-repo "~/Documents/work/saunf/src"
+                         :file "saunf.el")))
   #+end_src
 
 - org-noter
