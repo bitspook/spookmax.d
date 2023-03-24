@@ -460,6 +460,14 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
             magit-bury-buffer-function #'magit-restore-window-configuration))
   #+end_src
 
+  - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
+
+    #+begin_src emacs-lisp
+      (use-package git-link
+        :config
+        (setf git-link-use-commit t))
+    #+end_src
+
   - Buncha nice keybindings.
 
     #+begin_src elisp
