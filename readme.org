@@ -1742,8 +1742,15 @@ blocked.
         (setq spookfox-saved-tabs-target
               `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
         (spookfox-init))
-  
-      (define-key spook-buffers-keymap (kbd "t") #'spookfox-switch-tab))
+
+      (defun spook--switch-tab-and-focus ()
+        "Switch to browser tab and bring browser in focus."
+        (interactive)
+        (spookfox-switch-tab)
+        (when (eq 'darwin system-type)
+          (ns-do-applescript "tell application \"Firefox\"\n\tactivate\n\tend tell")))
+
+      (define-key spook-buffers-keymap (kbd "t") #'spook--switch-tab-and-focus))
   #+end_src
 
 - saunf
