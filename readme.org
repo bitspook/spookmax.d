@@ -804,8 +804,7 @@ shot!
      '("b" . spook-buffers)
      '("G" . spook-git)
      '("o" . spook-org)
-     '("n" . spook-notes)
-     '("t" . spook-tree))
+     '("n" . spook-notes))
   #+end_src
 
 - Keychords
@@ -1734,7 +1733,9 @@ blocked.
         (setq spookfox-enabled-apps '(spookfox-jscl spookfox-tabs spookfox-js-injection))
         (setq spookfox-saved-tabs-target
               `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
-        (spookfox-init)))
+        (spookfox-init))
+  
+      (define-key spook-buffers-keymap (kbd "t") #'spookfox-switch-tab))
   #+end_src
 
 - saunf
