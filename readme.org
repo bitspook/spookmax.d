@@ -1843,14 +1843,10 @@ blocked.
   Small utility to quickly connect to irc.
 
   #+begin_src elisp
-    (setf erc-autojoin-channels-alist '(("libera.chat" "#commonlisp" "#emacs" "#clschool" "#whereiseveryone" "#lispcafe")))
-
-    (defun spook-erc-connect ()
-      (interactive)
-      (erc :server "irc.libera.chat"
-           :port 6667
-           :nick "bitspook"
-           :password (auth-source-pass-get 'secret "libera.chat/bitspook")))
+    (setq
+     erc-nick "bitspook"
+     erc-password (auth-source-pass-get 'secret "libera.chat/bitspook")
+     erc-autojoin-channels-alist '(("libera.chat" "#commonlisp" "#emacs" "#emacs-berlin" "#clschool" "#whereiseveryone" "#lispcafe")))
   #+end_src
 
 - Terraform
