@@ -1117,8 +1117,9 @@ says on the box without much fuss.
     (use-package sly
       :hook ((lisp-mode . sly-mode))
       :config
-      (setq org-babel-lisp-eval-fn #'sly-eval)
-      (setq inferior-lisp-program "sbcl"))
+      (setq org-babel-lisp-eval-fn #'sly-eval
+            inferior-lisp-program "sbcl")
+      (set-face-foreground 'sly-mrepl-output-face "khaki3"))
   #+end_src
 
   [[https://github.com/mmgeorge/sly-asdf][sly-asdf]] add asdf integration to sly.
@@ -1538,7 +1539,7 @@ blocked.
           (spook--mark-habit-as-done 'diary)
           (denote title '("diary")))))
 
-    (defun spook--workday (prefix)
+    (defun spook--workday-notes (prefix)
       "Go to work notes for today plus PREFIX days."
       (interactive "P")
       (let* ((days (if prefix (prefix-numeric-value prefix) 0))
@@ -1552,6 +1553,11 @@ blocked.
               (find-file (expand-file-name file denote-directory))
               (goto-char (point-max)))
           (denote title '("work") "org" nil title))))
+
+    (spook--defkeymap
+     "workday" "C-c n w"
+     '("w" . spook--workday-notes)
+     '("i" . on-issue-issue-notes))
   #+end_src
 
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
@@ -1680,7 +1686,6 @@ blocked.
        '("i" . denote-link-or-create)
        '("b" . denote-link-backlinks)
        '("d" . spook--diary-today)
-       '("w" . spook--workday)
        '("r" . spook--denote-ff-tab)
        '("p" . spook-crm--open-or-create)
        '("P" . spook-crm--link-or-create))
