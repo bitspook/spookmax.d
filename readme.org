@@ -1119,7 +1119,9 @@ says on the box without much fuss.
       :config
       (setq org-babel-lisp-eval-fn #'sly-eval
             inferior-lisp-program "sbcl")
-      (set-face-foreground 'sly-mrepl-output-face "khaki3"))
+      (add-hook
+       'sly-mrepl-hook
+       (lambda () (set-face-foreground 'sly-mrepl-output-face "khaki3"))))
   #+end_src
 
   [[https://github.com/mmgeorge/sly-asdf][sly-asdf]] add asdf integration to sly.
