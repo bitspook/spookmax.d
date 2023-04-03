@@ -1504,60 +1504,6 @@ blocked.
       (setq denote-directory (expand-file-name "denotes" org-directory)
             denote-date-prompt-use-org-read-date t)
       (add-hook 'dired-mode-hook #'denote-dired-mode))
-
-    (defun spook--find-habit (title)
-      "Find the habit with TITLE in current buffer."
-      (cl-block 'spook--find-habit
-        (org-map-entries
-         (lambda ()
-           (let ((el (org-element-at-point-no-context)))
-             (when (and (seq-contains-p (org-get-tags el) "habit" #'equal)
-                        (equal (downcase (org-element-property :raw-value el))
-                               (downcase title)))
-               (cl-return-from 'spook--find-habit el)))))))
-
-    (defun spook--mark-habit-as-done (habit)
-      "Mark HABIT as done."
-      (with-current-buffer (find-file-noselect (expand-file-name "TODOs.org" org-directory))
-        (org-mode)
-        (let ((el (cl-case habit
-                    (diary (spook--find-habit "write diary entry")))))
-          (goto-char (org-element-property :begin el))
-          (org-todo 'done))))
-
-    (defun spook--diary-today ()
-      "Go to today's diary entry."
-      (interactive)
-      (let ((denote-directory (expand-file-name "diary" denote-directory))
-            (title (format-time-string "%Y-%m-%d")))
-        (if-let ((file (seq-find
-                        (lambda (f) (string-match-p title f))
-                        (directory-files denote-directory))))
-            (progn
-              (find-file (expand-file-name file denote-directory))
-              (goto-char (point-max)))
-          (spook--mark-habit-as-done 'diary)
-          (denote title '("diary")))))
-
-    (defun spook--workday-notes (prefix)
-      "Go to work notes for today plus PREFIX days."
-      (interactive "P")
-      (let* ((days (if prefix (prefix-numeric-value prefix) 0))
-             (denote-directory (expand-file-name "work" denote-directory))
-             (date (time-add (current-time) (days-to-time days)))
-             (title (format-time-string "%Y-%m-%d" date)))
-        (if-let ((file (seq-find
-                        (lambda (f) (string-match-p title f))
-                        (directory-files denote-directory))))
-            (progn
-              (find-file (expand-file-name file denote-directory))
-              (goto-char (point-max)))
-          (denote title '("work") "org" nil title))))
-
-    (spook--defkeymap
-     "workday" "C-c n w"
-     '("w" . spook--workday-notes)
-     '("i" . on-issue-issue-notes))
   #+end_src
 
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
@@ -1677,7 +1623,7 @@ blocked.
           (call-interactively #'denote-link-or-create)))
     #+end_src
 
-  - Keyboard shortcuts to bind it all together.
+  - Keyboard shortcuts for fluent note-taking/reading
 
     #+begin_src elisp
       (spook--defkeymap
@@ -1690,7 +1636,70 @@ blocked.
        '("p" . spook-crm--open-or-create)
        '("P" . spook-crm--link-or-create))
     #+end_src
-  
+
+  - Diary
+
+    #+begin_src elisp
+      (defun spook--find-habit (title)
+        "Find the habit with TITLE in current buffer."
+        (cl-block 'spook--find-habit
+          (org-map-entries
+           (lambda ()
+             (let ((el (org-element-at-point-no-context)))
+               (when (and (seq-contains-p (org-get-tags el) "habit" #'equal)
+                          (equal (downcase (org-element-property :raw-value el))
+                                 (downcase title)))
+                 (cl-return-from 'spook--find-habit el)))))))
+
+      (defun spook--mark-habit-as-done (habit)
+        "Mark HABIT as done."
+        (with-current-buffer (find-file-noselect (expand-file-name "TODOs.org" org-directory))
+          (org-mode)
+          (let ((el (cl-case habit
+                      (diary (spook--find-habit "write diary entry")))))
+            (goto-char (org-element-property :begin el))
+            (org-todo 'done))))
+
+      (defun spook--diary-today ()
+        "Go to today's diary entry."
+        (interactive)
+        (let ((denote-directory (expand-file-name "diary" denote-directory))
+              (title (format-time-string "%Y-%m-%d")))
+          (if-let ((file (seq-find
+                          (lambda (f) (string-match-p title f))
+                          (directory-files denote-directory))))
+              (progn
+                (find-file (expand-file-name file denote-directory))
+                (goto-char (point-max)))
+            (spook--mark-habit-as-done 'diary)
+            (denote title '("diary")))))
+
+    #+end_src
+
+  - Work notes
+
+    #+begin_src elisp
+      (defun spook--workday-notes (prefix)
+        "Go to work notes for today plus PREFIX days."
+        (interactive "P")
+        (let* ((days (if prefix (prefix-numeric-value prefix) 0))
+               (denote-directory (expand-file-name "work" denote-directory))
+               (date (time-add (current-time) (days-to-time days)))
+               (title (format-time-string "%Y-%m-%d" date)))
+          (if-let ((file (seq-find
+                          (lambda (f) (string-match-p title f))
+                          (directory-files denote-directory))))
+              (progn
+                (find-file (expand-file-name file denote-directory))
+                (goto-char (point-max)))
+            (denote title '("work") "org" nil title))))
+
+      (spook--defkeymap
+       "workday" "C-c n w"
+       '("w" . spook--workday-notes)
+       '("i" . on-issue-issue-notes))
+    #+end_src
+
 - dirvish for more powerful dired
 
   #+begin_src elisp
