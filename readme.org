@@ -1096,7 +1096,9 @@ Lispy for some nasty lisp structural editing.
 #+begin_src elisp
   (use-package lispy
     :hook ((emacs-lisp-mode . lispy-mode)
-           (lisp-mode . lispy-mode)))
+           (lisp-mode . lispy-mode))
+    :config
+    (setf lispy-colon-p nil))
 #+end_src
 
 Elsa provides very nice static-analysis and more for elisp
@@ -1434,6 +1436,23 @@ Nice to have features but not necessary.
     (use-package treemacs-all-the-icons
       :config
       (treemacs-load-theme "all-the-icons"))
+  #+end_src
+
+- Highlight indentation
+
+  #+begin_src elisp
+    (use-package highlight-indent-guides
+      :config
+      (setf highlight-indent-guides-method 'bitmap)
+      (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
+  #+end_src
+
+- Move text around
+
+  #+begin_src elisp
+    (use-package move-text
+      :config
+      (move-text-default-bindings))
   #+end_src
 
 ** Looks
@@ -1848,8 +1867,7 @@ blocked.
               (consult--buffer-query
                :exclude nil
                :include "shelldon"
-               :as #'buffer-name
-               ))))))
+               :as #'buffer-name))))))
 
       (define-key spook-buffers-keymap (kbd "o") #'spook--switch-shell-output)
     #+end_src
