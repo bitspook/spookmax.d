@@ -94,6 +94,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
 - Utilities for helping with scratch buffer
 
+  This exactly function was introduced at or before Emacs version 29.1.
   #+begin_src elisp
     (defun spook--get-or-create-scratch ()
       "Switch to *scratch* buffer. Create if it doesn't already exist"
@@ -191,6 +192,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     #+begin_src elisp
       ;;; Scrolling
 
+      ;; intresting I will try
       (setq hscroll-margin 2
             hscroll-step 1
             ;; Emacs spends too much effort recentering the screen if you scroll the
@@ -262,6 +264,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
       ;; doesn't look too great with direnv, however...
       (setq resize-mini-windows 'grow-only)
 
+      ;; there is a variable for this (setq use-short-answers t)
       ;; Typing yes/no is obnoxious when y/n will do
       (fset #'yes-or-no-p #'y-or-n-p)
 
@@ -308,6 +311,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   I got sick of manually calling whitespace cleanup all the trim.
   Cleanup whitespace.
 
+  Great! I'm taking it!
   #+begin_src elisp
     (use-package whitespace-cleanup-mode
       :config
@@ -326,7 +330,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   :END:
 
   Setup =which-key= for easy keys discovery
-
+  
+  that really should land in vanila emacs
   #+begin_src elisp
     (use-package which-key
       :config
@@ -531,6 +536,12 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
      org-agenda-files (list org-inbox-file (expand-file-name "work/on.org" org-directory))
      ;;Todo keywords I need
      org-todo-keywords '((sequence "TODO(t)" "IN-PROGRESS(n)" "|" "DONE(d)" "CANCELED(c@)"))
+
+;; https://lists.gnu.org/archive/html/emacs-orgmode/2010-08/msg00870.html
+;; Dashes are not valid in TODO keywords and tags, but you are right, 
+;; properties do allow them. hmmm. I don't remember why I did allow hem - but surely enough I did. 
+;; I also have used IN-PROGRESS but this todo status can't be search in agenda.
+
      org-todo-keyword-faces '(("IN-PLANNING" . org-todo)
                               ("IN-PROGRESS" . "DeepSkyBlue")
                               ("CANCELED" . org-done))
@@ -873,6 +884,7 @@ shot!
 
     ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
     ;; Vertico commands are hidden in normal buffers.
+    ;; awesome! taken
     (setq read-extended-command-predicate
           #'command-completion-default-include-p)
   #+end_src
@@ -1077,12 +1089,9 @@ shot!
       (add-to-list 'warning-suppress-types '(direnv)))
   #+end_src
 
-  #+RESULTS:
-  : t
-
 - Eglot to provide LSP support.
 
-    #+begin_src elisp
+  #+begin_src elisp
     (use-package eglot)
   #+end_src
 
@@ -1093,6 +1102,7 @@ shot!
 
 Lispy for some nasty lisp structural editing.
 
+nice, im stil stuck with paredit
 #+begin_src elisp
   (use-package lispy
     :hook ((emacs-lisp-mode . lispy-mode)
