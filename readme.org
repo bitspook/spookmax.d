@@ -1313,6 +1313,17 @@ says on the box without much fuss.
     :mode "\\.graphql\\'")
 #+end_src
 
+*** Swift
+#+begin_src elisp
+  (use-package swift-mode
+    :mode "\\.swift\\'"
+    :config (flycheck-mode t))
+
+  (use-package flycheck-swift
+    :after flycheck
+    :config
+    (eval-after-load 'flycheck '(flycheck-swift-setup)))
+#+end_src
 ** Niceties
 :PROPERTIES:
 :ID:       8e8563f8-2161-4af3-b072-fc3b81cc57a6
@@ -1706,9 +1717,20 @@ blocked.
                (title (format-time-string "%Y-%m-%d" date)))
           (if-let ((file (seq-find
                           (lambda (f) (string-match-p title f))
-                          (directory-files denote-directory))))
+                          (directory-files denote-directory)))
+                   (file (expand-file-name file denote-directory)))
               (progn
-                (find-file (expand-file-name file denote-directory))
+                (find-file file)
+                ;; Remove any other denotes/work file from agenda
+                ;; Assuming that this will always remove older workday files
+                (setf org-agenda-files
+                      (seq-filter
+                       (lambda (file)
+                         (not (string-match-p "denotes/work" file)))
+                       org-agenda-files))
+
+                (org-agenda-file-to-front file)
+
                 (goto-char (point-max)))
             (denote title '("work") "org" nil title))))
 
