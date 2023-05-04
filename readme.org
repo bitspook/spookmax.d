@@ -1657,8 +1657,10 @@ blocked.
     #+begin_src elisp
       (spook--defkeymap
        "spook-notes" "C-c n"
-       '("f" . denote-open-or-create)
-       '("i" . denote-link-or-create)
+       '("f" . denote-open-or-create)         ;Deprecate
+       '("n" . denote-open-or-create)
+       '("i" . denote-link-or-create)         ;Deprecate
+       '("N" . denote-link-or-create)
        '("b" . denote-link-backlinks)
        '("d" . spook--diary-today)
        '("r" . spook--denote-ff-tab)
