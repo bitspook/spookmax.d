@@ -481,8 +481,8 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   - Magit Forge
 
     #+begin_src elisp
-      (use-package forge
-        :after magit)
+      ;(use-package forge
+      ;  :after magit)
     #+end_src    
 
 - Keep backup/auto-save files out of my vc
@@ -1910,15 +1910,6 @@ blocked.
     (use-package terraform-mode)
   #+end_src
     
-- Azure cloud
-
-  #+begin_src elisp
-    (when (file-exists-p (expand-file-name "~/Documents/work/ecloud"))
-      (use-package ecloud
-        :straight (ecloud :type git
-                          :local-repo "~/Documents/work/ecloud")))
-  #+end_src
-
 ** Private work related config 
 
 #+begin_src elisp
