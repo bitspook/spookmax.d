@@ -1313,6 +1313,17 @@ says on the box without much fuss.
     :mode "\\.graphql\\'")
 #+end_src
 
+*** Clojure
+
+#+begin_src elisp
+  (use-package clojure-mode
+    :confg
+    (add-hook 'clojure-mode-hook #'lispy-mode)
+    (add-hook 'clojurescript-mode-hook #'lispy-mode))
+
+  (use-package cider)
+#+end_src
+
 *** Swift
 #+begin_src elisp
   (use-package swift-mode
