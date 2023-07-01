@@ -318,7 +318,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 - Fill column for auto-formatting/filling paragraphs.
 
   #+begin_src elisp
-    (setq-default fill-column 80)
+    (setq-default fill-column 100)
   #+end_src
 
 - Introspection
@@ -354,7 +354,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   :END:
 
   #+begin_src elisp
-  (global-display-line-numbers-mode 1)
+    (global-display-line-numbers-mode 1)
   #+end_src
 
 - Window management
@@ -998,22 +998,18 @@ shot!
 - Code folding
 
   #+begin_src elisp
-    (use-package origami
-      :config (global-origami-mode +1)
-      (spook--defkeymap "spook-fold" "C-c f"
-                       '("n" . origami-next-fold)
-                       '("p" . origami-previous-fold)
-                       '("O" . origami-open-all-nodes)
-                       '("o" . origami-open-node-recursively)
-                       '("r" . origami-redo)
-                       '("u" . origami-undo)
-                       '("C" . origami-close-all-nodes)
-                       '("c" . origami-close-node-recursively)
-                       '("z" . origami-recursively-toggle-node)
-                       '("C-f" . origami-toggle-node)
-                       '("f" . origami-recursively-toggle-node)
-                       '("r" . origami-reset)
-                       '("t" . origami-toggle-all-nodes)))
+    (use-package ts-fold
+      :straight (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
+      :config
+      (global-ts-fold-mode)
+      (global-ts-fold-indicators-mode)
+      (spook--defkeymap
+       "spook-fold" "C-c f"
+       '("O" . ts-fold-open-all)
+       '("o" . ts-fold-open-recursively)
+       '("C" . ts-fold-close-all)
+       '("c" . ts-fold-close)
+       '("z" . ts-fold-toggle)))
   #+end_src
 
 - Flycheck for getting those in-buffer warnings errors.
