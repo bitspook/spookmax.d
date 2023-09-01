@@ -456,6 +456,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
   #+begin_src elisp
     (use-package magit
+      :straight t
       :config
       (setq magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1
             magit-bury-buffer-function #'magit-restore-window-configuration))
@@ -481,8 +482,9 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   - Magit Forge
 
     #+begin_src elisp
-      ;(use-package forge
-      ;  :after magit)
+      ;; (use-package forge
+      ;;   :straight t
+      ;;   :after magit)
     #+end_src    
 
 - Keep backup/auto-save files out of my vc
@@ -820,6 +822,7 @@ shot!
   #+begin_src elisp
     (use-package key-chord
       :config
+      (setf key-chord-two-keys-delay 0.1)
       (key-chord-mode 1))
 
     (key-chord-define meow-insert-state-keymap "fd" #'meow-insert-exit)
@@ -1057,7 +1060,7 @@ shot!
       :config
       (reformatter-define prettier-format
         :program (expand-file-name "node_modules/.bin/prettier"
-                                   (locate-dominating-file (buffer-file-name) "node_modules"))
+                                   (locate-dominating-file (buffer-file-name) "node_modules/.bin/prettier"))
         :args `("--stdin-filepath" ,(buffer-file-name)))
       :hook (web-mode . prettier-format-on-save-mode))
   #+end_src
@@ -1077,6 +1080,10 @@ shot!
 
   #+begin_src elisp
     (use-package eglot)
+
+    ;; Looks like jsonrpc logging make eglot super laggy for typescript.
+    ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
+    (fset #'jsonrpc--log-event #'ignore)
   #+end_src
 
 *** Lisp
@@ -1309,28 +1316,6 @@ says on the box without much fuss.
     :mode "\\.graphql\\'")
 #+end_src
 
-*** Clojure
-
-#+begin_src elisp
-  (use-package clojure-mode
-    :confg
-    (add-hook 'clojure-mode-hook #'lispy-mode)
-    (add-hook 'clojurescript-mode-hook #'lispy-mode))
-
-  (use-package cider)
-#+end_src
-
-*** Swift
-#+begin_src elisp
-  (use-package swift-mode
-    :mode "\\.swift\\'"
-    :config (flycheck-mode t))
-
-  (use-package flycheck-swift
-    :after flycheck
-    :config
-    (eval-after-load 'flycheck '(flycheck-swift-setup)))
-#+end_src
 ** Niceties
 :PROPERTIES:
 :ID:       8e8563f8-2161-4af3-b072-fc3b81cc57a6
@@ -1476,11 +1461,12 @@ Nice to have features but not necessary.
 :END:
 
 #+begin_src elisp
-  ;; (use-package doom-themes
-  ;;   :config
-  ;;   (setq doom-rouge-brighter-modeline t
-  ;;         doom-rouge-brighter-comments t)
-  ;;   (load-theme 'doom-rouge t))
+  (use-package doom-themes
+    :config
+    (setq doom-rouge-brighter-modeline t
+          doom-rouge-brighter-comments t)
+    ;; (load-theme 'doom-rouge t)
+    )
   (use-package nimbus-theme
     :config
     (load-theme 'nimbus t))
@@ -1489,8 +1475,8 @@ Nice to have features but not necessary.
 Modeline
 
 #+begin_src elisp
-  ;; (use-package doom-modeline
-  ;;   :init (doom-modeline-mode 1))
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
 #+end_src
 
 ** Applications
@@ -1833,7 +1819,7 @@ blocked.
   #+begin_src elisp
     (use-package nov
       :mode ("\\.epub\\'" . nov-mode))
-    (use-package org-noter)
+    ;; (use-package org-noter) 
   #+end_src
 
 - Shelldon
@@ -1915,6 +1901,15 @@ blocked.
 
   #+begin_src elisp
     (use-package terraform-mode)
+  #+end_src
+
+- Eww
+
+  #+begin_src elisp
+    (add-hook
+     'eww-mode-hook
+     (lambda ()
+       (display-line-numbers-mode -1)))
   #+end_src
     
 ** Private work related config 
