@@ -980,6 +980,19 @@ shot!
        '("S" . embrace-commander)))
   #+end_src
 
+- [[https://github.com/joaotavora/yasnippet][yasnippet]] for templates
+
+  #+begin_src emacs-lisp
+    (use-package yasnippet
+      :straight t
+      :config
+      (add-hook 'prog-mode-hook #'yas-minor-mode))
+
+    (use-package yasnippet-snippets
+      :straight t
+      :after yasnippet)
+  #+end_src
+
 ** Programming
 :PROPERTIES:
 :ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
