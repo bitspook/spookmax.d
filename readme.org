@@ -1492,6 +1492,12 @@ Modeline
     :init (doom-modeline-mode 1))
 #+end_src
 
+Let's also try smooth-scrolling.
+
+#+begin_src elisp
+  (pixel-scroll-precision-mode t)
+#+end_src
+
 ** Applications
 :PROPERTIES:
 :ID:       9061cb70-e3e7-49d5-8fec-476f36ea3d47
