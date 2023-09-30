@@ -1096,7 +1096,14 @@ shot!
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
+    ;; https://www.reddit.com/r/emacs/comments/16vixg6/how_to_make_lsp_and_eglot_way_faster_like_neovim/
     (fset #'jsonrpc--log-event #'ignore)
+    (setq eglot-events-buffer-size 0
+          eglot-sync-connect nil
+          eglot-connect-timeout nil
+          company-idle-delay 0
+          company-minimum-prefix-length 1)
+    (add-hook 'focus-out-hook 'garbage-collect)
   #+end_src
 
 *** Lisp
@@ -1669,9 +1676,7 @@ blocked.
     #+begin_src elisp
       (spook--defkeymap
        "spook-notes" "C-c n"
-       '("f" . denote-open-or-create)         ;Deprecate
        '("n" . denote-open-or-create)
-       '("i" . denote-link-or-create)         ;Deprecate
        '("N" . denote-link-or-create)
        '("b" . denote-link-backlinks)
        '("d" . spook--diary-today)
@@ -1751,7 +1756,8 @@ blocked.
       (spook--defkeymap
        "workday" "C-c n w"
        '("w" . spook--workday-notes)
-       '("i" . on-issue-issue-notes))
+       '("i" . on-issue-note-open-or-create)
+       '("I" . on-issue-note-link-or-create))
     #+end_src
 
 - dirvish for more powerful dired
