@@ -13,6 +13,9 @@ This setup make certain assumptions regarding its environment:
 2. Shell in use is =fish=
 
 * Spook max 👻
+:PROPERTIES:
+:ID:       D06520AB-2147-4FA7-83D4-6F3349B4743C
+:END:
 My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
 - Bootstrap
@@ -91,6 +94,9 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   #+end_src
 
 ** Helper utilities
+:PROPERTIES:
+:ID:       675D81B1-9A5A-44E8-BA29-888C967974F9
+:END:
 
 - Ergonomically create keymaps
 
@@ -958,6 +964,9 @@ shot!
   #+end_src
 
 ** Contextual actions
+:PROPERTIES:
+:ID:       8AF4F0B4-6688-439D-87D8-A70FD320B547
+:END:
 
 - [[https://github.com/oantolin/embark][embark]] allow contextual actions, like opening buffers in other window from
   minibuffer and a lot more
@@ -978,6 +987,9 @@ shot!
   #+end_src
 
 ** More powerful editing
+:PROPERTIES:
+:ID:       968A1471-8B1D-4DD9-B871-E5B44EE2EF69
+:END:
 
 - =wgrep= for editing grep buffers
 
@@ -1179,6 +1191,9 @@ says on the box without much fuss.
   #+end_src
 
 *** Nix
+:PROPERTIES:
+:ID:       54D0A9B3-1F7D-4E39-BBAD-E2266930C489
+:END:
 #+begin_src elisp
   (use-package nix-mode
     :mode "\\.nix\\'")
@@ -1329,6 +1344,9 @@ says on the box without much fuss.
   #+end_src
 
 *** Rust
+:PROPERTIES:
+:ID:       9A781996-6C6F-439D-B75D-E9F05BAD99F0
+:END:
 
 #+begin_src elisp
   (use-package rustic
@@ -1338,6 +1356,9 @@ says on the box without much fuss.
 #+end_src
 
 *** Haskell
+:PROPERTIES:
+:ID:       3720944C-C928-4ECF-9B35-7620EEF7C682
+:END:
 #+begin_src elisp
   (use-package haskell-mode
     :mode "\\.hs\\'"
@@ -1351,6 +1372,9 @@ says on the box without much fuss.
     (define-key haskell-mode-map (kbd "C-c , t") #'haskell-mode-show-type-at))
 #+end_src
 *** Yaml
+:PROPERTIES:
+:ID:       C204CCCB-D27E-48F2-BEBB-A9A913C763A4
+:END:
 
 #+begin_src elisp
   (use-package yaml-mode
@@ -1358,6 +1382,9 @@ says on the box without much fuss.
 #+end_src
 
 *** Graphql
+:PROPERTIES:
+:ID:       204E2F4A-9F0A-4458-8135-DD3861052AE3
+:END:
 
 #+begin_src elisp
   (use-package graphql-mode
@@ -1524,7 +1551,9 @@ Modeline
 
 #+begin_src elisp
   (use-package doom-modeline
-    :init (doom-modeline-mode 1))
+    :init
+    (setq doom-modeline-height 24)
+    (doom-modeline-mode 1))
 #+end_src
 
 Let's also try smooth-scrolling.
@@ -1838,8 +1867,8 @@ blocked.
     (when (file-exists-p "~/Documents/work/spookfox")
       (use-package spookfox
         :elpaca (spookfox :type git
-                            :local-repo "~/Documents/work/spookfox"
-                            :files ("lisp/*.el" "lisp/apps/*.el"))
+                          :repo "~/Documents/work/spookfox"
+                          :files ("lisp/*.el" "lisp/apps/*.el"))
         :config
         (setq spookfox-enabled-apps '(spookfox-jscl spookfox-tabs spookfox-js-injection))
         (setq spookfox-saved-tabs-target
@@ -1863,9 +1892,10 @@ blocked.
   #+begin_src elisp
     (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
       (use-package saunf
+        :after sly
         :elpaca (saunf :type git
-                         :local-repo "~/Documents/work/saunf/src"
-                         :file "saunf.el")))
+                       :repo "~/Documents/work/saunf"
+                       :files ("src/saunf.el"))))
   #+end_src
 
 - org-noter
@@ -1883,10 +1913,10 @@ blocked.
   #+begin_src elisp
     (use-package shelldon
       :elpaca (shelldon :type git
-                          :host github
-                          :repo "Overdr0ne/shelldon"
-                          :branch "master"
-                          :files ("shelldon.el"))
+                        :host github
+                        :repo "Overdr0ne/shelldon"
+                        :branch "master"
+                        :files ("shelldon.el"))
       :config
       (setq shell-command-switch "-ic")
       (add-hook 'shelldon-mode-hook 'ansi-color-for-comint-mode-on)
@@ -1967,8 +1997,12 @@ blocked.
   #+end_src
     
 ** Private work related config 
+:PROPERTIES:
+:ID:       6CA859BF-001A-48A8-8FAF-A522EE7FC8B1
+:END:
 
 #+begin_src elisp
+  (elpaca-wait)
   (let ((private-config (expand-file-name "./private.el" user-emacs-directory)))
     (when (file-exists-p private-config)
       (load-file private-config)))
