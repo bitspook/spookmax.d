@@ -30,3 +30,5 @@
 /var/
 /elpa/
 /private.el
+/elpaca/
+/eln-cache/

@@ -4,21 +4,16 @@
 1. Clone this repo to ~/.emacs.d
 2. Open =readme.org= in emacs
 3. Press =C-c C-v t= to tangle all the blocks
-4. Restart Emacs. straight.el will now take a bunch of time cloning
-   all the packages, and then you'll be ready for a spooky Emacs.
+4. Restart Emacs. Elpaca will now clone all the packages, and then
+   you'll be ready for a spooky Emacs.
 #+end_quote
-
-PS I am slowly transitioning from spacemacs, so this configuration
-isn't exactly complete. Use it for reference or tricks. I'd recommend
-doom or spacemacs if you're looking for something that'll let you get
-started with Emacs quickly.
 
 This setup make certain assumptions regarding its environment:
 1. Machine in use is Linux or MacOS
 2. Shell in use is =fish=
 
 * Spook max 👻
-My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configuration.
+My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
 - Bootstrap
 
@@ -37,7 +32,7 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
     (setq default-input-method nil)
   #+end_src
 
-** Initialize straight.el itself
+** Initialize Elpaca itself
 :PROPERTIES:
 :ID:       635cd7c4-e3cb-4a0e-a722-6fa8f2035ea0
 :END:
@@ -45,25 +40,54 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 #+begin_src elisp :tangle ./init.el
   ;; -*- lexical-binding: t -*-
 
-  (defvar bootstrap-version)
-  (setq straight-use-package-by-default t
-        ring-bell-function 'ignore)
-  (let ((bootstrap-file
-         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+  (defvar elpaca-installer-version 0.5)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+				:ref nil
+				:files (:defaults (:exclude "extensions"))
+				:build (:not elpaca--activate-package)))
+  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+	 (build (expand-file-name "elpaca/" elpaca-builds-directory))
+	 (order (cdr elpaca-order))
+	 (default-directory repo))
+    (add-to-list 'load-path (if (file-exists-p build) build repo))
+    (unless (file-exists-p repo)
+      (make-directory repo t)
+      (when (< emacs-major-version 28) (require 'subr-x))
+      (condition-case-unless-debug err
+	  (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+		   ((zerop (call-process "git" nil buffer t "clone"
+					 (plist-get order :repo) repo)))
+		   ((zerop (call-process "git" nil buffer t "checkout"
+					 (or (plist-get order :ref) "--"))))
+		   (emacs (concat invocation-directory invocation-name))
+		   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+					 "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+		   ((require 'elpaca))
+		   ((elpaca-generate-autoloads "elpaca" repo)))
+	      (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+	    (error "%s" (with-current-buffer buffer (buffer-string))))
+	((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (unless (require 'elpaca-autoloads nil t)
+      (require 'elpaca)
+      (elpaca-generate-autoloads "elpaca" repo)
+      (load "./elpaca-autoloads")))
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
   #+end_src
 
   - Install =use-package=
   #+begin_src elisp
-  (straight-use-package 'use-package)
+    ;; Install use-package support
+    (elpaca elpaca-use-package
+      ;; Enable :elpaca use-package keyword.
+      (elpaca-use-package-mode)
+      ;; Assume :elpaca t unless otherwise specified.
+      (setq elpaca-use-package-by-default t))
+
+    (elpaca-wait)
   #+end_src
 
 ** Helper utilities
@@ -451,12 +475,11 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
   recent project.el project.
 
   #+begin_src elisp
-    (straight-use-package 'project)
+    (use-package project)
   #+end_src
 
   #+begin_src elisp
     (use-package magit
-      :straight t
       :config
       (setq magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1
             magit-bury-buffer-function #'magit-restore-window-configuration))
@@ -483,7 +506,6 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
     #+begin_src elisp
       ;; (use-package forge
-      ;;   :straight t
       ;;   :after magit)
     #+end_src    
 
@@ -510,12 +532,17 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 :ID:       8b2528d8-3fd2-4076-8b1e-791df8ed9a67
 :END:
 
-- Install latest org-mode. Straight.el will install the latest org-mode, instead
+- Install latest org-mode. Elpaca will install the latest org-mode, instead
   of older version pre-packaged with emacs
 
   #+begin_src elisp
     (use-package org
       :config
+      (eval-after-load 'org-mode
+	(org-link-set-parameters
+	 "yt"
+	 :follow #'spook-org--follow-yt-link
+	 :export #'spook-org--export-yt-link))
       (add-hook
        'org-mode-hook
        (lambda () (display-line-numbers-mode -1))))
@@ -668,23 +695,21 @@ My [[https://github.com/raxod502/straight.el][straight.el]] based emacs configur
 
     #+begin_src elisp
       (defun spook-org--follow-yt-link (path prefix)
-        (let* ((url (format "https:%s" path))
-               (proc-name (format "*yt://%s*" url)))
-          (if (and prefix (executable-find "mpv"))
-              (browse-url url)
-            (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
-            (message "Launched mpv in buffer: %s" proc-name))))
+	(let* ((url (format "https:%s" path))
+	       (proc-name (format "*yt://%s*" url)))
+	  (if (and prefix (executable-find "mpv"))
+	      (browse-url url)
+	    (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
+	    (message "Launched mpv in buffer: %s" proc-name))))
 
       (defun spook-org--export-yt-link (path desc backend)
-        (when (eq backend 'html)
-          (let* ((video-id (cadar (url-parse-query-string path)))
-                 (url (if (string-empty-p video-id) path
-                        (format "//youtube.com/embed/%s" video-id))))
-            (format
-             "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
-             url desc))))
-
-      (org-link-set-parameters "yt" :follow #'spook-org--follow-yt-link :export #'spook-org--export-yt-link)
+	(when (eq backend 'html)
+	  (let* ((video-id (cadar (url-parse-query-string path)))
+		 (url (if (string-empty-p video-id) path
+			(format "//youtube.com/embed/%s" video-id))))
+	    (format
+	     "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
+	     url desc))))
     #+end_src
 
 ** Modal editing with Meow
@@ -792,6 +817,7 @@ shot!
     (setf meow-use-clipboard t)
     (meow-global-mode)
     (meow-setup))
+  (elpaca-wait)
 #+end_src
 
 - Normal mode-keybindings. Mostly mimicking vim
@@ -823,9 +849,8 @@ shot!
     (use-package key-chord
       :config
       (setf key-chord-two-keys-delay 0.1)
-      (key-chord-mode 1))
-
-    (key-chord-define meow-insert-state-keymap "fd" #'meow-insert-exit)
+      (key-chord-mode 1)
+      (key-chord-define meow-insert-state-keymap "fd" #'meow-insert-exit))
   #+end_src
 
 ** Completion UI
@@ -845,39 +870,40 @@ shot!
 
   #+begin_src elisp
     (use-package vertico
-      :straight (:files (:defaults "extensions/*.el"))
+      :elpaca (:files (:defaults "extensions/*.el"))
       :init (vertico-mode +1)
       :config
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
     (use-package vertico-directory
-      :straight nil
       :after vertico
+      :elpaca nil
       :ensure nil
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
-                  ("C-h" . vertico-directory-delete-word))
+		  ("C-h" . vertico-directory-delete-word))
       ;; Tidy shadowed file names
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
     (use-package vertico-quick
-      :straight nil
       :after vertico
       :ensure nil
+      :elpaca nil
       :bind (:map vertico-map
-                  ("C-q" . vertico-quick-insert))
+		  ("C-q" . vertico-quick-insert))
       ;; Tidy shadowed file names
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
+      :elpaca nil
       :init
       (savehist-mode +1))
 
     ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
     ;; Vertico commands are hidden in normal buffers.
     (setq read-extended-command-predicate
-          #'command-completion-default-include-p)
+	  #'command-completion-default-include-p)
   #+end_src
 
 - Marginalia adds pretty information to completions. It's pretty, useful, and
@@ -984,12 +1010,10 @@ shot!
 
   #+begin_src emacs-lisp
     (use-package yasnippet
-      :straight t
       :config
       (add-hook 'prog-mode-hook #'yas-minor-mode))
 
     (use-package yasnippet-snippets
-      :straight t
       :after yasnippet)
   #+end_src
 
@@ -1015,7 +1039,7 @@ shot!
 
   #+begin_src elisp
     (use-package ts-fold
-      :straight (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
+      :elpaca (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
       :config
       (global-ts-fold-mode)
       (global-ts-fold-indicators-mode)
@@ -1182,6 +1206,7 @@ says on the box without much fuss.
 
   (use-package js
     :mode "\\.js'"
+    :elpaca nil
     :config
     (setq js-indent-level spook--indent-width)
     :hook
@@ -1198,20 +1223,20 @@ says on the box without much fuss.
 
   (use-package emmet-mode
     :hook ((html-mode       . emmet-mode)
-           (css-mode        . emmet-mode)
-           (js-mode         . emmet-mode)
-           (js-jsx-mode     . emmet-mode)
-           (typescript-mode . emmet-mode)
-           (typescript-tsx-mode . emmet-mode)
-           (web-mode        . emmet-mode))
+	   (css-mode        . emmet-mode)
+	   (js-mode         . emmet-mode)
+	   (js-jsx-mode     . emmet-mode)
+	   (typescript-mode . emmet-mode)
+	   (typescript-tsx-mode . emmet-mode)
+	   (web-mode        . emmet-mode))
     :config
     (setq emmet-insert-flash-time 0.001)	; effectively disabling it
     (add-hook 'js-jsx-mode-hook #'(lambda ()
-                                    (setq-local emmet-expand-jsx-className? t)))
+				    (setq-local emmet-expand-jsx-className? t)))
     (add-hook 'typescript-tsx-mode-hook #'(lambda ()
-                                            (setq-local emmet-expand-jsx-className? t)))
+					    (setq-local emmet-expand-jsx-className? t)))
     (add-hook 'web-mode-hook #'(lambda ()
-                                 (setq-local emmet-expand-jsx-className? t))))
+				 (setq-local emmet-expand-jsx-className? t))))
 
   ;; Let's try flymake for js/ts since eglot likes it so much
   (use-package flymake-eslint)
@@ -1229,13 +1254,13 @@ says on the box without much fuss.
     (flycheck-mode -1)
 
     (if-let (nvm-bin (spook--nvm-p))
-        (add-to-list 'exec-path nvm-bin)
+	(add-to-list 'exec-path nvm-bin)
       (let ((bin-dir
-             (expand-file-name
-              "node_modules/.bin/"
-              (locate-dominating-file default-directory "node_modules"))))
-        (when (file-exists-p bin-dir)
-          (add-to-list 'exec-path bin-dir))))
+	     (expand-file-name
+	      "node_modules/.bin/"
+	      (locate-dominating-file default-directory "node_modules"))))
+	(when (file-exists-p bin-dir)
+	  (add-to-list 'exec-path bin-dir))))
 
     ;; TODO Remove this if flymake-eslint works well enough
     ;; Setup flycheck. It don't enable eslint for ts buffers for some reason
@@ -1248,7 +1273,7 @@ says on the box without much fuss.
     (prettier-format-on-save-mode +1)
     (eglot-ensure)
     (setf flymake-eslint-project-root
-          (locate-dominating-file default-directory "package.json"))
+	  (locate-dominating-file default-directory "package.json"))
     (flymake-eslint-enable))
 
   (setq js-mode-hook nil)
@@ -1257,11 +1282,14 @@ says on the box without much fuss.
   (use-package typescript-mode
     :mode "\\.ts?\\'"
     :hook ((typescript-mode . subword-mode))
+    :init
+    (define-derived-mode typescript-tsx-mode typescript-mode "tsx")  
     :config
     (setq-default typescript-indent-level spook--indent-width)
     (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
 
   (use-package css-mode
+    :elpaca nil
     :mode "\\.s?css\\'")
 #+end_src
 
@@ -1269,16 +1297,16 @@ says on the box without much fuss.
   [[https://github.com/emacs-typescript/typescript.el/issues/4#issuecomment-873485004][typescript.el#4]]
 
   #+begin_src elisp
-    (use-package typescript-mode
-      :init
-      (define-derived-mode typescript-tsx-mode typescript-mode "tsx")
+    (use-package typescript-tsx-mode
+      :ensure nil
+      :elpaca nil
       :mode (("\\.tsx\\'" . typescript-tsx-mode))
       :config
       (add-hook 'typescript-tsx-mode #'subword-mode))
 
     (use-package tree-sitter
       :hook ((typescript-mode . tree-sitter-hl-mode)
-             (typescript-tsx-mode . tree-sitter-hl-mode)))
+	     (typescript-tsx-mode . tree-sitter-hl-mode)))
 
     (use-package tree-sitter-langs
       :after tree-sitter
@@ -1526,6 +1554,7 @@ blocked.
 
   #+begin_src elisp
     (use-package flyspell
+      :elpaca nil
       :hook
       (text-mode . flyspell-mode)
       (prog-mode . flyspell-prog-mode)
@@ -1537,20 +1566,20 @@ blocked.
     (use-package flyspell-correct
       :after (flyspell)
       :commands (flyspell-correct-at-point
-                 flyspell-correct-wrapper))
+		 flyspell-correct-wrapper))
   #+end_src  
 
 - Notes using denotes
 
   #+begin_src elisp
+    (setq denote-directory (expand-file-name "denotes" org-directory)
+	  denote-date-prompt-use-org-read-date t)
     (use-package denote
-      :straight (denote :type git
-                        :host github
-                        :repo "protesilaos/denote"
-                        :branch "main")
+      :elpaca (denote :type git
+			:host github
+			:repo "protesilaos/denote"
+			:branch "main")
       :config
-      (setq denote-directory (expand-file-name "denotes" org-directory)
-            denote-date-prompt-use-org-read-date t)
       (add-hook 'dired-mode-hook #'denote-dired-mode))
   #+end_src
 
@@ -1808,7 +1837,7 @@ blocked.
   #+begin_src elisp
     (when (file-exists-p "~/Documents/work/spookfox")
       (use-package spookfox
-        :straight (spookfox :type git
+        :elpaca (spookfox :type git
                             :local-repo "~/Documents/work/spookfox"
                             :files ("lisp/*.el" "lisp/apps/*.el"))
         :config
@@ -1834,7 +1863,7 @@ blocked.
   #+begin_src elisp
     (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
       (use-package saunf
-        :straight (saunf :type git
+        :elpaca (saunf :type git
                          :local-repo "~/Documents/work/saunf/src"
                          :file "saunf.el")))
   #+end_src
@@ -1853,7 +1882,7 @@ blocked.
 
   #+begin_src elisp
     (use-package shelldon
-      :straight (shelldon :type git
+      :elpaca (shelldon :type git
                           :host github
                           :repo "Overdr0ne/shelldon"
                           :branch "master"
