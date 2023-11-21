@@ -1562,6 +1562,13 @@ Let's also try smooth-scrolling.
   (pixel-scroll-precision-mode t)
 #+end_src
 
+- prism.el for fancy colored blocks
+
+  #+begin_src elisp
+    (use-package prism
+      :elpaca (:fetcher github :repo "alphapapa/prism.el"))
+  #+end_src
+
 ** Applications
 :PROPERTIES:
 :ID:       9061cb70-e3e7-49d5-8fec-476f36ea3d47
