@@ -1709,6 +1709,17 @@ blocked.
             (when yt-p (spook-notes-mode))
             (delete-region (point) (line-beginning-position 0))
             (insert (concat "#+source: " url "\n\n")))))
+
+      (defun spook--micro-post ()
+        "Quickly create a micro-post."
+        (interactive)
+        (let* ((body (read-from-minibuffer "Micro-Post body: ")) 
+               (title (denote-title-prompt (concat (string-trim (substring body 0 (min (length body) 40)))
+                                                   (when (> (length body) 40) "...")))))
+          (denote title '("micro" "blog-post"))
+          (delete-region (point) (line-beginning-position 0))
+          (insert "#+published-on: ((mastodon . \"\"))\n\n")
+          (insert body)))
     #+end_src
 
   - CRM   
@@ -1740,7 +1751,8 @@ blocked.
        '("d" . spook--diary-today)
        '("r" . spook--denote-ff-tab)
        '("p" . spook-crm--open-or-create)
-       '("P" . spook-crm--link-or-create))
+       '("P" . spook-crm--link-or-create)
+       '("m" . spook--micro-post))
     #+end_src
 
   - Diary
@@ -1995,7 +2007,7 @@ blocked.
      (lambda ()
        (display-line-numbers-mode -1)))
   #+end_src
-    
+  
 ** Private work related config 
 :PROPERTIES:
 :ID:       6CA859BF-001A-48A8-8FAF-A522EE7FC8B1
