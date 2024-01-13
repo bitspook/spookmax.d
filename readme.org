@@ -1882,7 +1882,7 @@ blocked.
                           :repo "~/Documents/work/spookfox"
                           :files ("lisp/*.el" "lisp/apps/*.el"))
         :config
-        (setq spookfox-enabled-apps '(spookfox-jscl spookfox-tabs spookfox-js-injection))
+        (setq spookfox-enabled-apps (list spookfox-jscl spookfox-tabs spookfox-js-injection))
         (setq spookfox-saved-tabs-target
               `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
         (spookfox-init))
@@ -1980,6 +1980,18 @@ blocked.
                :as #'buffer-name))))))
 
       (define-key spook-buffers-keymap (kbd "o") #'spook--switch-shell-output)
+    #+end_src
+
+  - Quick helper to delete all shelldon buffers, because sometimes there are a lot of them. It is
+    hard to delete them because they are hidden and don't show up in ibuffer
+
+    #+begin_src elisp
+      (defun spook--delete-all-shelldon-buffers ()
+        (interactive)
+        (cl-dolist (buf (cl-remove-if-not
+                         (lambda (buf) (s-contains-p "*shelldon" (buffer-name buf)))
+                         (buffer-list)))
+          (kill-buffer buf)))
     #+end_src
 
 - Irc
