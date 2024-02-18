@@ -189,6 +189,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   #+begin_src elisp
     (global-unset-key (kbd "C-x C-z"))
     (global-unset-key (kbd "C-z"))
+    (global-unset-key (kbd "C-h h"))
   #+end_src
 
 - Set a custom-file so Emacs won't put customized entries in my =init.el= which
@@ -214,6 +215,12 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
    (set-frame-parameter (selected-frame) 'alpha '(98 . 95))
    (add-to-list 'default-frame-alist '(alpha . (98 . 95)))
  #+end_src
+
+- Disable native-comp warnings
+
+  #+begin_src elisp
+    (setq native-comp-async-report-warnings-errors 'silent)
+  #+end_src
 
 - UI fixes copied from Doom
   https://github.com/hlissner/doom-emacs/blob/develop/core/core-ui.el
