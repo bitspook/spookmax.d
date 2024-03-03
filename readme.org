@@ -2034,6 +2034,18 @@ blocked.
      (lambda ()
        (display-line-numbers-mode -1)))
   #+end_src
+
+- org-download to easily attach images in my notes
+
+  #+begin_src elisp
+    (use-package org-download
+      :init
+      (setq-default org-download-method 'attach
+                    org-download-image-dir (expand-file-name "data" org-directory))
+      :config
+      ;; Drag-and-drop to `dired`
+      (add-hook 'dired-mode-hook 'org-download-enable))
+  #+end_src
   
 ** Private work related config 
 :PROPERTIES:
