@@ -492,7 +492,11 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   #+end_src
 
   #+begin_src elisp
-    (use-package magit
+    (use-package transient
+      :ensure (transient :host github :repo "magit/transient" :branch "main"))
+
+    (use-package magit 
+      :ensure (magit :host github :repo "magit/magit" :branch "main")
       :config
       (setq magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1
             magit-bury-buffer-function #'magit-restore-window-configuration))
