@@ -43,36 +43,36 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 #+begin_src elisp :tangle ./init.el
   ;; -*- lexical-binding: t -*-
 
-  (defvar elpaca-installer-version 0.6)
+  (defvar elpaca-installer-version 0.7)
   (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
   (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
   (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
   (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-				:ref nil
-				:files (:defaults (:exclude "extensions"))
-				:build (:not elpaca--activate-package)))
+  			:ref nil
+  			:files (:defaults (:exclude "extensions"))
+  			:build (:not elpaca--activate-package)))
   (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-	 (build (expand-file-name "elpaca/" elpaca-builds-directory))
-	 (order (cdr elpaca-order))
-	 (default-directory repo))
+   (build (expand-file-name "elpaca/" elpaca-builds-directory))
+   (order (cdr elpaca-order))
+   (default-directory repo))
     (add-to-list 'load-path (if (file-exists-p build) build repo))
     (unless (file-exists-p repo)
       (make-directory repo t)
       (when (< emacs-major-version 28) (require 'subr-x))
       (condition-case-unless-debug err
-	  (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-		   ((zerop (call-process "git" nil buffer t "clone"
-					 (plist-get order :repo) repo)))
-		   ((zerop (call-process "git" nil buffer t "checkout"
-					 (or (plist-get order :ref) "--"))))
-		   (emacs (concat invocation-directory invocation-name))
-		   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-					 "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-		   ((require 'elpaca))
-		   ((elpaca-generate-autoloads "elpaca" repo)))
-	      (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-	    (error "%s" (with-current-buffer buffer (buffer-string))))
-	((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+  	   ((zerop (call-process "git" nil buffer t "clone"
+  				 (plist-get order :repo) repo)))
+  	   ((zerop (call-process "git" nil buffer t "checkout"
+  				 (or (plist-get order :ref) "--"))))
+  	   (emacs (concat invocation-directory invocation-name))
+  	   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+  				 "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+  	   ((require 'elpaca))
+  	   ((elpaca-generate-autoloads "elpaca" repo)))
+        (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+      (error "%s" (with-current-buffer buffer (buffer-string))))
+  ((error) (warn "%s" err) (delete-directory repo 'recursive))))
     (unless (require 'elpaca-autoloads nil t)
       (require 'elpaca)
       (elpaca-generate-autoloads "elpaca" repo)
@@ -883,14 +883,13 @@ shot!
 
   #+begin_src elisp
     (use-package vertico
-      :elpaca (:files (:defaults "extensions/*.el"))
+      :ensure (:files (:defaults "extensions/*.el"))
       :init (vertico-mode +1)
       :config
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
     (use-package vertico-directory
       :after vertico
-      :elpaca nil
       :ensure nil
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
@@ -901,7 +900,6 @@ shot!
     (use-package vertico-quick
       :after vertico
       :ensure nil
-      :elpaca nil
       :bind (:map vertico-map
 		  ("C-q" . vertico-quick-insert))
       ;; Tidy shadowed file names
@@ -909,7 +907,7 @@ shot!
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
-      :elpaca nil
+      :ensure nil
       :init
       (savehist-mode +1))
 
@@ -1058,7 +1056,7 @@ shot!
 
   #+begin_src elisp
     (use-package ts-fold
-      :elpaca (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
+      :ensure (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
       :config
       (global-ts-fold-mode)
       (global-ts-fold-indicators-mode)
@@ -1135,7 +1133,15 @@ shot!
 - Eglot to provide LSP support.
 
   #+begin_src elisp
-    (use-package eglot)
+    ;; Need to be manuall installed so we get latest version
+    ;; (use-package jsonrpc
+    ;;   :ensure '(jsonrpc :repo "https://git.savannah.gnu.org/git/emacs.git"
+    ;;                     :files ("lisp/jsonrpc.el")))
+    ;; (use-package eldoc
+    ;;   :ensure '(eldoc :repo "https://git.savannah.gnu.org/git/emacs.git"
+    ;;                   :files ("lisp/emacs-lisp/eldoc.el")))
+
+    ;; (use-package eglot)
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
@@ -1148,6 +1154,9 @@ shot!
           company-minimum-prefix-length 1)
     (add-hook 'focus-out-hook 'garbage-collect)
   #+end_src
+
+  #+RESULTS:
+  | garbage-collect |
 
 *** Lisp
 :PROPERTIES:
@@ -1228,7 +1237,7 @@ says on the box without much fuss.
 
   (use-package js
     :mode "\\.js'"
-    :elpaca nil
+    :ensure nil
     :config
     (setq js-indent-level spook--indent-width)
     :hook
@@ -1311,7 +1320,7 @@ says on the box without much fuss.
     (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
 
   (use-package css-mode
-    :elpaca nil
+    :ensure nil
     :mode "\\.s?css\\'")
 #+end_src
 
@@ -1321,7 +1330,6 @@ says on the box without much fuss.
   #+begin_src elisp
     (use-package typescript-tsx-mode
       :ensure nil
-      :elpaca nil
       :mode (("\\.tsx\\'" . typescript-tsx-mode))
       :config
       (add-hook 'typescript-tsx-mode #'subword-mode))
@@ -1590,7 +1598,7 @@ blocked.
 
   #+begin_src elisp
     (use-package flyspell
-      :elpaca nil
+      :ensure nil
       :hook
       (text-mode . flyspell-mode)
       (prog-mode . flyspell-prog-mode)
@@ -1611,7 +1619,7 @@ blocked.
     (setq denote-directory (expand-file-name "denotes" org-directory)
 	  denote-date-prompt-use-org-read-date t)
     (use-package denote
-      :elpaca (denote :type git
+      :ensure (denote :type git
 			:host github
 			:repo "protesilaos/denote"
 			:branch "main")
@@ -1885,7 +1893,7 @@ blocked.
   #+begin_src elisp
     (when (file-exists-p "~/Documents/work/spookfox")
       (use-package spookfox
-        :elpaca (spookfox :type git
+        :ensure (spookfox :type git
                           :repo "~/Documents/work/spookfox"
                           :files ("lisp/*.el" "lisp/apps/*.el"))
         :config
@@ -1912,7 +1920,7 @@ blocked.
     (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
       (use-package saunf
         :after sly
-        :elpaca (saunf :type git
+        :ensure (saunf :type git
                        :repo "~/Documents/work/saunf"
                        :files ("src/saunf.el"))))
   #+end_src
@@ -1931,7 +1939,7 @@ blocked.
 
   #+begin_src elisp
     (use-package shelldon
-      :elpaca (shelldon :type git
+      :ensure (shelldon :type git
                         :host github
                         :repo "Overdr0ne/shelldon"
                         :branch "master"
@@ -2006,10 +2014,10 @@ blocked.
   Small utility to quickly connect to irc.
 
   #+begin_src elisp
-    (setq
-     erc-nick "bitspook"
-     erc-password (auth-source-pass-get 'secret "libera.chat/bitspook")
-     erc-autojoin-channels-alist '(("libera.chat" "#commonlisp" "#emacs" "#emacs-berlin" "#clschool" "#whereiseveryone" "#lispcafe")))
+    ;; (setq
+    ;;  erc-nick "bitspook"
+    ;;  erc-password (auth-source-pass-get 'secret "libera.chat/bitspook")
+    ;;  erc-autojoin-channels-alist '(("libera.chat" "#commonlisp" "#emacs" "#emacs-berlin" "#clschool" "#whereiseveryone" "#lispcafe")))
   #+end_src
 
 - Terraform
