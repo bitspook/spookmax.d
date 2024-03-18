@@ -22,10 +22,10 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
   #+begin_src elisp :tangle ./early-init.el
     ;; -*- lexical-binding: t -*-
-    (setq package-enable-at-startup nil)
-
+    (setq package-enable-at-startup nil
+          package-install-upgrade-built-in t)
     ;;
-    ;;; Bootstrap
+        ;;; Bootstrap
 
     ;; Contrary to what many Emacs users have in their configs, you don't need
     ;; more than this to make UTF-8 the default coding system:
@@ -1120,7 +1120,8 @@ shot!
         :program (expand-file-name "node_modules/.bin/prettier"
                                    (locate-dominating-file (buffer-file-name) "node_modules/.bin/prettier"))
         :args `("--stdin-filepath" ,(buffer-file-name)))
-      :hook (web-mode . prettier-format-on-save-mode))
+      :hook ((web-mode . prettier-format-on-save-mode)
+             (typescript-ts-mode . prettier-format-on-save-mode)))
   #+end_src
 
 - Direnv is pretty essential for my dev workflow.
@@ -1161,6 +1162,51 @@ shot!
 
   #+RESULTS:
   | garbage-collect |
+*** Treesitter
+
+#+begin_src elisp
+  (setq treesit-language-source-alist
+        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+          (cmake "https://github.com/uyha/tree-sitter-cmake")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
+          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+          (go "https://github.com/tree-sitter/tree-sitter-go")
+          (html "https://github.com/tree-sitter/tree-sitter-html")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (make "https://github.com/alemuller/tree-sitter-make")
+          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+          (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+#+end_src
+
+- Structured movement
+
+  #+begin_src elisp
+    (use-package combobulate
+      :ensure (combobulate :host github :repo "mickeynp/combobulate")
+      :preface
+      ;; You can customize Combobulate's key prefix here.
+      ;; Note that you may have to restart Emacs for this to take effect!
+      (setq combobulate-key-prefix "C-c o")
+
+      ;; Optional, but recommended.
+      ;;
+      ;; You can manually enable Combobulate with `M-x
+      ;; combobulate-mode'.
+      :hook
+      ((python-ts-mode . combobulate-mode)
+       (js-ts-mode . combobulate-mode)
+       (html-ts-mode . combobulate-mode)
+       (css-ts-mode . combobulate-mode)
+       (yaml-ts-mode . combobulate-mode)
+       (typescript-ts-mode . combobulate-mode)
+       (json-ts-mode . combobulate-mode)
+       (tsx-ts-mode . combobulate-mode)))
+  #+end_src
 
 *** Lisp
 :PROPERTIES:
@@ -1239,14 +1285,14 @@ says on the box without much fuss.
 #+begin_src elisp
   (setq css-indent-offset spook--indent-width)
 
-  (use-package js
+  (use-package js-ts
     :mode "\\.js'"
     :ensure nil
     :config
     (setq js-indent-level spook--indent-width)
     :hook
-    (((js-mode
-       typescript-mode) . subword-mode)))
+    (((js-ts-mode
+       typescript-ts-mode) . subword-mode)))
 
   (use-package web-mode
     :mode (("\\.html?\\'" . web-mode))
@@ -1258,20 +1304,17 @@ says on the box without much fuss.
 
   (use-package emmet-mode
     :hook ((html-mode       . emmet-mode)
-	   (css-mode        . emmet-mode)
-	   (js-mode         . emmet-mode)
-	   (js-jsx-mode     . emmet-mode)
-	   (typescript-mode . emmet-mode)
-	   (typescript-tsx-mode . emmet-mode)
-	   (web-mode        . emmet-mode))
+           (css-mode        . emmet-mode)
+           (js-ts-mode      . emmet-mode)
+           (js-jsx-mode     . emmet-mode)
+           (typescript-ts-mode . emmet-mode)
+           (web-mode        . emmet-mode))
     :config
     (setq emmet-insert-flash-time 0.001)	; effectively disabling it
     (add-hook 'js-jsx-mode-hook #'(lambda ()
-				    (setq-local emmet-expand-jsx-className? t)))
-    (add-hook 'typescript-tsx-mode-hook #'(lambda ()
-					    (setq-local emmet-expand-jsx-className? t)))
+                                    (setq-local emmet-expand-jsx-className? t)))   
     (add-hook 'web-mode-hook #'(lambda ()
-				 (setq-local emmet-expand-jsx-className? t))))
+                                 (setq-local emmet-expand-jsx-className? t))))
 
   ;; Let's try flymake for js/ts since eglot likes it so much
   (use-package flymake-eslint)
@@ -1289,13 +1332,13 @@ says on the box without much fuss.
     (flycheck-mode -1)
 
     (if-let (nvm-bin (spook--nvm-p))
-	(add-to-list 'exec-path nvm-bin)
+        (add-to-list 'exec-path nvm-bin)
       (let ((bin-dir
-	     (expand-file-name
-	      "node_modules/.bin/"
-	      (locate-dominating-file default-directory "node_modules"))))
-	(when (file-exists-p bin-dir)
-	  (add-to-list 'exec-path bin-dir))))
+             (expand-file-name
+              "node_modules/.bin/"
+              (locate-dominating-file default-directory "node_modules"))))
+        (when (file-exists-p bin-dir)
+          (add-to-list 'exec-path bin-dir))))
 
     ;; TODO Remove this if flymake-eslint works well enough
     ;; Setup flycheck. It don't enable eslint for ts buffers for some reason
@@ -1308,51 +1351,29 @@ says on the box without much fuss.
     (prettier-format-on-save-mode +1)
     (eglot-ensure)
     (setf flymake-eslint-project-root
-	  (locate-dominating-file default-directory "package.json"))
+          (locate-dominating-file default-directory "package.json"))
     (flymake-eslint-enable))
 
-  (setq js-mode-hook nil)
-  (add-hook 'js-mode-hook #'spook--setup-ts-js)
+  (add-hook 'js-ts-mode-hook #'spook--setup-ts-js)
 
-  (use-package typescript-mode
-    :mode "\\.ts?\\'"
-    :hook ((typescript-mode . subword-mode))
-    :init
-    (define-derived-mode typescript-tsx-mode typescript-mode "tsx")  
+  (use-package typescript-ts-mode
+    :mode "\\.ts\\'"
+    :ensure nil
+    :hook ((typescript-ts-mode . subword-mode))
     :config
     (setq-default typescript-indent-level spook--indent-width)
     (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
 
-  (use-package css-mode
+  (use-package css-ts-mode
     :ensure nil
     :mode "\\.s?css\\'")
 #+end_src
 
-- Setup =typescript-tsx-mode= using code I don't fully understand. Copied from
-  [[https://github.com/emacs-typescript/typescript.el/issues/4#issuecomment-873485004][typescript.el#4]]
-
-  #+begin_src elisp
-    (use-package typescript-tsx-mode
-      :ensure nil
-      :mode (("\\.tsx\\'" . typescript-tsx-mode))
-      :config
-      (add-hook 'typescript-tsx-mode #'subword-mode))
-
-    (use-package tree-sitter
-      :hook ((typescript-mode . tree-sitter-hl-mode)
-	     (typescript-tsx-mode . tree-sitter-hl-mode)))
-
-    (use-package tree-sitter-langs
-      :after tree-sitter
-      :config
-      (tree-sitter-require 'tsx)
-      (add-to-list 'tree-sitter-major-mode-language-alist '(typescript-tsx-mode . tsx)))
-  #+end_src
-
 - JSON support
 
   #+begin_src elisp
-    (use-package json-mode
+    (use-package json-ts-mode
+      :ensure nil
       :mode "\\.json\\'")
   #+end_src
 
@@ -1396,7 +1417,8 @@ says on the box without much fuss.
 :END:
 
 #+begin_src elisp
-  (use-package yaml-mode
+  (use-package yaml-ts-mode
+    :ensure nil
     :mode "\\.ya?ml\\'")
 #+end_src
 
