@@ -203,6 +203,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
   #+begin_src elisp :tangle ./init.el
     (setq inhibit-startup-screen t
+          ring-bell-function #'ignore
           use-dialog-box nil)
     (tool-bar-mode -1)
     (scroll-bar-mode -1)
