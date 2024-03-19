@@ -1062,10 +1062,12 @@ shot!
   #+begin_src elisp
     (spook--defkeymap
      "spook-fold" "C-c f"
-     '("O" . hs-show-all)
-     '("o" . hs-show-block)
-     '("C" . hs-hide-all)
-     '("c" . hs-hide-block)
+     '("b" . hs-hide-block)
+     '("O" . hs-show-block)
+     '("l" . hs-hide-level)
+     '("L" . hs-show-block)
+     '("a" . hs-hide-all)
+     '("A" . hs-show-all)
      '("z" . hs-toggle-hiding))
 
     (add-hook 'prog-mode-hook 'hs-minor-mode)
