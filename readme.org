@@ -1081,6 +1081,16 @@ shot!
       (defalias 'flycheck-command-map flycheck-command-map))
   #+end_src
 
+  Flycheck eglot integration
+
+  #+begin_src elisp
+    (use-package flycheck-eglot
+      :ensure t
+      :after (flycheck eglot)
+      :config
+      (global-flycheck-eglot-mode 1))
+  #+end_src
+
 - Projectile for managing projects.
 
   #+begin_src elisp
@@ -1314,21 +1324,14 @@ says on the box without much fuss.
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
-  ;; Let's try flymake for js/ts since eglot likes it so much
-  (use-package flymake-eslint)
-
   (spook--defkeymap
-   "spook-flymake" "C-c e"
-   '("n" . flymake-goto-next-error)
-   '("p" . flymake-goto-prev-error)
-   '("l" .  flymake-show-buffer-diagnostics)
-   '("L" . flymake-show-project-diagnostics))
+   "spook-errors" "C-c e"
+   '("n" . flycheck-next-error)
+   '("p" . flycheck-previous-error))
 
   (defun spook--setup-ts-js ()
     "Setup Javascript and Typescript for current buffer."
     ;; Add node_modules/.bin of current project to exec-path.
-    (flycheck-mode -1)
-
     (if-let (nvm-bin (spook--nvm-p))
         (add-to-list 'exec-path nvm-bin)
       (let ((bin-dir
@@ -1338,19 +1341,11 @@ says on the box without much fuss.
         (when (file-exists-p bin-dir)
           (add-to-list 'exec-path bin-dir))))
 
-    ;; TODO Remove this if flymake-eslint works well enough
-    ;; Setup flycheck. It don't enable eslint for ts buffers for some reason
-    ;; (setq-local
-    ;;  flycheck-javascript-eslint-executable "eslint"
-    ;;  flycheck-enabled-checkers '(javascript-eslint))
-    ;; (flycheck-select-checker 'javascript-eslint)
-
     ;; For 95% of cases this is what I want
     (prettier-format-on-save-mode +1)
     (eglot-ensure)
     (setf flymake-eslint-project-root
-          (locate-dominating-file default-directory "package.json"))
-    (flymake-eslint-enable))
+          (locate-dominating-file default-directory "package.json")))
 
   (add-hook 'js-ts-mode-hook #'spook--setup-ts-js)
 
