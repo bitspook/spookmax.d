@@ -1060,18 +1060,15 @@ shot!
 - Code folding
 
   #+begin_src elisp
-    (use-package ts-fold
-      :ensure (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold")
-      :config
-      (global-ts-fold-mode)
-      (global-ts-fold-indicators-mode)
-      (spook--defkeymap
-       "spook-fold" "C-c f"
-       '("O" . ts-fold-open-all)
-       '("o" . ts-fold-open-recursively)
-       '("C" . ts-fold-close-all)
-       '("c" . ts-fold-close)
-       '("z" . ts-fold-toggle)))
+    (spook--defkeymap
+     "spook-fold" "C-c f"
+     '("O" . hs-show-all)
+     '("o" . hs-show-block)
+     '("C" . hs-hide-all)
+     '("c" . hs-hide-block)
+     '("z" . hs-toggle-hiding))
+
+    (add-hook 'prog-mode-hook 'hs-minor-mode)
   #+end_src
 
 - Flycheck for getting those in-buffer warnings errors.
