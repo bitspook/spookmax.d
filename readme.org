@@ -1329,7 +1329,9 @@ says on the box without much fuss.
   (spook--defkeymap
    "spook-errors" "C-c e"
    '("n" . flycheck-next-error)
-   '("p" . flycheck-previous-error))
+   '("p" . flycheck-previous-error)
+   '("l" . flycheck-list-errors)
+   '("e" . flycheck-explain-error-at-point))
 
   (defun spook--setup-ts-js ()
     "Setup Javascript and Typescript for current buffer."
@@ -1375,7 +1377,17 @@ says on the box without much fuss.
 - Testing with jest
 
   #+begin_src elisp
-    (use-package jest)
+    (use-package jest-test-mode 
+      :ensure t 
+      :commands jest-test-mode
+      :hook (typescript-ts-mode)
+      :config
+      (setf jest-test-command-string "npm run test:only -- %s %s")
+      (define-key typescript-ts-mode-map (kbd "C-c , t r") #'jest-test-run)
+      (define-key typescript-ts-mode-map (kbd "C-c , t R") #'jest-test-rerun-test)
+      (define-key typescript-ts-mode-map (kbd "C-c , t t") #'jest-test-run-at-point)
+      (define-key typescript-ts-mode-map (kbd "C-c , t T") #'jest-test-debug-run-at-point)
+      (define-key typescript-ts-mode-map (kbd "C-c , t d") #'jest-test-debug))
   #+end_src
 
 *** Rust
