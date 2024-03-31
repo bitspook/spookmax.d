@@ -1193,6 +1193,24 @@ shot!
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 #+end_src
 
+When in NixOS, use system installed grammars.
+
+#+begin_src elisp
+  (defvar nixos-p
+    (s-contains-p "NixOS" (shell-command-to-string "uname -a")))
+
+  (when nixos-p
+    (let ((nix-treesit-lib-path
+           (expand-file-name
+            "lib"
+            (string-replace
+             "\"" ""
+             (string-trim
+              (shell-command-to-string
+               "nix eval nixpkgs#emacsPackages.treesit-grammars.with-all-grammars.outPath")))))) 
+      (setf treesit-extra-load-path (list nix-treesit-lib-path)))
+#+end_src
+
 - Structured movement
 
   #+begin_src elisp
