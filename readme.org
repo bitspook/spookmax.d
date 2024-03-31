@@ -1208,7 +1208,7 @@ When in NixOS, use system installed grammars.
              (string-trim
               (shell-command-to-string
                "nix eval nixpkgs#emacsPackages.treesit-grammars.with-all-grammars.outPath")))))) 
-      (setf treesit-extra-load-path (list nix-treesit-lib-path)))
+      (setf treesit-extra-load-path (list nix-treesit-lib-path))))
 #+end_src
 
 - Structured movement
