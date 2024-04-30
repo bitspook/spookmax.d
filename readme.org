@@ -545,6 +545,14 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
       (exec-path-from-shell-initialize))
   #+end_src
 
+** Libraries
+
+Libraries used elsewhere.
+
+#+begin_src elisp
+  (use-package plz)
+#+end_src
+
 ** Org mode
 :PROPERTIES:
 :ID:       8b2528d8-3fd2-4076-8b1e-791df8ed9a67
