@@ -1259,6 +1259,14 @@ Lispy for some nasty lisp structural editing.
     (setf lispy-colon-p nil))
 #+end_src
 
+Pretty cool auto-indentation.
+
+#+begin_src elisp
+  (use-package aggressive-indent
+    :hook ((emacs-lisp-mode . aggressive-indent-mode)
+           (lisp-mode . aggressive-indent-mode)))
+#+end_src
+
 Elsa provides very nice static-analysis and more for elisp
 programming. First time I am trying this, hopefully it does what it
 says on the box without much fuss.
