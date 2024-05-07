@@ -643,10 +643,11 @@ Libraries used elsewhere.
       (setq org-super-agenda-groups
             '((:name "Work" :tag "work" :order 1)
               (:name "In Progress" :todo "DOING" :order 1)
+              (:name "Inbox" :tag "inbox" :order 4)
               (:name "Projects" :tag "project" :order 3)
               (:name "Home" :tag "home" :order 2)
               (:name "Study" :tag "study" :order 4)
-              (:name "Inbox" :tag "inbox" :order 4)
+              (:name "Health" :tag "health" :order 5)
               (:name "Habits" :tag "habit" :order 5))))
   #+end_src
 
