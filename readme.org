@@ -722,21 +722,21 @@ Libraries used elsewhere.
 
     #+begin_src elisp
       (defun spook-org--follow-yt-link (path prefix)
-	(let* ((url (format "https:%s" path))
-	       (proc-name (format "*yt://%s*" url)))
-	  (if (and prefix (executable-find "mpv"))
-	      (browse-url url)
-	    (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
-	    (message "Launched mpv in buffer: %s" proc-name))))
+        (let* ((url (format "https:%s" path))
+               (proc-name (format "*yt://%s*" url)))
+          (if (and prefix (executable-find "mpv"))
+              (browse-url url)
+            (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
+            (message "Launched mpv in buffer: %s" proc-name))))
 
       (defun spook-org--export-yt-link (path desc backend)
-	(when (eq backend 'html)
-	  (let* ((video-id (cadar (url-parse-query-string path)))
-		 (url (if (string-empty-p video-id) path
-			(format "//youtube.com/embed/%s" video-id))))
-	    (format
-	     "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
-	     url desc))))
+        (when (eq backend 'html)
+          (let* ((video-id (cadar (url-parse-query-string path)))
+                 (url (if (string-empty-p video-id) path
+                        (format "//youtube.com/embed/%s" video-id))))
+            (format
+             "<iframe width=\"560\" height=\"315\" src=\"%s\" title=\"%s\" frameborder=\"0\" allowfullscreen></iframe>"
+             url desc))))
     #+end_src
 
 ** Modal editing with Meow
@@ -1000,6 +1000,7 @@ shot!
     (use-package embark
       :bind
       (("C-," . embark-act)
+       ("C->" . embark-act-all)
        ("C-." . embark-dwim)
        ("C-h b" . embark-bindings)
        ("C-<" . spook--embark-act-no-quit)))
@@ -1750,9 +1751,9 @@ blocked.
         (let* ((result (spook--get-ff-yt-current-time))
                (time (plist-get result :time))
                (url (string-replace "https" "yt" (plist-get result :url))))
-          (insert (concat "- At [[" url "]["
+          (insert (concat "At [[" url "]["
                           (format-seconds "%m:%s" time)
-                          "]]\n"))))
+                          "]]"))))
 
       (defun spook--url-equal-p (url1 url2)
         "Return t if URL1 and URL2 have same host, query and path."
