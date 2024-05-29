@@ -592,8 +592,8 @@ Libraries used elsewhere.
      org-default-notes-file (concat org-directory "/refile.org")
      org-refile-targets '((org-agenda-files . (:maxlevel . 6)))
      org-capture-templates
-     '(("i" "Idea" entry (file+headline org-inbox-file "Inbox") "* %?\t\t:idea:\n%U")
-       ("t" "Todo" entry (file+headline org-inbox-file "Inbox") "* TODO %?\n%U\n[[%F]]"))
+     '(("i" "Idea" entry (file+headline org-inbox-file "Inbox") "* %?\t\t:idea:\n")
+       ("t" "Todo" entry (file+headline org-inbox-file "Inbox") "* TODO %?\n"))
      org-log-into-drawer "LOGBOOK"
      org-log-done "time"
      org-clock-report-include-clocking-task t
@@ -2111,6 +2111,16 @@ blocked.
      'eww-mode-hook
      (lambda ()
        (display-line-numbers-mode -1)))
+  #+end_src
+
+  Syntax-highlighting for code blocks in HTML.
+
+  #+begin_src elisp
+    (use-package shr-tag-pre-highlight
+      :after shr
+      :config
+      (add-to-list 'shr-external-rendering-functions
+                   '(pre . shr-tag-pre-highlight)))
   #+end_src
 
 - org-download to easily attach images in my notes
