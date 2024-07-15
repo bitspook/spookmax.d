@@ -607,7 +607,9 @@ Libraries used elsewhere.
      org-id-link-to-org-use-id t
      org-fold-catch-invisible-edits 'show
      org-cycle-separator-lines 0
-     org-export-allow-bind-keywords t)
+     org-export-allow-bind-keywords t
+     ;; let's try these out
+     org-use-speed-commands t)
 
     ;; org-mode settings
     (with-eval-after-load 'org
