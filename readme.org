@@ -1991,7 +1991,7 @@ blocked.
   #+end_src
 
 - saunf
-
+  
   Use the local repo; very risky, should change.
 
   #+begin_src elisp
@@ -2172,6 +2172,21 @@ blocked.
       (add-hook 'dired-mode-hook 'org-download-enable))
   #+end_src
   
+- Eat
+
+  More terminal-like experience for some CLI/TUI tools that just need it.
+
+  #+begin_src elisp
+    (use-package eat
+      :ensure (eat :type git
+                   :repo "https://codeberg.org/akib/emacs-eat"
+                   :files ("*.el" ("term" "term/*.el") "*.texi"
+                           "*.ti" ("terminfo/e" "terminfo/e/*")
+                           ("terminfo/65" "terminfo/65/*")
+                           ("integration" "integration/*")
+                           (:exclude ".dir-locals.el" "*-tests.el"))))
+  #+end_src
+
 ** Private work related config 
 :PROPERTIES:
 :ID:       6CA859BF-001A-48A8-8FAF-A522EE7FC8B1
