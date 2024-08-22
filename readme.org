@@ -579,7 +579,7 @@ Libraries used elsewhere.
   #+begin_src elisp
     (setq
      org-startup-indented t
-     org-startup-folded t
+     org-startup-folded nil
      org-agenda-window-setup "only-window"
      org-directory "~/Documents/org"
      org-agenda-diary-file (concat org-directory "/diary.org.gpg")
@@ -1728,6 +1728,7 @@ blocked.
       (defvar spook-notes-mode-map (make-sparse-keymap))
 
       (define-key spook-notes-mode-map (kbd "C-c i t") #'spook--insert-yt-ts-note)
+      (define-key spook-notes-mode-map (kbd "C-c i u") #'spook--insert-current-url)
 
       (define-minor-mode spook-notes-mode
         "Minor mode for taking spooky notes.
@@ -1735,8 +1736,14 @@ blocked.
       being taken."
         :keymap spook-notes-mode-map)
 
+      (defun spook--insert-current-url ()
+        "Insert current tab's URL."
+        (interactive)
+        (insert (spookfox-js-injection-eval-in-active-tab "window.location.href" t)))
+
       (defun spook--get-ff-yt-current-time ()
         "Return current time of youtube video running in Firefox's active tab."
+        (interactive)
         (spookfox-eval-js-in-active-tab
          (concat
           "(function () {"
@@ -1801,7 +1808,7 @@ blocked.
 
             (denote (denote-title-prompt (plist-get tab :title))
                     tags "org" (expand-file-name "reading" denote-directory))
-            (when yt-p (spook-notes-mode))
+            (spook-notes-mode)
             (delete-region (point) (line-beginning-position 0))
             (insert (concat "#+source: " url "\n\n")))))
 
