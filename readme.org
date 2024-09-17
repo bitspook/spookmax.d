@@ -2107,10 +2107,31 @@ blocked.
   Small utility to quickly connect to irc.
 
   #+begin_src elisp
-    ;; (setq
-    ;;  erc-nick "bitspook"
-    ;;  erc-password (auth-source-pass-get 'secret "libera.chat/bitspook")
-    ;;  erc-autojoin-channels-alist '(("libera.chat" "#commonlisp" "#emacs" "#emacs-berlin" "#clschool" "#whereiseveryone" "#lispcafe")))
+    (use-package erc
+      :ensure nil
+      :config
+      (setopt erc-modules (seq-union '(sasl) erc-modules))
+      (setq
+       erc-nick "bitspook"
+       erc-auth-source-server-function (lambda (a b)
+                                         (auth-source-pass-get 'secret "libera.chat/bitspook"))
+       erc-sasl-user :nick
+       erc-autojoin-channels-alist '(("libera.chat"
+                                      "#commonlisp"
+                                      "#emacs"
+                                      "#emacs-berlin"
+                                      "#clschool"
+                                      "#whereiseveryone"
+                                      "#guix"
+                                      "#lispcafe"))))
+
+    (use-package erc-track
+      :ensure nil
+      ;; Prevent JOINs and PARTs from lighting up the mode-line.
+      :config (setopt erc-track-faces-priority-list
+                      (remq 'erc-notice-face erc-track-faces-priority-list))
+
+      :custom (erc-track-priority-faces-only 'all))
   #+end_src
 
 - Terraform
