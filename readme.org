@@ -1631,15 +1631,19 @@ Nice to have features but not necessary.
 :END:
 
 #+begin_src elisp
-  (use-package doom-themes
+  ;; (use-package doom-themes
+  ;;   :config
+  ;;   (setq doom-rouge-brighter-modeline t
+  ;;         doom-rouge-brighter-comments t)
+  ;;   (load-theme 'doom-rouge t))
+
+  ;; (use-package nimbus-theme
+  ;;   :config
+  ;;   (load-theme 'nimbus t))
+
+  (use-package modus-themes
     :config
-    (setq doom-rouge-brighter-modeline t
-          doom-rouge-brighter-comments t)
-    ;; (load-theme 'doom-rouge t)
-    )
-  (use-package nimbus-theme
-    :config
-    (load-theme 'nimbus t))
+    (load-theme 'modus-vivendi-tinted :no-confirm))
 #+end_src
 
 Modeline
@@ -2123,7 +2127,7 @@ blocked.
                                       "#clschool"
                                       "#whereiseveryone"
                                       "#guix"
-                                      "#lispcafe"))))
+                                      "#lisp"))))
 
     (use-package erc-track
       :ensure nil
