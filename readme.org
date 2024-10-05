@@ -1149,12 +1149,12 @@ shot!
 - Direnv is pretty essential for my dev workflow.
 
   #+begin_src elisp
-    (use-package direnv
-      :config
-      (direnv-mode)
-      (when (not (boundp 'warning-suppress-types))
-        (setq warning-suppress-types nil))
-      (add-to-list 'warning-suppress-types '(direnv)))
+    ;; (use-package direnv
+    ;;   :config
+    ;;   (direnv-mode)
+    ;;   (when (not (boundp 'warning-suppress-types))
+    ;;     (setq warning-suppress-types nil))
+    ;;   (add-to-list 'warning-suppress-types '(direnv)))
   #+end_src
 
 - Eglot to provide LSP support.
@@ -2219,6 +2219,17 @@ blocked.
                            ("terminfo/65" "terminfo/65/*")
                            ("integration" "integration/*")
                            (:exclude ".dir-locals.el" "*-tests.el"))))
+  #+end_src
+
+- My workflows
+
+  I am experimenting with putting my configuration in blog posts (called "workflows"). These posts
+  are the source of truth for the configuration, which is tangled to =~/.emacs.d/workflow-*.el=
+  files. Let's load all of 'em.
+
+  #+begin_src elisp
+    (dolist (file (directory-files default-directory t "workflow-.*\\.el"))
+      (load-file file))
   #+end_src
 
 ** Private work related config 

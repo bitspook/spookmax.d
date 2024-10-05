@@ -32,3 +32,10 @@
 /private.el
 /elpaca/
 /eln-cache/
+workflow-*.el
+/tree-sitter/
+/tramp
+/session.*
+/persist/
+/.cask/
+/%backup%~
