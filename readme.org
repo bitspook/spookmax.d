@@ -1486,6 +1486,23 @@ says on the box without much fuss.
     :mode "\\.graphql\\'")
 #+end_src
 
+*** Guix
+
+#+begin_src elisp
+  (when (file-exists-p "/gnu/store/")
+    (use-package guix)
+
+    (use-package geiser)
+
+    (use-package geiser-guile
+      :after (yasnippet geiser)
+      :config
+      (when (file-exists-p "~/code/guix")
+        (add-to-list 'geiser-guile-load-path "~/code/guix")
+        (add-to-list 'yas-snippet-dirs "~/code/guix/etc/snippets/yas"))
+      (add-to-list 'auto-mode-alist '("\\.scm\\'" . geiser-devel-mode))))
+#+end_src
+
 ** Niceties
 :PROPERTIES:
 :ID:       8e8563f8-2161-4af3-b072-fc3b81cc57a6
