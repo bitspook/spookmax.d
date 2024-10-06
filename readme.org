@@ -1495,12 +1495,14 @@ says on the box without much fuss.
     (use-package geiser)
 
     (use-package geiser-guile
-      :after (yasnippet geiser)
+      :after (yasnippet guix)
       :config
       (when (file-exists-p "~/code/guix")
         (add-to-list 'geiser-guile-load-path "~/code/guix")
         (add-to-list 'yas-snippet-dirs "~/code/guix/etc/snippets/yas"))
-      (add-to-list 'auto-mode-alist '("\\.scm\\'" . geiser-devel-mode))))
+
+      (add-hook 'scheme-mode-hook #'guix-devel-mode)
+      (add-hook 'scheme-mode-hook #'lispy-mode)))
 #+end_src
 
 ** Niceties
@@ -2245,7 +2247,7 @@ blocked.
   files. Let's load all of 'em.
 
   #+begin_src elisp
-    (dolist (file (directory-files default-directory t "workflow-.*\\.el"))
+    (dolist (file (directory-files user-emacs-directory t "workflow-.*\\.el"))
       (load-file file))
   #+end_src
 
