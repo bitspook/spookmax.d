@@ -1149,12 +1149,12 @@ shot!
 - Direnv is pretty essential for my dev workflow.
 
   #+begin_src elisp
-    ;; (use-package direnv
-    ;;   :config
-    ;;   (direnv-mode)
-    ;;   (when (not (boundp 'warning-suppress-types))
-    ;;     (setq warning-suppress-types nil))
-    ;;   (add-to-list 'warning-suppress-types '(direnv)))
+    (use-package direnv
+      :config
+      (direnv-mode)
+      (when (not (boundp 'warning-suppress-types))
+        (setq warning-suppress-types nil))
+      (add-to-list 'warning-suppress-types '(direnv)))
   #+end_src
 
 - Eglot to provide LSP support.
