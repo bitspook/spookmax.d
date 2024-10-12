@@ -2251,6 +2251,18 @@ blocked.
       (load-file file))
   #+end_src
 
+** System management
+
+#+begin_src elisp
+  (when (eq system-type 'gnu/linux)
+    (use-package bluetooth)
+
+    (spook--defkeymap
+     "spook-system" "C-c s"
+     '("b" . bluetooth-list-devices)
+     '("g" . guix)))
+#+end_src
+
 ** Private work related config 
 :PROPERTIES:
 :ID:       6CA859BF-001A-48A8-8FAF-A522EE7FC8B1
