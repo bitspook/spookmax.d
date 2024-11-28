@@ -629,6 +629,8 @@ Libraries used elsewhere.
      '("c" . org-capture)
      '("C" . org-clock-goto)
      '("o" . consult-org-agenda))
+
+    (define-key org-mode-map (kbd "C-c >") #'org-timestamp-inactive)
   #+end_src
 
 - org-super-agenda
