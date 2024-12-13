@@ -630,7 +630,8 @@ Libraries used elsewhere.
      '("C" . org-clock-goto)
      '("o" . consult-org-agenda))
 
-    (define-key org-mode-map (kbd "C-c >") #'org-timestamp-inactive)
+    (with-eval-after-load 'org
+      (define-key org-mode-map (kbd "C-c >") #'org-timestamp-inactive))
   #+end_src
 
 - org-super-agenda
@@ -1874,7 +1875,7 @@ blocked.
        "spook-notes" "C-c n"
        '("n" . denote-open-or-create)
        '("N" . denote-link-or-create)
-       '("b" . denote-link-backlinks)
+       '("b" . denote-backlinks)
        '("d" . spook--diary-today)
        '("r" . spook--denote-ff-tab)
        '("p" . spook-crm--open-or-create)
