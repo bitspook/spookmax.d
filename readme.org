@@ -646,14 +646,17 @@ Libraries used elsewhere.
       :config
       (org-super-agenda-mode t)
       (setq org-super-agenda-groups
-            '((:name "Work" :tag "work" :order 1)
-              (:name "In Progress" :todo "DOING" :order 1)
-              (:name "Inbox" :tag "inbox" :order 4)
+            '((:name "In Progress" :todo "DOING" :order 1)
+              (:name "🪫" :tag "system" :order 1)
+              (:name "👶🏼" :category "Baby" :tag "baby" :order 2)
+              (:name "Work" :tag "work" :order 2)
+              (:name "🏯" :category "Home 🏯" :order 3)
               (:name "Projects" :tag "project" :order 3)
-              (:name "Home" :tag "home" :order 2)
-              (:name "Study" :tag "study" :order 4)
-              (:name "Health" :tag "health" :order 5)
-              (:name "Habits" :tag "habit" :order 5))))
+              (:name "Self ❤️" :tag "health" :category "Self" :order 3)
+              (:name "Inbox" :tag "inbox" :order 4)
+              (:name "Study 📚" :tag "study" :order 4)
+              (:name "Finance 💶" :tag "finance" :order 4)
+              (:name "Habits" :tag "habit" :order 6))))
   #+end_src
 
 - org-babel
