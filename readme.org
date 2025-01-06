@@ -600,7 +600,7 @@ Libraries used elsewhere.
      org-clock-into-drawer t
      org-fontify-done-headline t
      org-enforce-todo-dependencies t
-     org-agenda-overriding-columns-format "%80ITEM(Task) %6Effort(XP){+}"
+     org-agenda-overriding-columns-format "%80ITEM(Task) %6Effort(Est){:} %6CLOCKSUM_T(Today) %6CLOCKSUM(Total)"
      org-columns-default-format org-agenda-overriding-columns-format
      org-use-property-inheritance t
      org-confirm-babel-evaluate nil
