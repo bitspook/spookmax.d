@@ -2296,15 +2296,33 @@ blocked.
 
 ** System management
 
+- Bluetooth
+
 #+begin_src elisp
   (when (eq system-type 'gnu/linux)
-    (use-package bluetooth)
+    (use-package bluetooth))
+#+end_src
 
+- Passwords
+
+  #+begin_src elisp
+    (use-package pass
+      :ensure (pass :type git
+                    :host github
+                    :repo "NicolasPetton/pass"
+                    :branch "master"
+                    :files ("pass.el")))
+  #+end_src
+
+- Key bindings
+
+  #+begin_src elisp
     (spook--defkeymap
      "spook-system" "C-c s"
      '("b" . bluetooth-list-devices)
-     '("g" . guix)))
-#+end_src
+     '("g" . guix)
+     '("p" . pass))
+  #+end_src
 
 ** Private work related config 
 :PROPERTIES:
