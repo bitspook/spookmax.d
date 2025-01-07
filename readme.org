@@ -650,7 +650,7 @@ Libraries used elsewhere.
               (:name "🪫" :tag "system" :order 1)
               (:name "👶🏼" :category "Baby" :tag "baby" :order 2)
               (:name "Work" :tag "work" :order 2)
-              (:name "🏯" :category "Home 🏯" :order 3)
+              (:name "🏯" :category "Home 🏯" :tag "home" :order 3)
               (:name "Projects" :tag "project" :order 3)
               (:name "Self ❤️" :tag "health" :category "Self" :order 3)
               (:name "Inbox" :tag "inbox" :order 4)
