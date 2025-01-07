@@ -2189,7 +2189,8 @@ blocked.
                                       "#clschool"
                                       "#whereiseveryone"
                                       "#guix"
-                                      "#lisp"))))
+                                      "#lisp")))
+      (setf erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")))
 
     (use-package erc-track
       :ensure nil
