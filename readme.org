@@ -798,6 +798,14 @@ Libraries used elsewhere.
     (spook-update-agenda-denotes)
   #+end_src
 
+- Reset checkboxes when a subtree is repeated
+
+  Taken from [[https://emacs.stackexchange.com/a/70721][SO]]
+
+  #+begin_src elisp
+    (add-hook 'org-todo-repeat-hook #'org-reset-checkbox-state-subtree)
+  #+end_src
+
 ** Modal editing with Meow
 :PROPERTIES:
 :ID:       17c2eeec-133f-49f3-b2ce-95bf3dab1188
