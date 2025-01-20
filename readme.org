@@ -624,7 +624,11 @@ Libraries used elsewhere.
      org-cycle-separator-lines 0
      org-export-allow-bind-keywords t
      ;; let's try these out
-     org-use-speed-commands t)
+     org-use-speed-commands t
+     ;; Pressing `l' in org-agenda-mode show the log of all state changes. Something I need because
+     ;; otherwise old-scheduled and repeated tasks that I do, or tasks I cancel gets lost from my agenda
+     ;; view
+     org-agenda-log-mode-items '(closed clock state))
 
     ;; org-mode settings
     (with-eval-after-load 'org
