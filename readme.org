@@ -579,10 +579,10 @@ Libraries used elsewhere.
     (use-package org
       :config
       (eval-after-load 'org-mode
-	(org-link-set-parameters
-	 "yt"
-	 :follow #'spook-org--follow-yt-link
-	 :export #'spook-org--export-yt-link))
+        (org-link-set-parameters
+         "yt"
+         :follow #'spook-org--follow-yt-link
+         :export #'spook-org--export-yt-link))
       (add-hook
        'org-mode-hook
        (lambda () (display-line-numbers-mode -1))))
@@ -616,6 +616,7 @@ Libraries used elsewhere.
      org-enforce-todo-dependencies t
      org-agenda-overriding-columns-format "%80ITEM(Task) %6Effort(Est){:} %6CLOCKSUM_T(Today) %6CLOCKSUM(Total)"
      org-columns-default-format org-agenda-overriding-columns-format
+     org-agenda-columns-add-appointments-to-effort-sum t
      org-use-property-inheritance t
      org-confirm-babel-evaluate nil
      org-id-link-to-org-use-id t
