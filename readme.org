@@ -1023,8 +1023,10 @@ shot!
       :config
       (consult-customize consult-theme :preview-key '(:debounce 0.5 any))
 
-      (global-set-key (kbd "C-s") #'consult-line)
-      (global-set-key (kbd "C-r") #'consult-line-multi)
+      (global-set-key (kbd "C-s") #'isearch-forward-regexp)
+      (global-set-key (kbd "C-S-s") #'consult-line)
+      (global-set-key (kbd "C-r") #'isearch-backward-regexp)
+      (global-set-key (kbd "C-S-r") #'isearch-backward-regexp)
       (global-set-key (kbd "C-x b") #'consult-buffer)
       (define-key spook-buffers-keymap (kbd "b") #'consult-buffer)
       (define-key spook-buffers-keymap (kbd "B") #'consult-buffer-other-window)
