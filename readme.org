@@ -800,7 +800,7 @@ Libraries used elsewhere.
       (cl-dolist (id (mapcar #'denote-extract-id-from-string (spook--denote-files-with-tags '("todo"))))
         (add-to-list 'org-agenda-files (denote-get-path-by-id id))))
 
-    (spook-update-agenda-denotes)
+    (eval-after-load 'denote #'spook-update-agenda-denotes)
   #+end_src
 
 - Reset checkboxes when a subtree is repeated
@@ -1966,9 +1966,9 @@ blocked.
                                  (downcase title)))
                  (cl-return-from 'spook--find-habit el)))))))
 
-      (defun spook--mark-habit-as-done (habit)
+      (defun spook--mark-habit-as-done (habit file)
         "Mark HABIT as done."
-        (with-current-buffer (find-file-noselect (expand-file-name "TODOs.org" org-directory))
+        (with-current-buffer (find-file-noselect file)
           (org-mode)
           (let ((el (cl-case habit
                       (diary (spook--find-habit "write diary entry")))))
@@ -1978,17 +1978,17 @@ blocked.
       (defun spook--diary-today ()
         "Go to today's diary entry."
         (interactive)
-        (let ((denote-directory (expand-file-name "diary" denote-directory))
-              (title (format-time-string "%Y-%m-%d")))
+        (let* ((diary-habit-file (denote-get-path-by-id "20241231T055317"))
+               (denote-directory (expand-file-name "diary" denote-directory))
+               (title (format-time-string "%Y-%m-%d")))
           (if-let ((file (seq-find
                           (lambda (f) (string-match-p title f))
                           (directory-files denote-directory))))
               (progn
                 (find-file (expand-file-name file denote-directory))
                 (goto-char (point-max)))
-            (spook--mark-habit-as-done 'diary)
+            (spook--mark-habit-as-done 'diary diary-habit-file)
             (denote title '("diary")))))
-
     #+end_src
 
   - Work notes
