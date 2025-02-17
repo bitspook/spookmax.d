@@ -101,11 +101,11 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 - Ergonomically create keymaps
 
   #+begin_src elisp
-    (defmacro spook--defkeymap (name prefix &rest bindings)
+    (defmacro my--defkeymap (name prefix &rest bindings)
       "Create a new NAME-keymap bound to PREFIX, with BINDINGS.
 
     Usage:
-      (spook--defkeymap \"spook-git\" \"C-c g\"
+      (my--defkeymap \"my-git\" \"C-c g\"
         '(\"s\" . magit-status))
     "
       (let* ((keymap-name (intern (concat name "-keymap")))
@@ -126,7 +126,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
   This exactly function was introduced at or before Emacs version 29.1.
   #+begin_src elisp
-    (defun spook--get-or-create-scratch ()
+    (defun my--get-or-create-scratch ()
       "Switch to *scratch* buffer. Create if it doesn't already exist"
       (interactive)
       (let ((s-buf (get-buffer "*scratch*")))
@@ -139,7 +139,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   fix. On aborting the capture, the window layout gets messed up. 
 
   #+begin_src elisp
-    (defun spook--baby-window (&optional baby-size)
+    (defun my--baby-window (&optional baby-size)
       "Create a baby of active window of BABY-SIZE height.
     A baby-window is a small window below active-window, like
     DevConsole in a browser. Depending on the active-window,
@@ -148,7 +148,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
       (interactive)
       (let ((baby-window (split-window-below (or baby-size -20))))
         (select-window baby-window)
-        (spook--get-or-create-scratch)))
+        (my--get-or-create-scratch)))
   #+end_src
   
 - Profiles
@@ -162,7 +162,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   A profile is a cons cell of =(name . metadata)=
 
   #+begin_src elisp
-    (defvar spook--active-profiles '()
+    (defvar my--active-profiles '()
       "Change things slightly based on different profiles.")
   #+end_src
 
@@ -170,7 +170,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
     #+begin_src elisp
       (when (eq system-type 'darwin)
-        (push '(small-screen . t) spook--active-profiles))
+        (push '(small-screen . t) my--active-profiles))
     #+end_src
 
 ** Preliminary setup
@@ -400,9 +400,9 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   - Custom window keybindings
 
     #+begin_src elisp
-      (spook--defkeymap "spook-windows" "C-c s-w"
+      (my--defkeymap "my-windows" "C-c s-w"
         '("-" . split-window-below)
-        '("_" . spook--baby-window)
+        '("_" . my--baby-window)
         '("/" . split-window-right)
         '("d" . delete-window)
         '("m" . delete-other-windows)
@@ -417,11 +417,11 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   - Install [[https://github.com/abo-abo/ace-window][ace-window]] for some nice utilities.
 
     #+begin_src elisp
-      (defun spook--aw-kill-buffer-in-window (win)
+      (defun my--aw-kill-buffer-in-window (win)
         "Kill the buffer shown in window WIN."
         (kill-buffer (window-buffer win)))
 
-      (defun spook--aw-kill-buffer-and-window (win)
+      (defun my--aw-kill-buffer-and-window (win)
         "Kill the buffer shown in window WIN and window itself."
         (kill-buffer (window-buffer win))
         (delete-window win))
@@ -431,7 +431,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
         (setq aw-dispatch-always t)
         (global-set-key (kbd "C-c w") 'ace-window)
         (setq aw-dispatch-alist
-              '((?d spook--aw-kill-buffer-in-window "Kill buffer in window")
+              '((?d my--aw-kill-buffer-in-window "Kill buffer in window")
                 (?s aw-swap-window "Swap Windows")
                 (?S aw-move-window "Move Window")
                 (?c aw-copy-window "Copy Window")
@@ -439,7 +439,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
                 (?b aw-switch-buffer-in-window "Select Buffer")
                 (?B aw-switch-buffer-other-window "Switch Buffer Other Window")
                 (?k aw-delete-window "Delete Window")
-                (?K spook--aw-kill-buffer-and-window "Kill buffer in window")
+                (?K my--aw-kill-buffer-and-window "Kill buffer in window")
                 (?= aw-split-window-fair "Split Fair Window")
                 (?- aw-split-window-vert "Split Vert Window")
                 (?/ aw-split-window-horz "Split Horz Window")
@@ -464,23 +464,23 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 - Buffer management
 
   #+begin_src elisp
-    (spook--defkeymap
-     "spook-buffers" "C-c b"
+    (my--defkeymap
+     "my-buffers" "C-c b"
      '("b" . switch-to-buffer)
      '("n" . next-buffer)
      '("p" . previous-buffer)
      '("n" . next-buffer)
      '("d" . kill-current-buffer)
-     '("s" . spook--get-or-create-scratch))
+     '("s" . my--get-or-create-scratch))
   #+end_src
 
 - Font size
 
   #+begin_src elisp
-    (defvar spook--font-size 11)
-    (when (assoc 'small-screen spook--active-profiles)
-      (setq spook--font-size 14))
-    (set-face-attribute 'default nil :height (* 10 spook--font-size))
+    (defvar my--font-size 11)
+    (when (assoc 'small-screen my--active-profiles)
+      (setq my--font-size 14))
+    (set-face-attribute 'default nil :height (* 10 my--font-size))
   #+end_src
 
 - [Ma]git
@@ -514,7 +514,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   - Buncha nice keybindings.
 
     #+begin_src elisp
-      (spook--defkeymap "spook-git" "C-c g"
+      (my--defkeymap "my-git" "C-c g"
         '("s" . magit-status)
         '("b" . magit-blame)
         '("g" . magit-dispatch))
@@ -530,14 +530,14 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 - Ability to select both parts from a diff (from [[https://emacs.stackexchange.com/questions/19339/how-to-use-both-variants-in-ediff][SO]])
 
   #+begin_src elisp
-    (defun spook--ediff-copy-both-to-C ()
+    (defun my--ediff-copy-both-to-C ()
       (interactive)
       (ediff-copy-diff ediff-current-difference nil 'C nil
                        (concat
                         (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
                         (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
 
-    (defun add-d-to-ediff-mode-map () (define-key ediff-mode-map "d" 'spook--ediff-copy-both-to-C))
+    (defun add-d-to-ediff-mode-map () (define-key ediff-mode-map "d" 'my--ediff-copy-both-to-C))
     (add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
   #+end_src
 
@@ -581,8 +581,8 @@ Libraries used elsewhere.
       (eval-after-load 'org-mode
         (org-link-set-parameters
          "yt"
-         :follow #'spook-org--follow-yt-link
-         :export #'spook-org--export-yt-link))
+         :follow #'my-org--follow-yt-link
+         :export #'my-org--export-yt-link))
       (add-hook
        'org-mode-hook
        (lambda () (display-line-numbers-mode -1))))
@@ -641,8 +641,8 @@ Libraries used elsewhere.
   #+begin_src elisp
     (global-set-key (kbd "C-c c") #'org-capture)
 
-    (spook--defkeymap
-     "spook-org" "C-c o"
+    (my--defkeymap
+     "my-org" "C-c o"
      '("a" . org-agenda-list)
      '("A" . org-agenda)
      '("c" . org-capture)
@@ -703,7 +703,7 @@ Libraries used elsewhere.
   customizing published projects.
 
   #+begin_src elisp
-    (defun spook--org-src-block-html-attrs-advice (oldfun src-block contents info)
+    (defun my--org-src-block-html-attrs-advice (oldfun src-block contents info)
       "Add class, id or data-* CSS attributes to html source block output.
 
     Allows class, id or data  attributes to be added to a source block using
@@ -730,7 +730,7 @@ Libraries used elsewhere.
              "</div>")
           old-ret)))
 
-    (advice-add 'org-html-src-block :around #'spook--org-src-block-html-attrs-advice)
+    (advice-add 'org-html-src-block :around #'my--org-src-block-html-attrs-advice)
   #+end_src
 
 - Support exporting code blocks with syntax-highlighting
@@ -748,7 +748,7 @@ Libraries used elsewhere.
       provided with =org-open-at-point= (i.e =C-c C-o=)
 
     #+begin_src elisp
-      (defun spook-org--follow-yt-link (path prefix)
+      (defun my-org--follow-yt-link (path prefix)
         (let* ((url (format "https:%s" path))
                (proc-name (format "*yt://%s*" url)))
           (if (and prefix (executable-find "mpv"))
@@ -756,7 +756,7 @@ Libraries used elsewhere.
             (make-process :name proc-name :buffer proc-name :command `("mpv" ,url))
             (message "Launched mpv in buffer: %s" proc-name))))
 
-      (defun spook-org--export-yt-link (path desc backend)
+      (defun my-org--export-yt-link (path desc backend)
         (when (eq backend 'html)
           (let* ((video-id (cadar (url-parse-query-string path)))
                  (url (if (string-empty-p video-id) path
@@ -784,23 +784,23 @@ Libraries used elsewhere.
   until I manually call this function, but it is a decent start.
 
   #+begin_src elisp
-    (defun spook--denote-files-with-tags (tags)
+    (defun my--denote-files-with-tags (tags)
       "Return denote files which have all TAGS."
       (seq-filter (lambda (file)
                     (null (seq-difference tags (denote-extract-keywords-from-path file))))
                   (denote-directory-files)))
 
-    (defun spook-update-agenda-denotes ()
+    (defun my-update-agenda-denotes ()
       "Update list of denotes that are added to org-agenda-files."
       (interactive)
       ;; remove all denotes from agenda
       (setf org-agenda-files (seq-remove #'denote-file-is-note-p org-agenda-files))
 
       ;; add denotes with todo tag to agenda
-      (cl-dolist (id (mapcar #'denote-extract-id-from-string (spook--denote-files-with-tags '("todo"))))
+      (cl-dolist (id (mapcar #'denote-extract-id-from-string (my--denote-files-with-tags '("todo"))))
         (add-to-list 'org-agenda-files (denote-get-path-by-id id))))
 
-    (eval-after-load 'denote #'spook-update-agenda-denotes)
+    (eval-after-load 'denote #'my-update-agenda-denotes)
   #+end_src
 
 - Reset checkboxes when a subtree is repeated
@@ -809,6 +809,17 @@ Libraries used elsewhere.
 
   #+begin_src elisp
     (add-hook 'org-todo-repeat-hook #'org-reset-checkbox-state-subtree)
+  #+end_src
+
+- Set tab-width for column mode
+
+  =org-columns= is complaining that tab-width in org-mode buffers should be 8 not 2.
+
+  #+begin_src elisp
+    (defun my--set-org-vars ()
+      (setf tab-width 8))
+
+    (add-hook 'org-agenda-mode-hook #'my--set-org-vars)
   #+end_src
 
 ** Modal editing with Meow
@@ -923,7 +934,7 @@ shot!
 
   #+begin_src elisp
     (meow-normal-define-key
-     '("z" . spook-fold)
+     '("z" . my-fold)
      '("/" . "C-s")
      '("?" . "C-r"))
   #+end_src
@@ -936,10 +947,10 @@ shot!
      '("p" . projectile-command-map)
      '("e" . flycheck-command-map)
      '("w" . ace-window)
-     '("b" . spook-buffers)
-     '("G" . spook-git)
-     '("o" . spook-org)
-     '("n" . spook-notes))
+     '("b" . my-buffers)
+     '("G" . my-git)
+     '("o" . my-org)
+     '("n" . my-notes))
   #+end_src
 
 - Keychords
@@ -1028,8 +1039,8 @@ shot!
       (global-set-key (kbd "C-r") #'isearch-backward-regexp)
       (global-set-key (kbd "C-S-r") #'isearch-backward-regexp)
       (global-set-key (kbd "C-x b") #'consult-buffer)
-      (define-key spook-buffers-keymap (kbd "b") #'consult-buffer)
-      (define-key spook-buffers-keymap (kbd "B") #'consult-buffer-other-window)
+      (define-key my-buffers-keymap (kbd "b") #'consult-buffer)
+      (define-key my-buffers-keymap (kbd "B") #'consult-buffer-other-window)
 
       ;; better yank which show kill-ring for selection
       (global-set-key (kbd "C-y") #'consult-yank-pop)
@@ -1065,7 +1076,7 @@ shot!
   minibuffer and a lot more
 
   #+begin_src elisp
-    (defun spook--embark-act-no-quit ()
+    (defun my--embark-act-no-quit ()
       "(embark-act), but don't quit the minibuffer"
       (interactive)
       (let ((embark-quit-after-action nil))
@@ -1077,7 +1088,7 @@ shot!
        ("C->" . embark-act-all)
        ("C-." . embark-dwim)
        ("C-h b" . embark-bindings)
-       ("C-<" . spook--embark-act-no-quit)))
+       ("C-<" . my--embark-act-no-quit)))
   #+end_src
 
 ** More powerful editing
@@ -1144,8 +1155,8 @@ shot!
 - Code folding
 
   #+begin_src elisp
-    (spook--defkeymap
-     "spook-fold" "C-c f"
+    (my--defkeymap
+     "my-fold" "C-c f"
      '("b" . hs-hide-block)
      '("O" . hs-show-block)
      '("l" . hs-hide-level)
@@ -1303,7 +1314,7 @@ When in NixOS, use system installed grammars.
       :preface
       ;; You can customize Combobulate's key prefix here.
       ;; Note that you may have to restart Emacs for this to take effect!
-      (setq combobulate-key-prefix "C-c o")
+      (setq combobulate-key-prefix "C-c j")
 
       ;; Optional, but recommended.
       ;;
@@ -1394,7 +1405,7 @@ says on the box without much fuss.
   - Are we using nvm?
     
     #+begin_src elisp
-      (defun spook--nvm-p ()
+      (defun my--nvm-p ()
         (when-let* ((node (string-trim (shell-command-to-string "fish -c 'readlink (which node)'")))
                     (nvm-bin-dir
                      (and (string-match-p "\/nvm\/" node)
@@ -1403,13 +1414,13 @@ says on the box without much fuss.
     #+end_src
 
 #+begin_src elisp
-  (setq css-indent-offset spook--indent-width)
+  (setq css-indent-offset my--indent-width)
 
   (use-package js-ts
     :mode "\\.js'"
     :ensure nil
     :config
-    (setq js-indent-level spook--indent-width)
+    (setq js-indent-level my--indent-width)
     :hook
     (((js-ts-mode
        typescript-ts-mode) . subword-mode)))
@@ -1417,9 +1428,9 @@ says on the box without much fuss.
   (use-package web-mode
     :mode (("\\.html?\\'" . web-mode))
     :config
-    (setq web-mode-markup-indent-offset spook--indent-width)
-    (setq web-mode-code-indent-offset spook--indent-width)
-    (setq web-mode-css-indent-offset spook--indent-width)
+    (setq web-mode-markup-indent-offset my--indent-width)
+    (setq web-mode-code-indent-offset my--indent-width)
+    (setq web-mode-css-indent-offset my--indent-width)
     (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
   (use-package emmet-mode
@@ -1437,17 +1448,17 @@ says on the box without much fuss.
     (add-hook 'web-mode-hook #'(lambda ()
                                  (setq-local emmet-expand-jsx-className? t))))
 
-  (spook--defkeymap
-   "spook-errors" "C-c e"
+  (my--defkeymap
+   "my-errors" "C-c e"
    '("n" . flycheck-next-error)
    '("p" . flycheck-previous-error)
    '("l" . flycheck-list-errors)
    '("e" . flycheck-explain-error-at-point))
 
-  (defun spook--setup-ts-js ()
+  (defun my--setup-ts-js ()
     "Setup Javascript and Typescript for current buffer."
     ;; Add node_modules/.bin of current project to exec-path.
-    (if-let (nvm-bin (spook--nvm-p))
+    (if-let (nvm-bin (my--nvm-p))
         (add-to-list 'exec-path nvm-bin)
       (let ((bin-dir
              (expand-file-name
@@ -1462,23 +1473,23 @@ says on the box without much fuss.
     (setf flymake-eslint-project-root
           (locate-dominating-file default-directory "package.json")))
 
-  (add-hook 'js-ts-mode-hook #'spook--setup-ts-js)
+  (add-hook 'js-ts-mode-hook #'my--setup-ts-js)
 
   (use-package typescript-ts-mode
     :mode "\\.ts\\'"
     :ensure nil
     :hook ((typescript-ts-mode . subword-mode))
     :config
-    (setq-default typescript-indent-level spook--indent-width)
-    (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
+    (setq-default typescript-indent-level my--indent-width)
+    (add-hook 'typescript-mode-hook #'my--setup-ts-js))
 
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
     :ensure nil
     :hook ((tsx-ts-mode . subword-mode))
     :config
-    (setq-default typescript-indent-level spook--indent-width)
-    (add-hook 'typescript-mode-hook #'spook--setup-ts-js))
+    (setq-default typescript-indent-level my--indent-width)
+    (add-hook 'typescript-mode-hook #'my--setup-ts-js))
 
   (use-package css-ts-mode
     :ensure nil
@@ -1587,8 +1598,8 @@ Nice to have features but not necessary.
 - Ace Jump for quickly jumping around in a buffer
 
   #+begin_src elisp
-    (spook--defkeymap
-     "spook-jump" "C-c q"
+    (my--defkeymap
+     "my-jump" "C-c q"
      '("q" . ace-jump-mode)
      '("w" . ace-jump-word-mode))
 
@@ -1805,7 +1816,7 @@ blocked.
   - Enhance denote a bit, don't know why these aren't a part of denote itself.
 
     #+begin_src elisp
-      (defun spook--denote-split-org-subtree (&optional prefix)
+      (defun my--denote-split-org-subtree (&optional prefix)
         "Create new Denote note as an Org file using current Org subtree."
         (interactive "P")
         (let ((text (org-get-entry))
@@ -1826,13 +1837,13 @@ blocked.
     #+begin_src elisp
       (defvar crm-directory (expand-file-name "crm" denote-directory))
 
-      (defun spook-crm--open-or-create ()
+      (defun my-crm--open-or-create ()
         "Find or create CRM entry."
         (interactive)
         (let ((denote-directory crm-directory))
           (call-interactively #'denote-open-or-create)))
 
-      (defun spook-crm--link-or-create ()
+      (defun my-crm--link-or-create ()
         "Find or create CRM entry."
         (interactive)
         (let ((denote-directory crm-directory))
@@ -1842,42 +1853,42 @@ blocked.
   - Keyboard shortcuts for fluent note-taking/reading
 
     #+begin_src elisp
-      (spook--defkeymap
-       "spook-notes" "C-c n"
+      (my--defkeymap
+       "my-notes" "C-c n"
        '("n" . denote-open-or-create)
        '("N" . denote-link-or-create)
        '("b" . denote-backlinks)
-       '("d" . spook--diary-today)
-       '("r" . spook--denote-ff-tab)
-       '("p" . spook-crm--open-or-create)
-       '("P" . spook-crm--link-or-create)
-       '("m" . spook--micro-post))
+       '("d" . my--diary-today)
+       '("r" . my--denote-ff-tab)
+       '("p" . my-crm--open-or-create)
+       '("P" . my-crm--link-or-create)
+       '("m" . my--micro-post))
     #+end_src
 
   - Diary
 
     #+begin_src elisp
-      (defun spook--find-habit (title)
+      (defun my--find-habit (title)
         "Find the habit with TITLE in current buffer."
-        (cl-block 'spook--find-habit
+        (cl-block 'my--find-habit
           (org-map-entries
            (lambda ()
              (let ((el (org-element-at-point-no-context)))
                (when (and (seq-contains-p (org-get-tags el) "habit" #'equal)
                           (equal (downcase (org-element-property :raw-value el))
                                  (downcase title)))
-                 (cl-return-from 'spook--find-habit el)))))))
+                 (cl-return-from 'my--find-habit el)))))))
 
-      (defun spook--mark-habit-as-done (habit file)
+      (defun my--mark-habit-as-done (habit file)
         "Mark HABIT as done."
         (with-current-buffer (find-file-noselect file)
           (org-mode)
           (let ((el (cl-case habit
-                      (diary (spook--find-habit "write diary entry")))))
+                      (diary (my--find-habit "write diary entry")))))
             (goto-char (org-element-property :begin el))
             (org-todo 'done))))
 
-      (defun spook--diary-today ()
+      (defun my--diary-today ()
         "Go to today's diary entry."
         (interactive)
         (let* ((diary-habit-file (denote-get-path-by-id "20241231T055317"))
@@ -1889,14 +1900,14 @@ blocked.
               (progn
                 (find-file (expand-file-name file denote-directory))
                 (goto-char (point-max)))
-            (spook--mark-habit-as-done 'diary diary-habit-file)
+            (my--mark-habit-as-done 'diary diary-habit-file)
             (denote title '("diary")))))
     #+end_src
 
   - Work notes
 
     #+begin_src elisp
-      (defun spook--workday-notes (prefix)
+      (defun my--workday-notes (prefix)
         "Go to work notes for today plus PREFIX days."
         (interactive "P")
         (let* ((days (if prefix (prefix-numeric-value prefix) 0))
@@ -1922,9 +1933,9 @@ blocked.
                 (goto-char (point-max)))
             (denote title '("work") "org" nil title))))
 
-      (spook--defkeymap
+      (my--defkeymap
        "workday" "C-c n w"
-       '("w" . spook--workday-notes)
+       '("w" . my--workday-notes)
        '("i" . on-issue-note-open-or-create)
        '("I" . on-issue-note-link-or-create))
     #+end_src
@@ -1986,14 +1997,14 @@ blocked.
               `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
         (spookfox-init))
 
-      (defun spook--switch-tab-and-focus ()
+      (defun my--switch-tab-and-focus ()
         "Switch to browser tab and bring browser in focus."
         (interactive)
         (spookfox-switch-tab)
         (when (eq 'darwin system-type)
           (ns-do-applescript "tell application \"Firefox\"\n\tactivate\n\tend tell")))
 
-      (define-key spook-buffers-keymap (kbd "t") #'spook--switch-tab-and-focus))
+      (define-key my-buffers-keymap (kbd "t") #'my--switch-tab-and-focus))
   #+end_src
 
 - saunf
@@ -2065,7 +2076,7 @@ blocked.
 
     #+begin_src elisp
       (defvar shell-output-history nil)
-      (defun spook--switch-shell-output ()
+      (defun my--switch-shell-output ()
         "Select shelldon output buffers."
         (interactive)
         (consult-buffer
@@ -2084,14 +2095,14 @@ blocked.
                :include "shelldon"
                :as #'buffer-name))))))
 
-      (define-key spook-buffers-keymap (kbd "o") #'spook--switch-shell-output)
+      (define-key my-buffers-keymap (kbd "o") #'my--switch-shell-output)
     #+end_src
 
   - Quick helper to delete all shelldon buffers, because sometimes there are a lot of them. It is
     hard to delete them because they are hidden and don't show up in ibuffer
 
     #+begin_src elisp
-      (defun spook--delete-all-shelldon-buffers ()
+      (defun my--delete-all-shelldon-buffers ()
         (interactive)
         (cl-dolist (buf (cl-remove-if-not
                          (lambda (buf) (s-contains-p "*shelldon" (buffer-name buf)))
@@ -2249,8 +2260,8 @@ blocked.
 - Key bindings
 
   #+begin_src elisp
-    (spook--defkeymap
-     "spook-system" "C-c s"
+    (my--defkeymap
+     "my-system" "C-c s"
      '("b" . bluetooth-list-devices)
      '("g" . guix)
      '("p" . pass))
