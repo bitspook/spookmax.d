@@ -768,43 +768,6 @@ Libraries used elsewhere.
              url desc))))
     #+end_src
 
-- Agenda from denotes
-
-  I am experimenting with adding certain denote files to org-agenda. Normally I create all my todos
-  in TODOs.org file and a work.org file. Problem with this approach is that everything is in there,
-  and when I am done with the tasks, I archive them to a separate archive file. It is fine, but
-  historical data is lost.
-
-  So now I am experimenting with create denote files for very clearly defined but sufficiently
-  involved tasks (e.g getting a new passport for my baby), and create all relevant TODOs in there.
-  In these files I archive done tasks with ARCHIVE tag instead of moving them to a separate file.
-  This keeps the historical data contained and available and does not clutter my normal TODOs file.
-
-  I'll never remember to remove the denotes files from this list when a task is done, so I am
-  relying on a bit of automation. All (and only) denotes which have =todo= tag are added to
-  =org-agenda-files=. This isn't perfect; =org-agenda-files= won't update until next restart or
-  until I manually call this function, but it is a decent start.
-
-  #+begin_src elisp
-    (defun my--denote-files-with-tags (tags)
-      "Return denote files which have all TAGS."
-      (seq-filter (lambda (file)
-                    (null (seq-difference tags (denote-extract-keywords-from-path file))))
-                  (denote-directory-files)))
-
-    (defun my-update-agenda-denotes ()
-      "Update list of denotes that are added to org-agenda-files."
-      (interactive)
-      ;; remove all denotes from agenda
-      (setf org-agenda-files (seq-remove #'denote-file-is-note-p org-agenda-files))
-
-      ;; add denotes with todo tag to agenda
-      (cl-dolist (id (mapcar #'denote-extract-id-from-string (my--denote-files-with-tags '("todo"))))
-        (add-to-list 'org-agenda-files (denote-get-path-by-id id))))
-
-    (eval-after-load 'denote #'my-update-agenda-denotes)
-  #+end_src
-
 - Reset checkboxes when a subtree is repeated
 
   Taken from [[https://emacs.stackexchange.com/a/70721][SO]]
@@ -822,6 +785,18 @@ Libraries used elsewhere.
       (setf tab-width 8))
 
     (add-hook 'org-agenda-mode-hook #'my--set-org-vars)
+  #+end_src
+
+- Lib
+
+  Utility functions for working with org/denote that are used elsewhere in configuration.
+
+  #+begin_src elisp
+    (defun my--denote-files-with-tags (tags)
+      "Return denote files which have all TAGS."
+      (seq-filter (lambda (file)
+                    (null (seq-difference tags (denote-extract-keywords-from-path file))))
+                  (denote-directory-files)))
   #+end_src
 
 ** Modal editing with Meow
