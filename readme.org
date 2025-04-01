@@ -328,8 +328,8 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 - Indentation and whitespace
 
   #+begin_src elisp
-    (setq spook--indent-width 2)
-    (setq-default tab-width spook--indent-width)
+    (setq my--indent-width 2)
+    (setq-default tab-width my--indent-width)
     (setq-default indent-tabs-mode nil)
   #+end_src
 
@@ -1445,7 +1445,7 @@ says on the box without much fuss.
           (add-to-list 'exec-path bin-dir))))
 
     ;; For 95% of cases this is what I want
-    (prettier-format-on-save-mode +1)
+    (prettier-format-on-save-mode)
     (eglot-ensure)
     (setf flymake-eslint-project-root
           (locate-dominating-file default-directory "package.json")))
@@ -2123,7 +2123,9 @@ blocked.
 - Terraform
 
   #+begin_src elisp
-    (use-package terraform-mode)
+    (use-package terraform-mode
+      :config
+      (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode))
   #+end_src
 
 - Eww
