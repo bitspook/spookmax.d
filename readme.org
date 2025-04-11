@@ -599,8 +599,7 @@ Libraries used elsewhere.
      org-agenda-diary-file (concat org-directory "/diary.org.gpg")
      org-inbox-file (concat org-directory "/TODOs.org")
      org-agenda-files (list org-inbox-file
-                            (expand-file-name "work/on.org" org-directory)
-                            (expand-file-name "reading-list.org" org-directory))
+                            (expand-file-name "work/on.org" org-directory))
      ;;Todo keywords I need
      org-todo-keywords '((sequence "TODO(t!)" "DOING(n!)" "|" "DONE(d!)" "CANCELED(c@)"))
      org-todo-keyword-faces '(("DOING" . "DeepSkyBlue")
