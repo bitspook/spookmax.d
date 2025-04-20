@@ -2204,17 +2204,6 @@ blocked.
                            (:exclude ".dir-locals.el" "*-tests.el"))))
   #+end_src
 
-- My workflows
-
-  I am experimenting with putting my configuration in blog posts (called "workflows"). These posts
-  are the source of truth for the configuration, which is tangled to =~/.emacs.d/workflow-*.el=
-  files. Let's load all of 'em.
-
-  #+begin_src elisp
-    (dolist (file (directory-files user-emacs-directory t "workflow-.*\\.el"))
-      (load-file file))
-  #+end_src
-
 ** System management
 
 - Bluetooth
@@ -2252,7 +2241,23 @@ blocked.
 
 #+begin_src elisp
   (elpaca-wait)
+
   (let ((private-config (expand-file-name "./private.el" user-emacs-directory)))
     (when (file-exists-p private-config)
       (load-file private-config)))
 #+end_src
+
+** My workflows
+
+I am experimenting with putting my configuration in blog posts (called "workflows"). These posts
+are the source of truth for the configuration, which is tangled to =~/.emacs.d/workflow-*.el=
+files. Let's load all of 'em.
+
+  #+begin_src elisp
+    (elpaca-wait)
+
+    (let ((root-workflow (expand-file-name "init-workflows.el" user-emacs-directory)))
+      (when (file-exists-p root-workflow)
+        (load-file root-workflow)))
+  #+end_src
+
