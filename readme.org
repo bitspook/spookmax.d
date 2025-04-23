@@ -1317,7 +1317,8 @@ Lispy for some nasty lisp structural editing.
 #+begin_src elisp
   (use-package lispy
     :hook ((emacs-lisp-mode . lispy-mode)
-           (lisp-mode . lispy-mode))
+           (lisp-mode . lispy-mode)
+           (scheme-mode . lispy-mode))
     :config
     (setf lispy-colon-p nil))
 #+end_src
@@ -1549,19 +1550,7 @@ says on the box without much fuss.
 
 #+begin_src elisp
   (when (file-exists-p "/gnu/store/")
-    (use-package guix)
-
-    (use-package geiser)
-
-    (use-package geiser-guile
-      :after (yasnippet guix)
-      :config
-      (when (file-exists-p "~/code/guix")
-        (add-to-list 'geiser-guile-load-path "~/code/guix")
-        (add-to-list 'yas-snippet-dirs "~/code/guix/etc/snippets/yas"))
-
-      (add-hook 'scheme-mode-hook #'guix-devel-mode)
-      (add-hook 'scheme-mode-hook #'lispy-mode)))
+    (use-package guix))
 #+end_src
 
 ** Niceties
@@ -2008,6 +1997,13 @@ blocked.
       (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
       (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
     ;; (use-package org-noter) 
+- eshell
+
+  I sometimes open eshell buffers. Following kbd actually clears the eshell buffer, which is
+  something I like to do in my terminals.
+
+  #+begin_src elisp
+    (define-key eshell-mode-map (kbd "C-c M-o") (lambda () (interactive) (eshell/clear-scrollback)))
   #+end_src
 
 - Shelldon
@@ -2107,7 +2103,10 @@ blocked.
                                       "#clschool"
                                       "#whereiseveryone"
                                       "#guix"
-                                      "#lisp")))
+                                      "#lisp"
+                                      ;; just explorin'
+                                      "#berlin"
+                                      "##deutsch")))
       (setf erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")))
 
     (use-package erc-track
@@ -2232,6 +2231,17 @@ blocked.
      '("b" . bluetooth-list-devices)
      '("g" . guix)
      '("p" . pass))
+  #+end_src
+
+- Libretranslate for translating Deutsch from Emacs
+
+  #+begin_src elisp
+    (use-package libretrans
+      :ensure (:host "codeberg.org" :repo "martianh/libretrans.el")
+      :config
+      (setq libretrans-instance "http://localhost:5005"
+        libretrans-source "de"
+        libretrans-target "en"))
   #+end_src
 
 ** Private work related config 

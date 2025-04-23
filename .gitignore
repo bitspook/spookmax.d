@@ -39,3 +39,6 @@ workflow-*.el
 /persist/
 /.cask/
 /%backup%~
+/init-workflows.el
+/*-workflow.el
+/*.sqlite
