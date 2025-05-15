@@ -1954,13 +1954,11 @@ blocked.
     (when (file-exists-p "~/Documents/work/spookfox")
       (use-package spookfox
         :ensure (spookfox :type git
-                          :repo "~/Documents/work/spookfox"
+                          :repo "~/code/spookfox"
+                          :branch main
                           :files ("lisp/*.el" "lisp/apps/*.el"))
         :config
-        (setq spookfox-enabled-apps (list spookfox-jscl spookfox-tabs spookfox-js-injection))
-        (setq spookfox-saved-tabs-target
-              `(file+headline ,(expand-file-name "spookfox.org" org-directory) "Tabs"))
-        (spookfox-init))
+        (spookfox-start-server))
 
       (defun my--switch-tab-and-focus ()
         "Switch to browser tab and bring browser in focus."
