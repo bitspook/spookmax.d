@@ -2202,33 +2202,29 @@ blocked.
   #+end_src
 
 ** System management
+:PROPERTIES:
+:ID:       e951d611-5827-41d7-b4b4-5f2b1bfcfbef
+:END:
 
-- Bluetooth
-
-#+begin_src elisp
-  (when (eq system-type 'gnu/linux)
-    (use-package bluetooth))
-#+end_src
-
-- Passwords
-
-  #+begin_src elisp
-    (use-package pass
-      :ensure (pass :type git
-                    :host github
-                    :repo "NicolasPetton/pass"
-                    :branch "master"
-                    :files ("pass.el")))
-  #+end_src
+Packages installed with Guix because Elpaca keep failing to install them.
 
 - Key bindings
 
   #+begin_src elisp
-    (my--defkeymap
-     "my-system" "C-c s"
-     '("b" . bluetooth-list-devices)
-     '("g" . guix)
-     '("p" . pass))
+    (defvar my--pass-keymap
+      (define-keymap
+        (kbd "p") #'password-store-copy
+        (kbd "f") #'password-store-copy-field
+        (kbd "e") #'password-store-edit
+        (kbd "i") #'password-store-insert
+        (kbd "o") #'password-store-otp-copy-token))
+
+    (define-keymap :prefix 'my-system-prefix
+      (kbd "b") #'bluetooth-list-devices
+      (kbd "g") #'guix
+      (kbd "p") my--pass-keymap)
+
+    (global-set-key (kbd "C-c s") my-system-prefix)
   #+end_src
 
 - Libretranslate for translating Deutsch from Emacs
