@@ -924,7 +924,7 @@ shot!
   #+begin_src elisp
     (meow-leader-define-key
      '("/" . consult-git-grep)
-     '("p" . projectile-command-map)
+     '("p" . "C-x p")
      '("e" . flycheck-command-map)
      '("w" . ace-window)
      '("b" . my-buffers)
@@ -1009,8 +1009,6 @@ shot!
 
   #+begin_src elisp
     (use-package consult
-      :init
-      (setq consult-project-root-function #'projectile-project-root)
       :config
       (consult-customize consult-theme :preview-key '(:debounce 0.5 any))
 
@@ -1170,16 +1168,6 @@ shot!
       (global-flycheck-eglot-mode 1))
   #+end_src
 
-- Projectile for managing projects.
-
-  #+begin_src elisp
-    (use-package projectile
-      :init (projectile-mode +1)
-      :bind (:map projectile-mode-map
-                  ("s-p" . projectile-command-map)
-                  ("C-c p" . projectile-command-map)))
-  #+end_src
-
 - Company mode
 
   I think I have a general idea of what it does, but still fuzzy on
@@ -1250,6 +1238,9 @@ shot!
   #+RESULTS:
   | garbage-collect |
 *** Treesitter
+:PROPERTIES:
+:ID:       780140a8-6b04-414b-8e49-bc8c9fbe9b17
+:END:
 
 #+begin_src elisp
   (setq treesit-language-source-alist
@@ -1660,10 +1651,6 @@ Nice to have features but not necessary.
             ("C-x t B"   . treemacs-bookmark)
             ("C-x t C-t" . treemacs-find-file)
             ("C-x t M-t" . treemacs-find-tag)))
-
-    (use-package treemacs-projectile
-      :after (treemacs projectile)
-      :ensure t)
 
     (use-package treemacs-magit
       :after (treemacs magit)
