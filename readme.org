@@ -1,4 +1,4 @@
-#+PROPERTY: header-args :tangle ./init.el
+#+PROPERTY: header-args:elisp :tangle ./init.el :results none
 
 #+begin_quote
 1. Clone this repo to ~/.emacs.d
@@ -24,9 +24,8 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
     ;; -*- lexical-binding: t -*-
     (setq package-enable-at-startup nil
           package-install-upgrade-built-in t)
-    ;;
-        ;;; Bootstrap
 
+    ;;; Bootstrap
     ;; Contrary to what many Emacs users have in their configs, you don't need
     ;; more than this to make UTF-8 the default coding system:
     (set-language-environment "UTF-8")
@@ -43,40 +42,42 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 #+begin_src elisp :tangle ./init.el
   ;; -*- lexical-binding: t -*-
 
-  (defvar elpaca-installer-version 0.7)
+  (defvar elpaca-installer-version 0.11)
   (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
   (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
   (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
   (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-  			:ref nil
-  			:files (:defaults (:exclude "extensions"))
-  			:build (:not elpaca--activate-package)))
+                                :ref nil :depth 1 :inherit ignore
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
   (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-   (build (expand-file-name "elpaca/" elpaca-builds-directory))
-   (order (cdr elpaca-order))
-   (default-directory repo))
+         (build (expand-file-name "elpaca/" elpaca-builds-directory))
+         (order (cdr elpaca-order))
+         (default-directory repo))
     (add-to-list 'load-path (if (file-exists-p build) build repo))
     (unless (file-exists-p repo)
       (make-directory repo t)
-      (when (< emacs-major-version 28) (require 'subr-x))
+      (when (<= emacs-major-version 28) (require 'subr-x))
       (condition-case-unless-debug err
-    (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-  	   ((zerop (call-process "git" nil buffer t "clone"
-  				 (plist-get order :repo) repo)))
-  	   ((zerop (call-process "git" nil buffer t "checkout"
-  				 (or (plist-get order :ref) "--"))))
-  	   (emacs (concat invocation-directory invocation-name))
-  	   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-  				 "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-  	   ((require 'elpaca))
-  	   ((elpaca-generate-autoloads "elpaca" repo)))
-        (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-      (error "%s" (with-current-buffer buffer (buffer-string))))
-  ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+          (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                    ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                    ,@(when-let* ((depth (plist-get order :depth)))
+                                                        (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                    ,(plist-get order :repo) ,repo))))
+                    ((zerop (call-process "git" nil buffer t "checkout"
+                                          (or (plist-get order :ref) "--"))))
+                    (emacs (concat invocation-directory invocation-name))
+                    ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                          "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                    ((require 'elpaca))
+                    ((elpaca-generate-autoloads "elpaca" repo)))
+              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+            (error "%s" (with-current-buffer buffer (buffer-string))))
+        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
     (unless (require 'elpaca-autoloads nil t)
       (require 'elpaca)
       (elpaca-generate-autoloads "elpaca" repo)
-      (load "./elpaca-autoloads")))
+      (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
   (add-hook 'after-init-hook #'elpaca-process-queues)
   (elpaca `(,@elpaca-order))
   #+end_src
@@ -560,6 +561,9 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   #+end_src
 
 ** Libraries
+:PROPERTIES:
+:ID:       23e29ffc-70a8-4882-8a9b-86d66908e157
+:END:
 
 Libraries used elsewhere.
 
@@ -1081,7 +1085,9 @@ shot!
 - =undo-tree-mode= for more powerful undo
 
   #+begin_src elisp
+    ;; Fuck elpaca, I'll use guix to install this as well
     (use-package undo-tree
+      :ensure nil
       :config
       (global-undo-tree-mode t) 
       (global-set-key (kbd "C-/") #'undo)
@@ -1546,13 +1552,6 @@ says on the box without much fuss.
     :mode "\\.graphql\\'")
 #+end_src
 
-*** Guix
-
-#+begin_src elisp
-  (when (file-exists-p "/gnu/store/")
-    (use-package guix))
-#+end_src
-
 ** Niceties
 :PROPERTIES:
 :ID:       8e8563f8-2161-4af3-b072-fc3b81cc57a6
@@ -1824,7 +1823,6 @@ blocked.
        '("N" . denote-link-or-create)
        '("b" . denote-backlinks)
        '("d" . my--diary-today)
-       '("r" . my--denote-ff-tab)
        '("p" . my-crm--open-or-create)
        '("P" . my-crm--link-or-create)
        '("m" . my--micro-post))
@@ -1988,6 +1986,7 @@ blocked.
   #+begin_src elisp
     (use-package nov
       :mode ("\\.epub\\'" . nov-mode)
+      :ensure nil
       :init
       (add-hook 'nov-mode-hook #'shrface-mode)
       :config
@@ -2252,6 +2251,9 @@ Packages installed with Guix because Elpaca keep failing to install them.
 #+end_src
 
 ** My workflows
+:PROPERTIES:
+:ID:       5acc224e-0d3c-4962-8b47-10e319286b9b
+:END:
 
 I am experimenting with putting my configuration in blog posts (called "workflows"). These posts
 are the source of truth for the configuration, which is tangled to =~/.emacs.d/workflow-*.el=
