@@ -357,7 +357,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 - Fill column for auto-formatting/filling paragraphs.
 
   #+begin_src elisp
-    (setq-default fill-column 100)
+    (setq-default fill-column 80)
   #+end_src
 
 - Introspection
@@ -493,6 +493,13 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
     (use-package project)
   #+end_src
 
+  Need to install llama manually because elpaca keeps trying to install it from sourcehut, where its
+  repo don't exist.
+  #+begin_src elisp
+    (use-package llama
+      :ensure (llama :host github :repo "tarsius/llama" :branch "main"))
+  #+end_src
+
   #+begin_src elisp
     (use-package transient
       :ensure (transient :host github :repo "magit/transient" :branch "main"))
@@ -568,7 +575,8 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 Libraries used elsewhere.
 
 #+begin_src elisp
-  (use-package plz)
+  (use-package plz
+    :ensure (plz :fetcher github :repo "alphapapa/plz.el"))
 #+end_src
 
 ** Org mode
@@ -678,7 +686,7 @@ Libraries used elsewhere.
               (:name "Projects" :tag "project" :order 3)
               (:name "Self ❤️" :tag "health" :category "Self" :order 3)
               (:name "Inbox" :tag "inbox" :order 4)
-              (:name "Study 📚" :tag "study" :order 4)
+              (:name "Study 📚" :tag ("study" "reading") :order 4)
               (:name "Finance 💶" :tag "finance" :order 4)
               (:name "Habits" :tag "habit" :order 6))))
   #+end_src
@@ -1328,16 +1336,6 @@ Pretty cool auto-indentation.
            (lisp-mode . aggressive-indent-mode)))
 #+end_src
 
-Elsa provides very nice static-analysis and more for elisp
-programming. First time I am trying this, hopefully it does what it
-says on the box without much fuss.
-
-#+begin_src elisp
-  (use-package flycheck-elsa
-    :after elsa
-    :hook (emacs-lisp-mode . flycheck-elsa-setup))
-#+end_src
-
 - Common Lisp
 
   Sly for interactive development.
@@ -1460,10 +1458,10 @@ says on the box without much fuss.
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
     :ensure nil
-    :hook ((tsx-ts-mode . subword-mode))
+    :hook ((tsx-ts-mode . subword-mode)
+           (tsx-ts-mode . my--setup-ts-js))
     :config
-    (setq-default typescript-indent-level my--indent-width)
-    (add-hook 'typescript-mode-hook #'my--setup-ts-js))
+    (setq typescript-indent-level my--indent-width))
 
   (use-package css-ts-mode
     :ensure nil
