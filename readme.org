@@ -1934,13 +1934,20 @@ blocked.
 - spookfox
 
   #+begin_src elisp
-    (when (file-exists-p "~/Documents/work/spookfox")
-      (use-package spookfox
-        :ensure (spookfox :type git
-                          :repo "~/code/spookfox"
-                          :branch main
-                          :files ("lisp/*.el" "lisp/apps/*.el"))
-        :config
+    (setq spookfox-dir (expand-file-name "~/code/spookfox"))
+    (when (file-exists-p spookfox-dir)
+      (add-to-list 'load-path (expand-file-name "lisp" spookfox-dir))
+      (add-to-list 'load-path (expand-file-name "lisp/apps" spookfox-dir))
+
+      ;; Manually load spookfox dependencies
+      (use-package websocket)
+
+      (require 'spookfox)
+      (require 'spookfox-tabs)
+      (require 'spookfox-windows)
+      (require 'spookfox-js-injection)
+
+      (eval-after-load 'spookfox
         (spookfox-start-server))
 
       (defun my--switch-tab-and-focus ()
