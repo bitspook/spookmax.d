@@ -4,8 +4,7 @@
 1. Clone this repo to ~/.emacs.d
 2. Open =readme.org= in emacs
 3. Press =C-c C-v t= to tangle all the blocks
-4. Restart Emacs. Elpaca will now clone all the packages, and then
-   you'll be ready for a spooky Emacs.
+4. Restart Emacs. 
 #+end_quote
 
 This setup make certain assumptions regarding its environment:
@@ -16,15 +15,11 @@ This setup make certain assumptions regarding its environment:
 :PROPERTIES:
 :ID:       D06520AB-2147-4FA7-83D4-6F3349B4743C
 :END:
-My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
 - Bootstrap
 
   #+begin_src elisp :tangle ./early-init.el
     ;; -*- lexical-binding: t -*-
-    (setq package-enable-at-startup nil
-          package-install-upgrade-built-in t)
-
     ;;; Bootstrap
     ;; Contrary to what many Emacs users have in their configs, you don't need
     ;; more than this to make UTF-8 the default coding system:
@@ -32,67 +27,21 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
     ;; set-language-enviornment sets default-input-method, which is unwanted
     (setq default-input-method nil)
+
+    (setq package-enable-at-startup nil)
   #+end_src
 
-** Initialize Elpaca itself
-:PROPERTIES:
-:ID:       635cd7c4-e3cb-4a0e-a722-6fa8f2035ea0
-:END:
 
 #+begin_src elisp :tangle ./init.el
   ;; -*- lexical-binding: t -*-
+#+end_src
 
-  (defvar elpaca-installer-version 0.11)
-  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                :ref nil :depth 1 :inherit ignore
-                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                :build (:not elpaca--activate-package)))
-  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-         (build (expand-file-name "elpaca/" elpaca-builds-directory))
-         (order (cdr elpaca-order))
-         (default-directory repo))
-    (add-to-list 'load-path (if (file-exists-p build) build repo))
-    (unless (file-exists-p repo)
-      (make-directory repo t)
-      (when (<= emacs-major-version 28) (require 'subr-x))
-      (condition-case-unless-debug err
-          (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                    ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                    ,@(when-let* ((depth (plist-get order :depth)))
-                                                        (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                    ,(plist-get order :repo) ,repo))))
-                    ((zerop (call-process "git" nil buffer t "checkout"
-                                          (or (plist-get order :ref) "--"))))
-                    (emacs (concat invocation-directory invocation-name))
-                    ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                          "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                    ((require 'elpaca))
-                    ((elpaca-generate-autoloads "elpaca" repo)))
-              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-            (error "%s" (with-current-buffer buffer (buffer-string))))
-        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-    (unless (require 'elpaca-autoloads nil t)
-      (require 'elpaca)
-      (elpaca-generate-autoloads "elpaca" repo)
-      (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
-  (add-hook 'after-init-hook #'elpaca-process-queues)
-  (elpaca `(,@elpaca-order))
-  #+end_src
 
-  - Install =use-package=
-  #+begin_src elisp
-    ;; Install use-package support
-    (elpaca elpaca-use-package
-      ;; Enable :elpaca use-package keyword.
-      (elpaca-use-package-mode)
-      ;; Assume :elpaca t unless otherwise specified.
-      (setq elpaca-use-package-by-default t))
+#+begin_src emacs-lisp
+  (setf debug-on-error t)
+  (setf debug-on-signal t)
+#+end_src
 
-    (elpaca-wait)
-  #+end_src
 
 ** Helper utilities
 :PROPERTIES:
@@ -350,6 +299,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
   #+begin_src elisp
     (use-package whitespace-cleanup-mode
+      :ensure nil
       :config
       (global-whitespace-cleanup-mode +1))
   #+end_src
@@ -369,6 +319,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   
   #+begin_src elisp
     (use-package which-key
+      :ensure nil
       :config
       (which-key-mode t))
   #+end_src
@@ -382,6 +333,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
     (global-hl-line-mode +1)
 
     (use-package highlight-symbol
+      :ensure nil
       :hook (prog-mode . highlight-symbol-mode)
       :config
       (setq highlight-symbol-idle-delay 0.3))
@@ -428,6 +380,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
         (delete-window win))
 
       (use-package ace-window
+      :ensure nil
         :config
         (setq aw-dispatch-always t)
         (global-set-key (kbd "C-c w") 'ace-window)
@@ -449,19 +402,6 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
               aw-keys '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
     #+end_src
 
-- Workspace management with perspective
-
-  I was using eyebrowse earlier, but I don't like its reliance on desktop-mode
-  to save state. Let's give perspective a shot
-
-  #+begin_src elisp
-    (use-package perspective
-      :init
-      (setq persp-mode-prefix-key (kbd "C-c C-w"))
-      :config
-      (persp-mode +1))
-  #+end_src
-  
 - Buffer management
 
   #+begin_src elisp
@@ -490,31 +430,15 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   recent project.el project.
 
   #+begin_src elisp
-    (use-package project)
-  #+end_src
-
-  Need to install llama manually because elpaca keeps trying to install it from sourcehut, where its
-  repo don't exist.
-  #+begin_src elisp
-    (use-package llama
-      :ensure (llama :host github :repo "tarsius/llama" :branch "main"))
-  #+end_src
-
-  #+begin_src elisp
-    (use-package transient
-      :ensure (transient :host github :repo "magit/transient" :branch "main"))
-
-    (use-package magit 
-      :ensure (magit :host github :repo "magit/magit" :branch "main")
-      :config
-      (setq magit-display-buffer-function 'magit-display-buffer-fullframe-status-v1
-            magit-bury-buffer-function #'magit-restore-window-configuration))
+    (use-package project
+      :ensure nil)
   #+end_src
 
   - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
 
     #+begin_src emacs-lisp
       (use-package git-link
+        :ensure nil
         :config
         (setf git-link-use-commit t))
     #+end_src
@@ -531,8 +455,9 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
   - Magit Forge
 
     #+begin_src elisp
-      ;; (use-package forge
-      ;;   :after magit)
+      (use-package forge
+        :ensure nil
+        :after magit)
     #+end_src    
 
 - Ability to select both parts from a diff (from [[https://emacs.stackexchange.com/questions/19339/how-to-use-both-variants-in-ediff][SO]])
@@ -563,6 +488,7 @@ My [[https://github.com/progfolio/elpaca][Elpaca]] based emacs configuration.
 
   #+begin_src elisp
     (use-package exec-path-from-shell
+      :ensure nil
       :config
       (exec-path-from-shell-initialize))
   #+end_src
@@ -576,7 +502,7 @@ Libraries used elsewhere.
 
 #+begin_src elisp
   (use-package plz
-    :ensure (plz :fetcher github :repo "alphapapa/plz.el"))
+    :ensure nil)
 #+end_src
 
 ** Org mode
@@ -584,11 +510,9 @@ Libraries used elsewhere.
 :ID:       8b2528d8-3fd2-4076-8b1e-791df8ed9a67
 :END:
 
-- Install latest org-mode. Elpaca will install the latest org-mode, instead
-  of older version pre-packaged with emacs
-
   #+begin_src elisp
     (use-package org
+      :ensure nil
       :config
       (eval-after-load 'org-mode
         (org-link-set-parameters
@@ -675,6 +599,7 @@ Libraries used elsewhere.
 
   #+begin_src elisp
     (use-package org-super-agenda
+      :ensure nil
       :config
       (org-super-agenda-mode t)
       (setq org-super-agenda-groups
@@ -694,8 +619,6 @@ Libraries used elsewhere.
 - org-babel
 
   #+begin_src elisp
-    (use-package ob-http)
-
     (with-eval-after-load 'org
       (org-babel-do-load-languages
        'org-babel-load-languages
@@ -705,8 +628,7 @@ Libraries used elsewhere.
          (sql . t)
          (sqlite . t)
          (lisp . t)
-         (js . t)
-         (http . t))))
+         (js . t))))
   #+end_src
 
 - Allow adding HTML class/id to exported src blocks
@@ -749,7 +671,8 @@ Libraries used elsewhere.
 - Support exporting code blocks with syntax-highlighting
 
   #+begin_src elisp
-    (use-package htmlize)
+    (use-package htmlize
+      :ensure nil)
   #+end_src
 
 - Custom links
@@ -911,11 +834,11 @@ shot!
   
 #+begin_src elisp
   (use-package meow
+    :ensure nil
     :config
     (setf meow-use-clipboard t)
     (meow-global-mode)
     (meow-setup))
-  (elpaca-wait)
 #+end_src
 
 - Normal mode-keybindings. Mostly mimicking vim
@@ -945,6 +868,7 @@ shot!
 
   #+begin_src elisp
     (use-package key-chord
+      :ensure nil
       :config
       (setf key-chord-two-keys-delay 0.1)
       (key-chord-mode 1)
@@ -960,6 +884,7 @@ shot!
 
   #+begin_src elisp
     (use-package orderless
+      :ensure nil
       :config
       (setq completion-styles '(orderless)))
   #+end_src
@@ -967,10 +892,9 @@ shot!
 - Vertico for completion UI
 
   #+begin_src elisp
-    (use-package vertico
-      :ensure (:files (:defaults "extensions/*.el"))
-      :init (vertico-mode +1)
-      :config
+    (require 'vertico)
+    (with-eval-after-load 'vertico
+      (vertico-mode +1)
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
     (use-package vertico-directory
@@ -978,7 +902,7 @@ shot!
       :ensure nil
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
-		  ("C-h" . vertico-directory-delete-word))
+      ("C-h" . vertico-directory-delete-word))
       ;; Tidy shadowed file names
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
@@ -986,7 +910,7 @@ shot!
       :after vertico
       :ensure nil
       :bind (:map vertico-map
-		  ("C-q" . vertico-quick-insert))
+      ("C-q" . vertico-quick-insert))
       ;; Tidy shadowed file names
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
@@ -999,7 +923,7 @@ shot!
     ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
     ;; Vertico commands are hidden in normal buffers.
     (setq read-extended-command-predicate
-	  #'command-completion-default-include-p)
+    #'command-completion-default-include-p)
   #+end_src
 
 - Marginalia adds pretty information to completions. It's pretty, useful, and
@@ -1007,16 +931,17 @@ shot!
 
   #+begin_src elisp
     ;; Enable richer annotations using the Marginalia package
-    (use-package marginalia
-      :bind (:map minibuffer-local-map
-             ("M-A" . marginalia-cycle))
-      :init (marginalia-mode +1))
+    (require 'marginalia)
+    (with-eval-after-load
+        (define-key minibuffer-local-map (kbd "M-A") #'marginalia-cycle)
+        (marginalia-mode +1))
   #+end_src
 
 - Consult for enhanced commands
 
   #+begin_src elisp
     (use-package consult
+      :ensure nil
       :config
       (consult-customize consult-theme :preview-key '(:debounce 0.5 any))
 
@@ -1043,10 +968,12 @@ shot!
     (recentf-mode +1)
 
     (use-package consult-flycheck
+      :ensure nil
       :config
       (define-key flycheck-command-map (kbd "l") #'consult-flycheck))
 
     (use-package embark-consult
+      :ensure nil
       :after (embark consult)
       :demand t
       :hook
@@ -1069,6 +996,7 @@ shot!
         (embark-act)))
 
     (use-package embark
+      :ensure nil
       :bind
       (("C-," . embark-act)
        ("C->" . embark-act-all)
@@ -1085,13 +1013,13 @@ shot!
 - =wgrep= for editing grep buffers
 
   #+begin_src elisp
-    (use-package wgrep)
+    (use-package wgrep
+      :ensure nil)
   #+end_src
   
 - =undo-tree-mode= for more powerful undo
 
   #+begin_src elisp
-    ;; Fuck elpaca, I'll use guix to install this as well
     (use-package undo-tree
       :ensure nil
       :config
@@ -1104,21 +1032,26 @@ shot!
 - =embrace= for wrapping pair manipulation
 
   #+begin_src elisp
-    (use-package embrace
-      :config
-      (add-hook 'org-mode-hook 'embrace-org-mode-hook)
-      (meow-normal-define-key
-       '("S" . embrace-commander)))
+    (let ((embrace-dir (expand-file-name "~/code/emacs/embrace.el")))
+      (when (file-exists-p embrace-dir)
+        (add-to-list 'load-path embrace-dir)
+        (require 'embrace)
+        (with-eval-after-load 'embrace
+          (add-hook 'org-mode-hook 'embrace-org-mode-hook))
+        (meow-normal-define-key
+         '("S" . embrace-commander))))
   #+end_src
 
 - [[https://github.com/joaotavora/yasnippet][yasnippet]] for templates
 
   #+begin_src emacs-lisp
     (use-package yasnippet
+      :ensure nil
       :config
       (add-hook 'prog-mode-hook #'yas-minor-mode))
 
     (use-package yasnippet-snippets
+      :ensure nil
       :after yasnippet)
   #+end_src
 
@@ -1160,6 +1093,7 @@ shot!
 
   #+begin_src elisp
     (use-package flycheck
+      :ensure nil
       :init
       (global-flycheck-mode t)
       ;; alias is needed for using the keymap in meow
@@ -1169,11 +1103,11 @@ shot!
   Flycheck eglot integration
 
   #+begin_src elisp
-    (use-package flycheck-eglot
-      :ensure t
-      :after (flycheck eglot)
-      :config
-      (global-flycheck-eglot-mode 1))
+    (let ((feglot-dir (expand-file-name "~/code/emacs/flycheck-eglot")))
+      (when (file-exists-p feglot-dir)
+        (add-to-list 'load-path feglot-dir)
+        (require 'flycheck-eglot)
+        (global-flycheck-eglot-mode 1)))
   #+end_src
 
 - Company mode
@@ -1183,21 +1117,15 @@ shot!
   it for granted with Spacemacs for a while now I suppose.
 
   #+begin_src elisp
-    (use-package company
-      :init (global-company-mode +1))
-  #+end_src
-
-  [[https://github.com/sebastiencs/company-box/][company-box-mode]] adds icons and colors to company options.
-
-  #+begin_src elisp
-    (use-package company-box
-      :hook (company-mode . company-box-mode))
+    (require 'company)
+    (with-eval-after-load 'company (global-company-mode +1))
   #+end_src
 
 - [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
 
   #+begin_src elisp
     (use-package reformatter
+      :ensure nil
       :config
       (reformatter-define prettier-format
         :program (expand-file-name "node_modules/.bin/prettier"
@@ -1211,6 +1139,7 @@ shot!
 
   #+begin_src elisp
     (use-package direnv
+      :ensure nil
       :config
       (direnv-mode)
       (when (not (boundp 'warning-suppress-types))
@@ -1229,7 +1158,8 @@ shot!
     ;;   :ensure '(eldoc :repo "https://git.savannah.gnu.org/git/emacs.git"
     ;;                   :files ("lisp/emacs-lisp/eldoc.el")))
 
-    ;; (use-package eglot)
+    (use-package eglot
+      :ensure nil)
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
@@ -1243,8 +1173,6 @@ shot!
     (add-hook 'focus-out-hook 'garbage-collect)
   #+end_src
 
-  #+RESULTS:
-  | garbage-collect |
 *** Treesitter
 :PROPERTIES:
 :ID:       780140a8-6b04-414b-8e49-bc8c9fbe9b17
@@ -1269,29 +1197,11 @@ shot!
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 #+end_src
 
-When in NixOS, use system installed grammars.
-
-#+begin_src elisp
-  (defvar nixos-p
-    (s-contains-p "NixOS" (shell-command-to-string "uname -a")))
-
-  (when nixos-p
-    (let ((nix-treesit-lib-path
-           (expand-file-name
-            "lib"
-            (string-replace
-             "\"" ""
-             (string-trim
-              (shell-command-to-string
-               "nix eval nixpkgs#emacsPackages.treesit-grammars.with-all-grammars.outPath")))))) 
-      (setf treesit-extra-load-path (list nix-treesit-lib-path))))
-#+end_src
-
 - Structured movement
 
   #+begin_src elisp
     (use-package combobulate
-      :ensure (combobulate :host github :repo "mickeynp/combobulate")
+      :ensure nil
       :preface
       ;; You can customize Combobulate's key prefix here.
       ;; Note that you may have to restart Emacs for this to take effect!
@@ -1321,6 +1231,7 @@ Lispy for some nasty lisp structural editing.
 
 #+begin_src elisp
   (use-package lispy
+    :ensure nil
     :hook ((emacs-lisp-mode . lispy-mode)
            (lisp-mode . lispy-mode)
            (scheme-mode . lispy-mode))
@@ -1332,6 +1243,7 @@ Pretty cool auto-indentation.
 
 #+begin_src elisp
   (use-package aggressive-indent
+    :ensure nil
     :hook ((emacs-lisp-mode . aggressive-indent-mode)
            (lisp-mode . aggressive-indent-mode)))
 #+end_src
@@ -1342,6 +1254,7 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package sly
+      :ensure nil
       :hook ((lisp-mode . sly-mode))
       :config
       (setq org-babel-lisp-eval-fn #'sly-eval
@@ -1355,18 +1268,11 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package sly-asdf
+      :ensure nil
       :config
       (add-to-list 'sly-contribs 'sly-asdf 'append))
   #+end_src
 
-*** Nix
-:PROPERTIES:
-:ID:       54D0A9B3-1F7D-4E39-BBAD-E2266930C489
-:END:
-#+begin_src elisp
-  (use-package nix-mode
-    :mode "\\.nix\\'")
-#+end_src
 *** Web dev
 :PROPERTIES:
 :ID:       62e08f15-d996-48fd-90c3-fd6d348555be
@@ -1398,6 +1304,7 @@ Pretty cool auto-indentation.
        typescript-ts-mode) . subword-mode)))
 
   (use-package web-mode
+    :ensure nil
     :mode (("\\.html?\\'" . web-mode))
     :config
     (setq web-mode-markup-indent-offset my--indent-width)
@@ -1406,6 +1313,7 @@ Pretty cool auto-indentation.
     (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
   (use-package emmet-mode
+    :ensure nil
     :hook ((html-mode           . emmet-mode)
            (css-mode            . emmet-mode)
            (js-ts-mode          . emmet-mode)
@@ -1441,9 +1349,9 @@ Pretty cool auto-indentation.
 
     ;; For 95% of cases this is what I want
     (prettier-format-on-save-mode)
-    (eglot-ensure)
     (setf flymake-eslint-project-root
-          (locate-dominating-file default-directory "package.json")))
+          (locate-dominating-file default-directory "package.json"))
+    (eglot-ensure))
 
   (add-hook 'js-ts-mode-hook #'my--setup-ts-js)
 
@@ -1480,11 +1388,11 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package jest-test-mode 
-      :ensure t 
+      :ensure nil
       :commands jest-test-mode
       :hook (typescript-ts-mode)
       :config
-      (setf jest-test-command-string "npm run test:only -- %s %s")
+      (setf jest-test-command-string "npx jest %s %s")
       (define-key typescript-ts-mode-map (kbd "C-c , t r") #'jest-test-run)
       (define-key typescript-ts-mode-map (kbd "C-c , t R") #'jest-test-rerun-test)
       (define-key typescript-ts-mode-map (kbd "C-c , t t") #'jest-test-run-at-point)
@@ -1498,10 +1406,10 @@ Pretty cool auto-indentation.
 :END:
 
 #+begin_src elisp
-  (use-package rustic
-    :init
-    (setq rustic-cargo-bin "cargo")
-    (push 'rustic-clippy flycheck-checkers))
+  ;; (use-package rustic
+  ;;   :init
+  ;;   (setq rustic-cargo-bin "cargo")
+  ;;   (push 'rustic-clippy flycheck-checkers))
 #+end_src
 
 *** Haskell
@@ -1510,6 +1418,7 @@ Pretty cool auto-indentation.
 :END:
 #+begin_src elisp
   (use-package haskell-mode
+    :ensure nil
     :mode "\\.hs\\'"
     :config
     (add-hook 'haskell-mode-hook #'subword-mode)
@@ -1526,7 +1435,7 @@ Pretty cool auto-indentation.
 :END:
 
 #+begin_src elisp
-  (use-package yaml-ts-mode
+  (use-package yaml-mode
     :ensure nil
     :mode "\\.ya?ml\\'")
 #+end_src
@@ -1538,6 +1447,7 @@ Pretty cool auto-indentation.
 
 #+begin_src elisp
   (use-package graphql-mode
+    :ensure nil
     :mode "\\.graphql\\'")
 #+end_src
 
@@ -1556,14 +1466,15 @@ Nice to have features but not necessary.
      '("q" . ace-jump-mode)
      '("w" . ace-jump-word-mode))
 
-    (use-package ace-jump-mode)
+    (use-package ace-jump-mode
+      :ensure nil)
   #+end_src
 
 - Treemacs for easy code exploration
 
   #+begin_src elisp
     (use-package treemacs
-      :ensure t
+      :ensure nil
       :defer t
       :init
       (with-eval-after-load 'winum
@@ -1629,8 +1540,8 @@ Nice to have features but not necessary.
         (treemacs-follow-mode t)
         (treemacs-filewatch-mode t)
         (treemacs-fringe-indicator-mode 'always)
-        (when treemacs-python-executable
-          (treemacs-git-commit-diff-mode t))
+        ;; (when treemacs-python-executable
+        ;;   (treemacs-git-commit-diff-mode t))
 
         (pcase (cons (not (null (executable-find "git")))
                      (not (null treemacs-python-executable)))
@@ -1651,10 +1562,11 @@ Nice to have features but not necessary.
             ("C-x t M-t" . treemacs-find-tag)))
 
     (use-package treemacs-magit
-      :after (treemacs magit)
-      :ensure t)
+      :ensure nil
+      :after (treemacs magit))
 
     (use-package treemacs-all-the-icons
+      :ensure nil
       :config
       (treemacs-load-theme "all-the-icons"))
   #+end_src
@@ -1663,6 +1575,7 @@ Nice to have features but not necessary.
 
   #+begin_src elisp
     (use-package highlight-indent-guides
+      :ensure nil
       :config
       (setf highlight-indent-guides-method 'bitmap)
       (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
@@ -1672,6 +1585,7 @@ Nice to have features but not necessary.
 
   #+begin_src elisp
     (use-package move-text
+      :ensure nil
       :config
       (move-text-default-bindings))
   #+end_src
@@ -1693,6 +1607,7 @@ Nice to have features but not necessary.
   ;;   (load-theme 'nimbus t))
 
   (use-package modus-themes
+    :ensure nil
     :config
     (load-theme 'modus-vivendi-tinted :no-confirm))
 #+end_src
@@ -1700,8 +1615,8 @@ Nice to have features but not necessary.
 Modeline
 
 #+begin_src elisp
-  (use-package doom-modeline
-    :init
+  (require 'doom-modeline)
+  (with-eval-after-load 'doom-modeline
     (setq doom-modeline-height 24)
     (doom-modeline-mode 1))
 #+end_src
@@ -1743,6 +1658,7 @@ blocked.
       (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 
     (use-package flyspell-correct
+      :ensure nil
       :after (flyspell)
       :commands (flyspell-correct-at-point
 		 flyspell-correct-wrapper))
@@ -1754,10 +1670,7 @@ blocked.
     (setq denote-directory (expand-file-name "denotes" org-directory)
 	  denote-date-prompt-use-org-read-date t)
     (use-package denote
-      :ensure (denote :type git
-			:host github
-			:repo "protesilaos/denote"
-			:branch "main")
+      :ensure nil
       :config
       (add-hook 'dired-mode-hook #'denote-dired-mode))
   #+end_src
@@ -1891,41 +1804,39 @@ blocked.
 - dirvish for more powerful dired
 
   #+begin_src elisp
-    (use-package all-the-icons)
-    (use-package dirvish
-      :init
+    (use-package all-the-icons
+      :ensure nil)
+    (require 'dirvish)
+    (with-eval-after-load 'dirvish
       (dirvish-override-dired-mode)
-      :config
-      (setq dirvish-attributes
-            '(vc-state subtree-state all-the-icons collapse file-size))
-
-      :bind
-      (("C-c f" . dirvish-fd)
-       :map dirvish-mode-map
-       ("/"   . dirvish-narrow)
-       ("a"   . dirvish-quick-access)
-       ("f"   . dirvish-file-info-menu)
-       ("y"   . dirvish-yank-menu)
-       ("N"   . dirvish-narrow)
-       ("^"   . dirvish-history-last)
-       ("h"   . dirvish-history-jump) ; remapped `describe-mode'
-       ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
-       ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
-       ("TAB" . dirvish-subtree-toggle)
-       ("M-f" . dirvish-history-go-forward)
-       ("M-b" . dirvish-history-go-backward)
-       ("M-l" . dirvish-ls-switches-menu)
-       ("M-m" . dirvish-mark-menu)
-       ("M-t" . dirvish-layout-toggle)
-       ("M-s" . dirvish-setup-menu)
-       ("M-e" . dirvish-emerge-menu)
-       ("M-j" . dirvish-fd-jump)))
+      ;; (setq dirvish-attributes
+      ;;       '(vc-state subtree-state all-the-icons collapse file-size))
+      (global-set-key (kbd "C-c f") #'dirvish-fd)
+      (define-key dirvish-mode-map (kbd "/") #'dirvish-narrow)
+      (define-key dirvish-mode-map (kbd "a") #'dirvish-quick-access)
+      (define-key dirvish-mode-map (kbd "f") #'dirvish-file-info-menu)
+      (define-key dirvish-mode-map (kbd "y") #'dirvish-yank-menu)
+      (define-key dirvish-mode-map (kbd "N") #'dirvish-narrow)
+      (define-key dirvish-mode-map (kbd "^") #'dirvish-history-last)
+      (define-key dirvish-mode-map (kbd "h") #'dirvish-history-jump) ; remapped `describe-mode'
+      (define-key dirvish-mode-map (kbd "s") #'dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
+      ;; (define-key dirvish-mode-map (kbd "v") #'dirvish-vc-menu)      ; remapped `dired-view-file'
+      (define-key dirvish-mode-map (kbd "TAB") #'dirvish-subtree-toggle)
+      (define-key dirvish-mode-map (kbd "M-f") #'dirvish-history-go-forward)
+      (define-key dirvish-mode-map (kbd "M-b") #'dirvish-history-go-backward)
+      (define-key dirvish-mode-map (kbd "M-l") #'dirvish-ls-switches-menu)
+      (define-key dirvish-mode-map (kbd "M-m") #'dirvish-mark-menu)
+      (define-key dirvish-mode-map (kbd "M-t") #'dirvish-layout-toggle)
+      (define-key dirvish-mode-map (kbd "M-s") #'dirvish-setup-menu)
+      (define-key dirvish-mode-map (kbd "M-e") #'dirvish-emerge-menu)
+      (define-key dirvish-mode-map (kbd "M-j") #'dirvish-fd-jump))
   #+end_src
 
 - Ledger
 
   #+begin_src elisp
     (use-package ledger-mode
+      :ensure nil
       :mode "\\.ledger\\'"
       :config
       (setq ledger-default-date-format ledger-iso-date-format))
@@ -1940,7 +1851,8 @@ blocked.
       (add-to-list 'load-path (expand-file-name "lisp/apps" spookfox-dir))
 
       ;; Manually load spookfox dependencies
-      (use-package websocket)
+      (use-package websocket
+      :ensure nil)
 
       (require 'spookfox)
       (require 'spookfox-tabs)
@@ -1965,12 +1877,10 @@ blocked.
   Use the local repo; very risky, should change.
 
   #+begin_src elisp
-    (when (file-exists-p (expand-file-name "~/Documents/work/saunf"))
-      (use-package saunf
-        :after sly
-        :ensure (saunf :type git
-                       :repo "~/Documents/work/saunf"
-                       :files ("src/saunf.el"))))
+    (let ((saunf-dir (expand-file-name "~/code/saunf/src")))
+      (when (file-exists-p saunf-dir)
+        (add-to-list 'load-path saunf-dir)
+        (require 'saunf)))
   #+end_src
 
 - org-noter
@@ -1979,20 +1889,28 @@ blocked.
     (use-package nov
       :mode ("\\.epub\\'" . nov-mode)
       :ensure nil
-      :init
-      (add-hook 'nov-mode-hook #'shrface-mode)
       :config
-      (require 'shrface)
       (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
       (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
-    ;; (use-package org-noter) 
+
+    ;; installed via guix
+    (require 'org-pdftools)
+    (require 'pdf-tools)
+    (require 'org-noter)
+  #+end_src
+
 - eshell
 
   I sometimes open eshell buffers. Following kbd actually clears the eshell buffer, which is
   something I like to do in my terminals.
 
   #+begin_src elisp
-    (define-key eshell-mode-map (kbd "C-c M-o") (lambda () (interactive) (eshell/clear-scrollback)))
+    ;; (require 'eshell)
+    ;; (with-eval-after-load 'eshell
+    ;;   (define-key eshell-mode-map (kbd "C-c M-o")
+    ;;               (lambda () (interactive)
+    ;;                 (eshell/clear-scrollback)
+    ;;                 (eshell-send-input ))))
   #+end_src
 
 - Shelldon
@@ -2000,26 +1918,27 @@ blocked.
   Let's try replacing alacritty with async-shell-command
 
   #+begin_src elisp
-    (use-package shelldon
-      :ensure (shelldon :type git
-                        :host github
-                        :repo "Overdr0ne/shelldon"
-                        :branch "master"
-                        :files ("shelldon.el"))
-      :config
-      (setq shell-command-switch "-ic")
-      (add-hook 'shelldon-mode-hook 'ansi-color-for-comint-mode-on)
-      (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
-      (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
+    ;; (use-package shelldon
+    ;;   :ensure (shelldon :type git
+    ;;                     :host github
+    ;;                     :repo "Overdr0ne/shelldon"
+    ;;                     :branch "master"
+    ;;                     :files ("shelldon.el"))
+    ;;   :config
+    ;;   (setq shell-command-switch "-ic")
+    ;;   (add-hook 'shelldon-mode-hook 'ansi-color-for-comint-mode-on)
+    ;;   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
+    ;;   (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
 
-      (global-set-key (kbd "M-s") #'shelldon)
-      (global-set-key (kbd "M-S") #'shelldon-loop))
+    ;;   (global-set-key (kbd "M-s") #'shelldon)
+    ;;   (global-set-key (kbd "M-S") #'shelldon-loop))
   #+end_src
 
   Shelldon recommends installing bash-complete.
 
   #+begin_src elisp
     (use-package bash-completion
+      :ensure nil
       :config
       (autoload 'bash-completion-dynamic-complete
         "bash-completion"
@@ -2111,6 +2030,7 @@ blocked.
 
   #+begin_src elisp
     (use-package terraform-mode
+      :ensure nil
       :config
       (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode))
   #+end_src
@@ -2129,46 +2049,34 @@ blocked.
   Syntax-highlighting for code blocks in HTML.
 
   #+begin_src elisp
-    (use-package shr-tag-pre-highlight
-      :after shr
-      :config
-      (add-to-list 'shr-external-rendering-functions
-                   '(pre . shr-tag-pre-highlight)))
+    ;; (use-package shr-tag-pre-highlight
+    ;;   :ensure nil
+    ;;   :after shr
+    ;;   :config
+    ;;   (add-to-list 'shr-external-rendering-functions
+    ;;                '(pre . shr-tag-pre-highlight)))
   #+end_src
 
   Make EWW buffer niceer with org-outline like features.
 
   #+begin_src elisp
-    (use-package shrface
-      :config
-      (shrface-basic)
-      (shrface-trial)
-      (shrface-default-keybindings)         ; setup default keybindings
-      (setq shrface-href-versatile t)
-
-      ;; configure eww
-      (add-hook 'eww-after-render-hook #'shrface-mode))
-
-    ;; I don't use Anki.el, but I am likely to in near future. Leaving this here as reminder.
-    ;; (use-package anki
-    ;;   :defer t
-    ;;   :load-path "~/.emacs.d/lisp/anki/"
-    ;;   :init
-    ;;   (add-hook 'anki-mode-hook #'shrface-mode)
-    ;;   (autoload 'anki "anki")
-    ;;   (autoload 'anki-browser "anki")
-    ;;   (autoload 'anki-list-decks "anki")
+    ;; (use-package shrface
+    ;;   :ensure nil
     ;;   :config
-    ;;   (require 'shrface)
-    ;;   (setq anki-shr-rendering-functions (append anki-shr-rendering-functions shr-external-rendering-functions))
-    ;;   (setq sql-sqlite-program "/usr/bin/sqlite3")
-    ;;   (setq anki-collection-dir "/Users/chandamon/Library/Application Support/Anki2/User 1"))
+    ;;   (shrface-basic)
+    ;;   (shrface-trial)
+    ;;   (shrface-default-keybindings)         ; setup default keybindings
+    ;;   (setq shrface-href-versatile t)
+
+    ;;   ;; configure eww
+    ;;   (add-hook 'eww-after-render-hook #'shrface-mode))
   #+end_src
 
 - org-download to easily attach images in my notes
 
   #+begin_src elisp
     (use-package org-download
+      :ensure nil
       :init
       (setq-default org-download-method 'attach
                     org-download-image-dir (expand-file-name "data" org-directory))
@@ -2183,13 +2091,7 @@ blocked.
 
   #+begin_src elisp
     (use-package eat
-      :ensure (eat :type git
-                   :repo "https://codeberg.org/akib/emacs-eat"
-                   :files ("*.el" ("term" "term/*.el") "*.texi"
-                           "*.ti" ("terminfo/e" "terminfo/e/*")
-                           ("terminfo/65" "terminfo/65/*")
-                           ("integration" "integration/*")
-                           (:exclude ".dir-locals.el" "*-tests.el"))))
+      :ensure nil)
   #+end_src
 
 ** System management
@@ -2197,36 +2099,16 @@ blocked.
 :ID:       e951d611-5827-41d7-b4b4-5f2b1bfcfbef
 :END:
 
-Packages installed with Guix because Elpaca keep failing to install them.
-
-- Key bindings
-
-  #+begin_src elisp
-    (defvar my--pass-keymap
-      (define-keymap
-        (kbd "p") #'password-store-copy
-        (kbd "f") #'password-store-copy-field
-        (kbd "e") #'password-store-edit
-        (kbd "i") #'password-store-insert
-        (kbd "o") #'password-store-otp-copy-token))
-
-    (define-keymap :prefix 'my-system-prefix
-      (kbd "b") #'bluetooth-list-devices
-      (kbd "g") #'guix
-      (kbd "p") my--pass-keymap)
-
-    (global-set-key (kbd "C-c s") my-system-prefix)
-  #+end_src
-
 - Libretranslate for translating Deutsch from Emacs
 
   #+begin_src elisp
-    (use-package libretrans
-      :ensure (:host "codeberg.org" :repo "martianh/libretrans.el")
-      :config
-      (setq libretrans-instance "http://localhost:5005"
-        libretrans-source "de"
-        libretrans-target "en"))
+    (let ((libretrans-dir (expand-file-name "~/code/emacs/libretrans.el")))
+      (when (file-exists-p libretrans-dir)
+        (add-to-list 'load-path libretrans-dir)
+        (require 'libretrans)
+        (setq libretrans-instance "http://red:5005/translate"
+              libretrans-source "de"
+              libretrans-target "en")))
   #+end_src
 
 ** Private work related config 
@@ -2235,8 +2117,6 @@ Packages installed with Guix because Elpaca keep failing to install them.
 :END:
 
 #+begin_src elisp
-  (elpaca-wait)
-
   (let ((private-config (expand-file-name "./private.el" user-emacs-directory)))
     (when (file-exists-p private-config)
       (load-file private-config)))
@@ -2252,10 +2132,7 @@ are the source of truth for the configuration, which is tangled to =~/.emacs.d/w
 files. Let's load all of 'em.
 
   #+begin_src elisp
-    (elpaca-wait)
-
     (let ((root-workflow (expand-file-name "init-workflows.el" user-emacs-directory)))
       (when (file-exists-p root-workflow)
         (load-file root-workflow)))
   #+end_src
-
