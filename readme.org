@@ -348,6 +348,14 @@ This setup make certain assumptions regarding its environment:
     (global-display-line-numbers-mode 1)
   #+end_src
 
+- Fix control characters in compilation-mode
+
+  Otherwise weird characters appear when fancy-ass CLI tools are executed.
+
+  #+begin_src eshell
+    (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+  #+end_src
+
 - Window management
 
   - Custom window keybindings
@@ -1045,10 +1053,8 @@ shot!
 - [[https://github.com/joaotavora/yasnippet][yasnippet]] for templates
 
   #+begin_src emacs-lisp
-    (use-package yasnippet
-      :ensure nil
-      :config
-      (add-hook 'prog-mode-hook #'yas-minor-mode))
+    (require 'yasnippet)
+    (with-eval-after-load 'yasnippet (add-hook 'prog-mode-hook #'yas-minor-mode))
 
     (use-package yasnippet-snippets
       :ensure nil
@@ -1110,15 +1116,26 @@ shot!
         (global-flycheck-eglot-mode 1)))
   #+end_src
 
-- Company mode
+- Completions
 
   I think I have a general idea of what it does, but still fuzzy on
   details. This stuff is usually taken for granted; I've been taking
   it for granted with Spacemacs for a while now I suppose.
 
   #+begin_src elisp
-    (require 'company)
-    (with-eval-after-load 'company (global-company-mode +1))
+    ;; (require 'company)
+    ;; (with-eval-after-load 'company (global-company-mode +1))
+    (let ((pkg-dir (expand-file-name "~/code/emacs/nerd-icons-corfu")))
+      (when (file-exists-p pkg-dir)
+        (add-to-list 'load-path pkg-dir)
+        (require 'nerd-icons-corfu)))
+
+    (use-package corfu
+      :config
+      (setf corfu-auto t)
+      (global-corfu-mode t)
+      (corfu-popupinfo-mode t)
+      (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
   #+end_src
 
 - [[https://github.com/purcell/emacs-reformatter][Reformatter]] allow creating buffer/region formatters from any command.
@@ -1347,6 +1364,8 @@ Pretty cool auto-indentation.
         (when (file-exists-p bin-dir)
           (add-to-list 'exec-path bin-dir))))
 
+    (subword-mode)
+
     ;; For 95% of cases this is what I want
     (prettier-format-on-save-mode)
     (setf flymake-eslint-project-root
@@ -1358,10 +1377,10 @@ Pretty cool auto-indentation.
   (use-package typescript-ts-mode
     :mode "\\.ts\\'"
     :ensure nil
-    :hook ((typescript-ts-mode . subword-mode))
     :config
     (setq-default typescript-indent-level my--indent-width)
-    (add-hook 'typescript-mode-hook #'my--setup-ts-js))
+    (add-hook 'typescript-mode-hook #'my--setup-ts-js)
+    (add-hook 'typescriptt-ts-mode-hook #'my--setup-ts-js))
 
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
@@ -1382,22 +1401,6 @@ Pretty cool auto-indentation.
     (use-package json-ts-mode
       :ensure nil
       :mode "\\.json\\'")
-  #+end_src
-
-- Testing with jest
-
-  #+begin_src elisp
-    (use-package jest-test-mode 
-      :ensure nil
-      :commands jest-test-mode
-      :hook (typescript-ts-mode)
-      :config
-      (setf jest-test-command-string "npx jest %s %s")
-      (define-key typescript-ts-mode-map (kbd "C-c , t r") #'jest-test-run)
-      (define-key typescript-ts-mode-map (kbd "C-c , t R") #'jest-test-rerun-test)
-      (define-key typescript-ts-mode-map (kbd "C-c , t t") #'jest-test-run-at-point)
-      (define-key typescript-ts-mode-map (kbd "C-c , t T") #'jest-test-debug-run-at-point)
-      (define-key typescript-ts-mode-map (kbd "C-c , t d") #'jest-test-debug))
   #+end_src
 
 *** Rust
@@ -1634,6 +1637,10 @@ Let's also try smooth-scrolling.
 
 Non crucial things which should be loaded last. If they fail, nothing crucial is
 blocked.
+
+#+begin_src elisp
+  (my--defkeymap "my-apps" "C-c a")
+#+end_src
 
 - Spell checking
 
@@ -1905,90 +1912,13 @@ blocked.
   something I like to do in my terminals.
 
   #+begin_src elisp
-    ;; (require 'eshell)
-    ;; (with-eval-after-load 'eshell
-    ;;   (define-key eshell-mode-map (kbd "C-c M-o")
-    ;;               (lambda () (interactive)
-    ;;                 (eshell/clear-scrollback)
-    ;;                 (eshell-send-input ))))
+    (require 'esh-mode)
+    (with-eval-after-load 'esh-mode
+      (define-key eshell-mode-map (kbd "C-c M-o")
+                  (lambda () (interactive)
+                    (eshell/clear-scrollback)
+                    (eshell-send-input ))))
   #+end_src
-
-- Shelldon
-
-  Let's try replacing alacritty with async-shell-command
-
-  #+begin_src elisp
-    ;; (use-package shelldon
-    ;;   :ensure (shelldon :type git
-    ;;                     :host github
-    ;;                     :repo "Overdr0ne/shelldon"
-    ;;                     :branch "master"
-    ;;                     :files ("shelldon.el"))
-    ;;   :config
-    ;;   (setq shell-command-switch "-ic")
-    ;;   (add-hook 'shelldon-mode-hook 'ansi-color-for-comint-mode-on)
-    ;;   (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
-    ;;   (autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
-
-    ;;   (global-set-key (kbd "M-s") #'shelldon)
-    ;;   (global-set-key (kbd "M-S") #'shelldon-loop))
-  #+end_src
-
-  Shelldon recommends installing bash-complete.
-
-  #+begin_src elisp
-    (use-package bash-completion
-      :ensure nil
-      :config
-      (autoload 'bash-completion-dynamic-complete
-        "bash-completion"
-        "BASH completion hook")
-      (add-hook 'shell-dynamic-complete-functions
-                'bash-completion-dynamic-complete))
-  #+end_src
-
-  - Enable listing shelldon buffers.
-    
-    Shelldon hides its buffers as soon as output window is hidden. That is fine
-    for one-off commands, but I also run long-running commands like dev-servers
-    etc, which need to be closed manually and also need to check the output for
-    errors.
-
-    #+begin_src elisp
-      (defvar shell-output-history nil)
-      (defun my--switch-shell-output ()
-        "Select shelldon output buffers."
-        (interactive)
-        (consult-buffer
-         (list
-          `(:name "Shell Output"
-            :narrow 98
-            :category buffer
-            :face consult-buffer
-            :history shell-output-history
-            :state consult--buffer-state
-            :default t
-            :items
-            (lambda ()
-              (consult--buffer-query
-               :exclude nil
-               :include "shelldon"
-               :as #'buffer-name))))))
-
-      (define-key my-buffers-keymap (kbd "o") #'my--switch-shell-output)
-    #+end_src
-
-  - Quick helper to delete all shelldon buffers, because sometimes there are a lot of them. It is
-    hard to delete them because they are hidden and don't show up in ibuffer
-
-    #+begin_src elisp
-      (defun my--delete-all-shelldon-buffers ()
-        (interactive)
-        (cl-dolist (buf (cl-remove-if-not
-                         (lambda (buf) (s-contains-p "*shelldon" (buffer-name buf)))
-                         (buffer-list)))
-          (kill-buffer buf)))
-    #+end_src
 
 - Irc
 
@@ -2092,6 +2022,20 @@ blocked.
   #+begin_src elisp
     (use-package eat
       :ensure nil)
+  #+end_src
+
+- Ement
+
+  #+begin_src elisp
+    (require 'ement)
+
+    (define-key
+     my-apps-keymap
+     (kbd "e") (define-keymap
+                 :parent my-apps-keymap
+                 :name "Ement"
+                 (kbd "e") #'ement-room-list
+                 (kbd "n") #'ement-notifications))
   #+end_src
 
 ** System management

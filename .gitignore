@@ -42,3 +42,4 @@ workflow-*.el
 /init-workflows.el
 /*-workflow.el
 /*.sqlite
+*.el~
