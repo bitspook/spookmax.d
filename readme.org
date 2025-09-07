@@ -25,10 +25,19 @@ This setup make certain assumptions regarding its environment:
     ;; more than this to make UTF-8 the default coding system:
     (set-language-environment "UTF-8")
 
-    ;; set-language-enviornment sets default-input-method, which is unwanted
-    (setq default-input-method nil)
+    (defun my--on-guix-p ()
+      (file-exists-p "/gnu/store"))
 
-    (setq package-enable-at-startup nil)
+    ;; Must use :ensure nil until this issue is fixed
+    ;; https://codeberg.org/guix/guix/issues/736
+    (defun my--use-package-ensure (pkg args state)
+      (if (my--on-guix-p) nil
+        (use-package-ensure-elpa pkg args state)))
+
+    ;; set-language-enviornment sets default-input-method, which is unwanted
+    (setq default-input-method nil
+          package-enable-at-startup nil
+          use-package-ensure-function #'my--use-package-ensure)
   #+end_src
 
 
@@ -299,7 +308,6 @@ This setup make certain assumptions regarding its environment:
 
   #+begin_src elisp
     (use-package whitespace-cleanup-mode
-      :ensure nil
       :config
       (global-whitespace-cleanup-mode +1))
   #+end_src
@@ -319,7 +327,6 @@ This setup make certain assumptions regarding its environment:
   
   #+begin_src elisp
     (use-package which-key
-      :ensure nil
       :config
       (which-key-mode t))
   #+end_src
@@ -333,7 +340,6 @@ This setup make certain assumptions regarding its environment:
     (global-hl-line-mode +1)
 
     (use-package highlight-symbol
-      :ensure nil
       :hook (prog-mode . highlight-symbol-mode)
       :config
       (setq highlight-symbol-idle-delay 0.3))
@@ -352,7 +358,7 @@ This setup make certain assumptions regarding its environment:
 
   Otherwise weird characters appear when fancy-ass CLI tools are executed.
 
-  #+begin_src eshell
+  #+begin_src elisp
     (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
   #+end_src
 
@@ -388,7 +394,6 @@ This setup make certain assumptions regarding its environment:
         (delete-window win))
 
       (use-package ace-window
-      :ensure nil
         :config
         (setq aw-dispatch-always t)
         (global-set-key (kbd "C-c w") 'ace-window)
@@ -438,15 +443,13 @@ This setup make certain assumptions regarding its environment:
   recent project.el project.
 
   #+begin_src elisp
-    (use-package project
-      :ensure nil)
+    (use-package project)
   #+end_src
 
   - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
 
     #+begin_src emacs-lisp
       (use-package git-link
-        :ensure nil
         :config
         (setf git-link-use-commit t))
     #+end_src
@@ -464,7 +467,6 @@ This setup make certain assumptions regarding its environment:
 
     #+begin_src elisp
       (use-package forge
-        :ensure nil
         :after magit)
     #+end_src    
 
@@ -496,7 +498,6 @@ This setup make certain assumptions regarding its environment:
 
   #+begin_src elisp
     (use-package exec-path-from-shell
-      :ensure nil
       :config
       (exec-path-from-shell-initialize))
   #+end_src
@@ -509,8 +510,7 @@ This setup make certain assumptions regarding its environment:
 Libraries used elsewhere.
 
 #+begin_src elisp
-  (use-package plz
-    :ensure nil)
+  (use-package plz)
 #+end_src
 
 ** Org mode
@@ -520,7 +520,6 @@ Libraries used elsewhere.
 
   #+begin_src elisp
     (use-package org
-      :ensure nil
       :config
       (eval-after-load 'org-mode
         (org-link-set-parameters
@@ -607,7 +606,6 @@ Libraries used elsewhere.
 
   #+begin_src elisp
     (use-package org-super-agenda
-      :ensure nil
       :config
       (org-super-agenda-mode t)
       (setq org-super-agenda-groups
@@ -679,8 +677,7 @@ Libraries used elsewhere.
 - Support exporting code blocks with syntax-highlighting
 
   #+begin_src elisp
-    (use-package htmlize
-      :ensure nil)
+    (use-package htmlize)
   #+end_src
 
 - Custom links
@@ -842,7 +839,6 @@ shot!
   
 #+begin_src elisp
   (use-package meow
-    :ensure nil
     :config
     (setf meow-use-clipboard t)
     (meow-global-mode)
@@ -876,7 +872,6 @@ shot!
 
   #+begin_src elisp
     (use-package key-chord
-      :ensure nil
       :config
       (setf key-chord-two-keys-delay 0.1)
       (key-chord-mode 1)
@@ -892,7 +887,6 @@ shot!
 
   #+begin_src elisp
     (use-package orderless
-      :ensure nil
       :config
       (setq completion-styles '(orderless)))
   #+end_src
@@ -907,7 +901,6 @@ shot!
 
     (use-package vertico-directory
       :after vertico
-      :ensure nil
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
       ("C-h" . vertico-directory-delete-word))
@@ -916,7 +909,6 @@ shot!
 
     (use-package vertico-quick
       :after vertico
-      :ensure nil
       :bind (:map vertico-map
       ("C-q" . vertico-quick-insert))
       ;; Tidy shadowed file names
@@ -924,7 +916,6 @@ shot!
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
-      :ensure nil
       :init
       (savehist-mode +1))
 
@@ -949,7 +940,6 @@ shot!
 
   #+begin_src elisp
     (use-package consult
-      :ensure nil
       :config
       (consult-customize consult-theme :preview-key '(:debounce 0.5 any))
 
@@ -976,12 +966,10 @@ shot!
     (recentf-mode +1)
 
     (use-package consult-flycheck
-      :ensure nil
       :config
       (define-key flycheck-command-map (kbd "l") #'consult-flycheck))
 
     (use-package embark-consult
-      :ensure nil
       :after (embark consult)
       :demand t
       :hook
@@ -1004,7 +992,6 @@ shot!
         (embark-act)))
 
     (use-package embark
-      :ensure nil
       :bind
       (("C-," . embark-act)
        ("C->" . embark-act-all)
@@ -1021,15 +1008,13 @@ shot!
 - =wgrep= for editing grep buffers
 
   #+begin_src elisp
-    (use-package wgrep
-      :ensure nil)
+    (use-package wgrep)
   #+end_src
   
 - =undo-tree-mode= for more powerful undo
 
   #+begin_src elisp
     (use-package undo-tree
-      :ensure nil
       :config
       (global-undo-tree-mode t) 
       (global-set-key (kbd "C-/") #'undo)
@@ -1057,7 +1042,6 @@ shot!
     (with-eval-after-load 'yasnippet (add-hook 'prog-mode-hook #'yas-minor-mode))
 
     (use-package yasnippet-snippets
-      :ensure nil
       :after yasnippet)
   #+end_src
 
@@ -1099,7 +1083,6 @@ shot!
 
   #+begin_src elisp
     (use-package flycheck
-      :ensure nil
       :init
       (global-flycheck-mode t)
       ;; alias is needed for using the keymap in meow
@@ -1142,7 +1125,6 @@ shot!
 
   #+begin_src elisp
     (use-package reformatter
-      :ensure nil
       :config
       (reformatter-define prettier-format
         :program (expand-file-name "node_modules/.bin/prettier"
@@ -1156,7 +1138,6 @@ shot!
 
   #+begin_src elisp
     (use-package direnv
-      :ensure nil
       :config
       (direnv-mode)
       (when (not (boundp 'warning-suppress-types))
@@ -1175,8 +1156,7 @@ shot!
     ;;   :ensure '(eldoc :repo "https://git.savannah.gnu.org/git/emacs.git"
     ;;                   :files ("lisp/emacs-lisp/eldoc.el")))
 
-    (use-package eglot
-      :ensure nil)
+    (use-package eglot)
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
@@ -1218,11 +1198,10 @@ shot!
 
   #+begin_src elisp
     (use-package combobulate
-      :ensure nil
-      :preface
+      :custom
       ;; You can customize Combobulate's key prefix here.
       ;; Note that you may have to restart Emacs for this to take effect!
-      (setq combobulate-key-prefix "C-c j")
+      (setf combobulate-key-prefix "C-c j")
 
       ;; Optional, but recommended.
       ;;
@@ -1248,7 +1227,6 @@ Lispy for some nasty lisp structural editing.
 
 #+begin_src elisp
   (use-package lispy
-    :ensure nil
     :hook ((emacs-lisp-mode . lispy-mode)
            (lisp-mode . lispy-mode)
            (scheme-mode . lispy-mode))
@@ -1260,7 +1238,6 @@ Pretty cool auto-indentation.
 
 #+begin_src elisp
   (use-package aggressive-indent
-    :ensure nil
     :hook ((emacs-lisp-mode . aggressive-indent-mode)
            (lisp-mode . aggressive-indent-mode)))
 #+end_src
@@ -1271,7 +1248,6 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package sly
-      :ensure nil
       :hook ((lisp-mode . sly-mode))
       :config
       (setq org-babel-lisp-eval-fn #'sly-eval
@@ -1285,7 +1261,6 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package sly-asdf
-      :ensure nil
       :config
       (add-to-list 'sly-contribs 'sly-asdf 'append))
   #+end_src
@@ -1313,7 +1288,6 @@ Pretty cool auto-indentation.
 
   (use-package js-ts
     :mode "\\.js'"
-    :ensure nil
     :config
     (setq js-indent-level my--indent-width)
     :hook
@@ -1321,7 +1295,6 @@ Pretty cool auto-indentation.
        typescript-ts-mode) . subword-mode)))
 
   (use-package web-mode
-    :ensure nil
     :mode (("\\.html?\\'" . web-mode))
     :config
     (setq web-mode-markup-indent-offset my--indent-width)
@@ -1330,7 +1303,6 @@ Pretty cool auto-indentation.
     (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
 
   (use-package emmet-mode
-    :ensure nil
     :hook ((html-mode           . emmet-mode)
            (css-mode            . emmet-mode)
            (js-ts-mode          . emmet-mode)
@@ -1376,7 +1348,6 @@ Pretty cool auto-indentation.
 
   (use-package typescript-ts-mode
     :mode "\\.ts\\'"
-    :ensure nil
     :config
     (setq-default typescript-indent-level my--indent-width)
     (add-hook 'typescript-mode-hook #'my--setup-ts-js)
@@ -1384,14 +1355,12 @@ Pretty cool auto-indentation.
 
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
-    :ensure nil
     :hook ((tsx-ts-mode . subword-mode)
            (tsx-ts-mode . my--setup-ts-js))
     :config
     (setq typescript-indent-level my--indent-width))
 
   (use-package css-ts-mode
-    :ensure nil
     :mode "\\.s?css\\'")
 #+end_src
 
@@ -1399,7 +1368,6 @@ Pretty cool auto-indentation.
 
   #+begin_src elisp
     (use-package json-ts-mode
-      :ensure nil
       :mode "\\.json\\'")
   #+end_src
 
@@ -1421,7 +1389,6 @@ Pretty cool auto-indentation.
 :END:
 #+begin_src elisp
   (use-package haskell-mode
-    :ensure nil
     :mode "\\.hs\\'"
     :config
     (add-hook 'haskell-mode-hook #'subword-mode)
@@ -1439,7 +1406,6 @@ Pretty cool auto-indentation.
 
 #+begin_src elisp
   (use-package yaml-mode
-    :ensure nil
     :mode "\\.ya?ml\\'")
 #+end_src
 
@@ -1450,7 +1416,6 @@ Pretty cool auto-indentation.
 
 #+begin_src elisp
   (use-package graphql-mode
-    :ensure nil
     :mode "\\.graphql\\'")
 #+end_src
 
@@ -1469,15 +1434,13 @@ Nice to have features but not necessary.
      '("q" . ace-jump-mode)
      '("w" . ace-jump-word-mode))
 
-    (use-package ace-jump-mode
-      :ensure nil)
+    (use-package ace-jump-mode)
   #+end_src
 
 - Treemacs for easy code exploration
 
   #+begin_src elisp
     (use-package treemacs
-      :ensure nil
       :defer t
       :init
       (with-eval-after-load 'winum
@@ -1565,11 +1528,9 @@ Nice to have features but not necessary.
             ("C-x t M-t" . treemacs-find-tag)))
 
     (use-package treemacs-magit
-      :ensure nil
       :after (treemacs magit))
 
     (use-package treemacs-all-the-icons
-      :ensure nil
       :config
       (treemacs-load-theme "all-the-icons"))
   #+end_src
@@ -1578,7 +1539,6 @@ Nice to have features but not necessary.
 
   #+begin_src elisp
     (use-package highlight-indent-guides
-      :ensure nil
       :config
       (setf highlight-indent-guides-method 'bitmap)
       (add-hook 'prog-mode-hook 'highlight-indent-guides-mode))
@@ -1588,7 +1548,6 @@ Nice to have features but not necessary.
 
   #+begin_src elisp
     (use-package move-text
-      :ensure nil
       :config
       (move-text-default-bindings))
   #+end_src
@@ -1610,7 +1569,6 @@ Nice to have features but not necessary.
   ;;   (load-theme 'nimbus t))
 
   (use-package modus-themes
-    :ensure nil
     :config
     (load-theme 'modus-vivendi-tinted :no-confirm))
 #+end_src
@@ -1655,7 +1613,6 @@ blocked.
 
   #+begin_src elisp
     (use-package flyspell
-      :ensure nil
       :hook
       (text-mode . flyspell-mode)
       (prog-mode . flyspell-prog-mode)
@@ -1665,7 +1622,6 @@ blocked.
       (define-key flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 
     (use-package flyspell-correct
-      :ensure nil
       :after (flyspell)
       :commands (flyspell-correct-at-point
 		 flyspell-correct-wrapper))
@@ -1677,7 +1633,6 @@ blocked.
     (setq denote-directory (expand-file-name "denotes" org-directory)
 	  denote-date-prompt-use-org-read-date t)
     (use-package denote
-      :ensure nil
       :config
       (add-hook 'dired-mode-hook #'denote-dired-mode))
   #+end_src
@@ -1811,8 +1766,7 @@ blocked.
 - dirvish for more powerful dired
 
   #+begin_src elisp
-    (use-package all-the-icons
-      :ensure nil)
+    (use-package all-the-icons)
     (require 'dirvish)
     (with-eval-after-load 'dirvish
       (dirvish-override-dired-mode)
@@ -1843,7 +1797,6 @@ blocked.
 
   #+begin_src elisp
     (use-package ledger-mode
-      :ensure nil
       :mode "\\.ledger\\'"
       :config
       (setq ledger-default-date-format ledger-iso-date-format))
@@ -1858,8 +1811,7 @@ blocked.
       (add-to-list 'load-path (expand-file-name "lisp/apps" spookfox-dir))
 
       ;; Manually load spookfox dependencies
-      (use-package websocket
-      :ensure nil)
+      (use-package websocket)
 
       (require 'spookfox)
       (require 'spookfox-tabs)
@@ -1895,7 +1847,6 @@ blocked.
   #+begin_src elisp
     (use-package nov
       :mode ("\\.epub\\'" . nov-mode)
-      :ensure nil
       :config
       (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
       (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
@@ -1926,7 +1877,6 @@ blocked.
 
   #+begin_src elisp
     (use-package erc
-      :ensure nil
       :config
       (setopt erc-modules (seq-union '(sasl) erc-modules))
       (setq
@@ -1948,7 +1898,6 @@ blocked.
       (setf erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")))
 
     (use-package erc-track
-      :ensure nil
       ;; Prevent JOINs and PARTs from lighting up the mode-line.
       :config (setopt erc-track-faces-priority-list
                       (remq 'erc-notice-face erc-track-faces-priority-list))
@@ -1960,7 +1909,6 @@ blocked.
 
   #+begin_src elisp
     (use-package terraform-mode
-      :ensure nil
       :config
       (add-hook 'terraform-mode-hook #'terraform-format-on-save-mode))
   #+end_src
@@ -1980,7 +1928,6 @@ blocked.
 
   #+begin_src elisp
     ;; (use-package shr-tag-pre-highlight
-    ;;   :ensure nil
     ;;   :after shr
     ;;   :config
     ;;   (add-to-list 'shr-external-rendering-functions
@@ -1991,7 +1938,6 @@ blocked.
 
   #+begin_src elisp
     ;; (use-package shrface
-    ;;   :ensure nil
     ;;   :config
     ;;   (shrface-basic)
     ;;   (shrface-trial)
@@ -2006,7 +1952,6 @@ blocked.
 
   #+begin_src elisp
     (use-package org-download
-      :ensure nil
       :init
       (setq-default org-download-method 'attach
                     org-download-image-dir (expand-file-name "data" org-directory))
@@ -2020,8 +1965,7 @@ blocked.
   More terminal-like experience for some CLI/TUI tools that just need it.
 
   #+begin_src elisp
-    (use-package eat
-      :ensure nil)
+    (use-package eat)
   #+end_src
 
 - Ement
