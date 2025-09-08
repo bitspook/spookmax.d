@@ -460,13 +460,14 @@ This setup make certain assumptions regarding its environment:
 
 - [Ma]git
 
-  Magit uses =project-switch-commands= which are present only in more
-  recent project.el project.
+  Magit uses =project-switch-commands= which are present only in more recent
+  project.el project.
 
   #+begin_src elisp
-    (use-package project
-      :config (setq popper-group-function #'popper-group-by-project))
-    (use-package magit)
+    (require 'project)
+    (use-package magit
+      :config
+      (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
   #+end_src
 
   - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
@@ -1660,8 +1661,14 @@ blocked.
 
     (use-package flyspell-correct
       :after (flyspell)
-      :commands (flyspell-correct-at-point
-		 flyspell-correct-wrapper))
+      :commands (flyspell-correct-at-point flyspell-correct-wrapper))
+
+    (define-key my-apps-keymap (kbd "s")
+                (define-keymap
+                  :parent my-apps-keymap
+                  :name "spellcheck"
+                  (kbd ".") #'flyspell-correct-at-point
+                  (kbd ",") #'flyspell-correct-before-point))
   #+end_src  
 
 - Notes using denotes
