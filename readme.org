@@ -16,6 +16,32 @@ This setup make certain assumptions regarding its environment:
 :ID:       D06520AB-2147-4FA7-83D4-6F3349B4743C
 :END:
 
+- Feature Flags
+
+  Feature flags to change the configuration based on different scenarios. Right now I run my Emacs
+  on two machines, but instead for adding checks for which machine I am on right now, I want to
+  create a default configuration, and modify it based on which feature-flags are enabled.
+
+  A profile is a cons cell of =(name . metadata)=
+
+  #+begin_src elisp
+    (defvar my--feature-flags '())
+  #+end_src
+
+  - On mac without external monitor
+
+    #+begin_src elisp
+      (when (eq system-type 'darwin)
+        (add-to-list 'my--feature-flags '(small-screen . t)))
+    #+end_src
+
+  - When Emacs' packages are handled by guix
+
+    #+begin_src elisp
+      (when (file-exists-p "/gnu/store")
+        (add-to-list 'my--feature-flags '(powered-by-guix . t)))
+    #+end_src
+
 - Bootstrap
 
   #+begin_src elisp :tangle ./early-init.el
@@ -25,13 +51,11 @@ This setup make certain assumptions regarding its environment:
     ;; more than this to make UTF-8 the default coding system:
     (set-language-environment "UTF-8")
 
-    (defun my--on-guix-p ()
-      (file-exists-p "/gnu/store"))
 
     ;; Must use :ensure nil until this issue is fixed
     ;; https://codeberg.org/guix/guix/issues/736
     (defun my--use-package-ensure (pkg args state)
-      (if (my--on-guix-p) nil
+      (if (assoc 'powered-by-guix my--feature-flags) nil
         (use-package-ensure-elpa pkg args state)))
 
     ;; set-language-enviornment sets default-input-method, which is unwanted
@@ -110,28 +134,6 @@ This setup make certain assumptions regarding its environment:
         (my--get-or-create-scratch)))
   #+end_src
   
-- Profiles
-
-  Let's introduce a concept of profiles to change the configuration based on
-  different scenarios. Right now I run my Emacs on two machines, but instead for
-  adding checks for which machine I am on right now, we'll create a default
-  configuration, and modify it based on which profiles are active right now. At
-  startup, we'll perform the checks to automatically enable certain profiles.
-
-  A profile is a cons cell of =(name . metadata)=
-
-  #+begin_src elisp
-    (defvar my--active-profiles '()
-      "Change things slightly based on different profiles.")
-  #+end_src
-
-  - On mac without external monitor
-
-    #+begin_src elisp
-      (when (eq system-type 'darwin)
-        (push '(small-screen . t) my--active-profiles))
-    #+end_src
-
 ** Preliminary setup
 :PROPERTIES:
 :ID:       704db7c8-f339-48cc-8e2c-d680da5899fd
@@ -432,7 +434,7 @@ This setup make certain assumptions regarding its environment:
 
   #+begin_src elisp
     (defvar my--font-size 11)
-    (when (assoc 'small-screen my--active-profiles)
+    (when (assoc 'small-screen my--feature-flags)
       (setq my--font-size 14))
     (set-face-attribute 'default nil :height (* 10 my--font-size))
   #+end_src
