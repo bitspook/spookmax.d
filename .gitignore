@@ -43,3 +43,4 @@ workflow-*.el
 /*-workflow.el
 /*.sqlite
 *.el~
+/request/

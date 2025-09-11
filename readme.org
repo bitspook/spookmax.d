@@ -42,6 +42,13 @@ This setup make certain assumptions regarding its environment:
         (add-to-list 'my--feature-flags '(powered-by-guix . t)))
     #+end_src
 
+  - When Emacs' packages are handled by straight.el
+
+    #+begin_src elisp
+      (unless (assoc 'powered-by-guix my--feature-flags)
+        (add-to-list 'my--feature-flags '(powered-by-straightel . t)))
+    #+end_src
+
 - Bootstrap
 
   #+begin_src elisp :tangle ./early-init.el
@@ -51,30 +58,42 @@ This setup make certain assumptions regarding its environment:
     ;; more than this to make UTF-8 the default coding system:
     (set-language-environment "UTF-8")
 
-
-    ;; Must use :ensure nil until this issue is fixed
-    ;; https://codeberg.org/guix/guix/issues/736
-    (defun my--use-package-ensure (pkg args state)
-      (if (assoc 'powered-by-guix my--feature-flags) nil
-        (use-package-ensure-elpa pkg args state)))
-
     ;; set-language-enviornment sets default-input-method, which is unwanted
     (setq default-input-method nil
-          package-enable-at-startup nil
-          use-package-ensure-function #'my--use-package-ensure)
+          package-enable-at-startup nil)
   #+end_src
 
 
 #+begin_src elisp :tangle ./init.el
   ;; -*- lexical-binding: t -*-
+
+  (when (assoc 'powered-by-guix my--feature-flags)
+    ;; Must use :ensure nil until this issue is fixed
+    ;; https://codeberg.org/guix/guix/issues/736
+    (setq use-package-ensure-function (lambda () nil)))
+
+  ;; Bootstrap straight.el
+  (when (assoc 'powered-by-straightel my--feature-flags)
+    (defvar bootstrap-version)
+    (let ((bootstrap-file
+           (expand-file-name
+            "straight/repos/straight.el/bootstrap.el"
+            (or (bound-and-true-p straight-base-dir)
+                user-emacs-directory)))
+          (bootstrap-version 7))
+      (unless (file-exists-p bootstrap-file)
+        (with-current-buffer
+            (url-retrieve-synchronously
+             "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+             'silent 'inhibit-cookies)
+          (goto-char (point-max))
+          (eval-print-last-sexp)))
+      (load bootstrap-file nil 'nomessage)))
+
+  ;; use straight with use-package by default
+  (when (assoc 'powered-by-straightel my--feature-flags)
+    (setf straight-use-package-by-default t))
 #+end_src
-
-
-#+begin_src emacs-lisp
-  (setf debug-on-error t)
-  (setf debug-on-signal t)
-#+end_src
-
 
 ** Helper utilities
 :PROPERTIES:
@@ -446,6 +465,7 @@ This setup make certain assumptions regarding its environment:
 
   #+begin_src elisp
     (use-package project)
+    (use-package magit)
   #+end_src
 
   - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
@@ -468,8 +488,8 @@ This setup make certain assumptions regarding its environment:
   - Magit Forge
 
     #+begin_src elisp
-      (use-package forge
-        :after magit)
+      ;; (use-package forge
+      ;;   :after magit)
     #+end_src    
 
 - Ability to select both parts from a diff (from [[https://emacs.stackexchange.com/questions/19339/how-to-use-both-variants-in-ediff][SO]])
@@ -896,12 +916,15 @@ shot!
 - Vertico for completion UI
 
   #+begin_src elisp
+    (use-package vertico)
     (require 'vertico)
     (with-eval-after-load 'vertico
       (vertico-mode +1)
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
     (use-package vertico-directory
+      :ensure nil
+      :straight nil
       :after vertico
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
@@ -910,6 +933,8 @@ shot!
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
     (use-package vertico-quick
+      :ensure nil
+      :straight nil
       :after vertico
       :bind (:map vertico-map
       ("C-q" . vertico-quick-insert))
@@ -918,6 +943,8 @@ shot!
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
+      :ensure nil
+      :straight nil
       :init
       (savehist-mode +1))
 
@@ -932,8 +959,9 @@ shot!
 
   #+begin_src elisp
     ;; Enable richer annotations using the Marginalia package
+    (use-package marginalia)
     (require 'marginalia)
-    (with-eval-after-load
+    (with-eval-after-load 'marginalia
         (define-key minibuffer-local-map (kbd "M-A") #'marginalia-cycle)
         (marginalia-mode +1))
   #+end_src
@@ -1047,6 +1075,8 @@ shot!
       :after yasnippet)
   #+end_src
 
+  #+RESULTS:
+
 ** Programming
 :PROPERTIES:
 :ID:       f88fd5b1-1170-43e3-b2b9-e3060edd7442
@@ -1094,11 +1124,9 @@ shot!
   Flycheck eglot integration
 
   #+begin_src elisp
-    (let ((feglot-dir (expand-file-name "~/code/emacs/flycheck-eglot")))
-      (when (file-exists-p feglot-dir)
-        (add-to-list 'load-path feglot-dir)
-        (require 'flycheck-eglot)
-        (global-flycheck-eglot-mode 1)))
+    (straight-use-package 'flycheck-eglot)
+    (with-eval-after-load 'flycheck-eglot
+      (global-flycheck-eglot-mode 1))
   #+end_src
 
 - Completions
@@ -1108,12 +1136,10 @@ shot!
   it for granted with Spacemacs for a while now I suppose.
 
   #+begin_src elisp
-    ;; (require 'company)
-    ;; (with-eval-after-load 'company (global-company-mode +1))
-    (let ((pkg-dir (expand-file-name "~/code/emacs/nerd-icons-corfu")))
-      (when (file-exists-p pkg-dir)
-        (add-to-list 'load-path pkg-dir)
-        (require 'nerd-icons-corfu)))
+    (straight-use-package
+     '(nerd-icons-corfu
+       :host github
+       :repo "LuigiPiucco/nerd-icons-corfu"))
 
     (use-package corfu
       :config
@@ -1290,6 +1316,8 @@ Pretty cool auto-indentation.
 
   (use-package js-ts
     :mode "\\.js'"
+    :straight nil
+    :ensure nil
     :config
     (setq js-indent-level my--indent-width)
     :hook
@@ -1357,12 +1385,16 @@ Pretty cool auto-indentation.
 
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
+    :straight nil
+    :ensure nil
     :hook ((tsx-ts-mode . subword-mode)
            (tsx-ts-mode . my--setup-ts-js))
     :config
     (setq typescript-indent-level my--indent-width))
 
   (use-package css-ts-mode
+    :ensure nil
+    :straight nil
     :mode "\\.s?css\\'")
 #+end_src
 
@@ -1578,10 +1610,10 @@ Nice to have features but not necessary.
 Modeline
 
 #+begin_src elisp
-  (require 'doom-modeline)
-  (with-eval-after-load 'doom-modeline
-    (setq doom-modeline-height 24)
-    (doom-modeline-mode 1))
+  ;; (use-package doom-modeline
+  ;;   :config
+  ;;   (setq doom-modeline-height 24)
+  ;;   (doom-modeline-mode 1))
 #+end_src
 
 Let's also try smooth-scrolling.
@@ -1769,7 +1801,7 @@ blocked.
 
   #+begin_src elisp
     (use-package all-the-icons)
-    (require 'dirvish)
+    (use-package dirvish)
     (with-eval-after-load 'dirvish
       (dirvish-override-dired-mode)
       ;; (setq dirvish-attributes
@@ -1853,10 +1885,10 @@ blocked.
       (setq nov-shr-rendering-functions '((img . nov-render-img) (title . nov-render-title)))
       (setq nov-shr-rendering-functions (append nov-shr-rendering-functions shr-external-rendering-functions)))
 
-    ;; installed via guix
-    (require 'org-pdftools)
-    (require 'pdf-tools)
-    (require 'org-noter)
+    (when (assoc 'powered-by-guix my--feature-flags)
+      (require 'org-pdftools)
+      (require 'pdf-tools)
+      (require 'org-noter))
   #+end_src
 
 - eshell
@@ -1900,6 +1932,8 @@ blocked.
       (setf erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")))
 
     (use-package erc-track
+      :ensure nil
+      :straight nil
       ;; Prevent JOINs and PARTs from lighting up the mode-line.
       :config (setopt erc-track-faces-priority-list
                       (remq 'erc-notice-face erc-track-faces-priority-list))
@@ -1929,25 +1963,27 @@ blocked.
   Syntax-highlighting for code blocks in HTML.
 
   #+begin_src elisp
-    ;; (use-package shr-tag-pre-highlight
-    ;;   :after shr
-    ;;   :config
-    ;;   (add-to-list 'shr-external-rendering-functions
-    ;;                '(pre . shr-tag-pre-highlight)))
+    (use-package shr-tag-pre-highlight
+      :straight t
+      :after shr
+      :config
+      (add-to-list 'shr-external-rendering-functions
+                   '(pre . shr-tag-pre-highlight)))
   #+end_src
 
   Make EWW buffer niceer with org-outline like features.
 
   #+begin_src elisp
-    ;; (use-package shrface
-    ;;   :config
-    ;;   (shrface-basic)
-    ;;   (shrface-trial)
-    ;;   (shrface-default-keybindings)         ; setup default keybindings
-    ;;   (setq shrface-href-versatile t)
+    (use-package shrface
+      :straight t
+      :config
+      (shrface-basic)
+      (shrface-trial)
+      (shrface-default-keybindings)         ; setup default keybindings
+      (setq shrface-href-versatile t)
 
-    ;;   ;; configure eww
-    ;;   (add-hook 'eww-after-render-hook #'shrface-mode))
+      ;; configure eww
+      (add-hook 'eww-after-render-hook #'shrface-mode))
   #+end_src
 
 - org-download to easily attach images in my notes
@@ -1962,18 +1998,10 @@ blocked.
       (add-hook 'dired-mode-hook 'org-download-enable))
   #+end_src
   
-- Eat
-
-  More terminal-like experience for some CLI/TUI tools that just need it.
-
-  #+begin_src elisp
-    (use-package eat)
-  #+end_src
-
 - Ement
 
   #+begin_src elisp
-    (require 'ement)
+    (use-package ement)
 
     (define-key
      my-apps-keymap
@@ -1992,13 +2020,10 @@ blocked.
 - Libretranslate for translating Deutsch from Emacs
 
   #+begin_src elisp
-    (let ((libretrans-dir (expand-file-name "~/code/emacs/libretrans.el")))
-      (when (file-exists-p libretrans-dir)
-        (add-to-list 'load-path libretrans-dir)
-        (require 'libretrans)
-        (setq libretrans-instance "http://red:5005/translate"
-              libretrans-source "de"
-              libretrans-target "en")))
+    (straight-use-package '(libretrans :host codeberg :repo "martianh/libretrans.el"))
+    (setq libretrans-instance "http://red:5005/translate"
+          libretrans-source "de"
+          libretrans-target "en")
   #+end_src
 
 ** Private work related config 
