@@ -464,7 +464,8 @@ This setup make certain assumptions regarding its environment:
   recent project.el project.
 
   #+begin_src elisp
-    (use-package project)
+    (use-package project
+      :config (setq popper-group-function #'popper-group-by-project))
     (use-package magit)
   #+end_src
 
@@ -1184,7 +1185,9 @@ shot!
     ;;   :ensure '(eldoc :repo "https://git.savannah.gnu.org/git/emacs.git"
     ;;                   :files ("lisp/emacs-lisp/eldoc.el")))
 
-    (use-package eglot)
+    (use-package eglot
+      :straight nil
+      :ensure nil)
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
