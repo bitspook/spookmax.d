@@ -1159,17 +1159,6 @@ shot!
              (typescript-ts-mode . prettier-format-on-save-mode)))
   #+end_src
 
-- Direnv is pretty essential for my dev workflow.
-
-  #+begin_src elisp
-    (use-package direnv
-      :config
-      (direnv-mode)
-      (when (not (boundp 'warning-suppress-types))
-        (setq warning-suppress-types nil))
-      (add-to-list 'warning-suppress-types '(direnv)))
-  #+end_src
-
 - Eglot to provide LSP support.
 
   #+begin_src elisp
@@ -1840,30 +1829,21 @@ blocked.
 - spookfox
 
   #+begin_src elisp
-    (setq spookfox-dir (expand-file-name "~/code/spookfox"))
-    (when (file-exists-p spookfox-dir)
-      (add-to-list 'load-path (expand-file-name "lisp" spookfox-dir))
-      (add-to-list 'load-path (expand-file-name "lisp/apps" spookfox-dir))
+    (require 'spookfox)
+    (require 'spookfox-tabs)
+    (require 'spookfox-js-injection)
 
-      ;; Manually load spookfox dependencies
-      (use-package websocket)
+    (eval-after-load 'spookfox
+      (spookfox-start-server))
 
-      (require 'spookfox)
-      (require 'spookfox-tabs)
-      (require 'spookfox-windows)
-      (require 'spookfox-js-injection)
+    (defun my--switch-tab-and-focus ()
+      "Switch to browser tab and bring browser in focus."
+      (interactive)
+      (spookfox-switch-tab)
+      (when (eq 'darwin system-type)
+        (ns-do-applescript "tell application \"Firefox\"\n\tactivate\n\tend tell")))
 
-      (eval-after-load 'spookfox
-        (spookfox-start-server))
-
-      (defun my--switch-tab-and-focus ()
-        "Switch to browser tab and bring browser in focus."
-        (interactive)
-        (spookfox-switch-tab)
-        (when (eq 'darwin system-type)
-          (ns-do-applescript "tell application \"Firefox\"\n\tactivate\n\tend tell")))
-
-      (define-key my-buffers-keymap (kbd "t") #'my--switch-tab-and-focus))
+    (define-key my-buffers-keymap (kbd "t") #'my--switch-tab-and-focus)
   #+end_src
 
 - saunf
@@ -1927,6 +1907,7 @@ blocked.
                                       "#whereiseveryone"
                                       "#guix"
                                       "#lisp"
+                                      "#coalton"
                                       ;; just explorin'
                                       "#berlin"
                                       "##deutsch")))
@@ -2054,6 +2035,27 @@ files. Let's load all of 'em.
   #+end_src
 
 ** Finally
+
+- Direnv is pretty essential for my dev workflow.
+
+  #+begin_src elisp
+    (use-package envrc
+      :hook (after-init . envrc-global-mode))
+
+    ;; for emacs libraries I use within dev-envs created with guix
+    (add-hook 'envrc-mode-hook
+              (lambda ()
+                (setq-local load-path load-path)
+                (when (getenv "EMACSLOADPATH")
+                  (let ((paths (split-string (getenv "EMACSLOADPATH") ":" t)))
+                    (dolist (path (reverse paths))
+                      (add-to-list 'load-path path))))
+
+                (when (require 'guix-emacs nil t)
+                  (guix-emacs-autoload-packages))))
+  #+end_src
+
+
 
 #+begin_src elisp
   (message "Took %s to start Emacs" (emacs-init-time))
