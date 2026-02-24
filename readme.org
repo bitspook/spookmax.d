@@ -73,22 +73,20 @@ This setup make certain assumptions regarding its environment:
     (setq use-package-ensure-function (lambda () nil)))
 
   ;; Bootstrap straight.el
-  (when (assoc 'powered-by-straightel my--feature-flags)
-    (defvar bootstrap-version)
-    (let ((bootstrap-file
-           (expand-file-name
-            "straight/repos/straight.el/bootstrap.el"
-            (or (bound-and-true-p straight-base-dir)
-                user-emacs-directory)))
-          (bootstrap-version 7))
-      (unless (file-exists-p bootstrap-file)
-        (with-current-buffer
-            (url-retrieve-synchronously
-             "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-             'silent 'inhibit-cookies)
-          (goto-char (point-max))
-          (eval-print-last-sexp)))
-      (load bootstrap-file nil 'nomessage)))
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name
+          "straight/repos/straight.el/bootstrap.el"
+          (or (bound-and-true-p straight-base-dir)
+              user-emacs-directory)))
+        (bootstrap-version 7))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp))))
 
   ;; use straight with use-package by default
   (when (assoc 'powered-by-straightel my--feature-flags)
@@ -472,7 +470,7 @@ This setup make certain assumptions regarding its environment:
 
   - [[https://github.com/sshaw/git-link][git-link]] so I can copy link to lines in files because evidently, I am doing that a lot
 
-    #+begin_src emacs-lisp
+    #+begin_src elisp
       (use-package git-link
         :config
         (setf git-link-use-commit t))
@@ -925,8 +923,6 @@ shot!
       (define-key vertico-map (kbd "C-c ?") #'minibuffer-completion-help))
 
     (use-package vertico-directory
-      :ensure nil
-      :straight nil
       :after vertico
       ;; More convenient directory navigation commands
       :bind (:map vertico-map
@@ -935,8 +931,7 @@ shot!
       :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
     (use-package vertico-quick
-      :ensure nil
-      :straight nil
+      
       :after vertico
       :bind (:map vertico-map
       ("C-q" . vertico-quick-insert))
@@ -945,15 +940,13 @@ shot!
 
     ;; Persist history over Emacs restarts. Vertico sorts by history position.
     (use-package savehist
-      :ensure nil
-      :straight nil
+      
       :init
       (savehist-mode +1))
 
     ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
     ;; Vertico commands are hidden in normal buffers.
-    (setq read-extended-command-predicate
-    #'command-completion-default-include-p)
+    (setq read-extended-command-predicate #'command-completion-default-include-p)
   #+end_src
 
 - Marginalia adds pretty information to completions. It's pretty, useful, and
@@ -1126,9 +1119,11 @@ shot!
   Flycheck eglot integration
 
   #+begin_src elisp
-    (straight-use-package 'flycheck-eglot)
-    (with-eval-after-load 'flycheck-eglot
-      (global-flycheck-eglot-mode 1))
+    (let ((feglot-dir (expand-file-name "~/code/emacs/flycheck-eglot")))
+      (when (file-exists-p feglot-dir)
+        (add-to-list 'load-path feglot-dir)
+        (require 'flycheck-eglot)
+        (global-flycheck-eglot-mode 1)))
   #+end_src
 
 - Completions
@@ -1138,10 +1133,10 @@ shot!
   it for granted with Spacemacs for a while now I suppose.
 
   #+begin_src elisp
-    (straight-use-package
-     '(nerd-icons-corfu
-       :host github
-       :repo "LuigiPiucco/nerd-icons-corfu"))
+    (let ((pkg-dir (expand-file-name "~/code/emacs/nerd-icons-corfu")))
+      (when (file-exists-p pkg-dir)
+        (add-to-list 'load-path pkg-dir)
+        (require 'nerd-icons-corfu)))
 
     (use-package corfu
       :config
@@ -1187,8 +1182,7 @@ shot!
     ;;                   :files ("lisp/emacs-lisp/eldoc.el")))
 
     (use-package eglot
-      :straight nil
-      :ensure nil)
+      )
 
     ;; Looks like jsonrpc logging make eglot super laggy for typescript.
     ;; https://old.reddit.com/r/emacs/comments/1447fy2/looking_for_help_in_improving_typescript_eglot/
@@ -1320,8 +1314,7 @@ Pretty cool auto-indentation.
 
   (use-package js-ts
     :mode "\\.js'"
-    :straight nil
-    :ensure nil
+    
     :config
     (setq js-indent-level my--indent-width)
     :hook
@@ -1389,16 +1382,14 @@ Pretty cool auto-indentation.
 
   (use-package tsx-ts-mode
     :mode "\\.tsx\\'"
-    :straight nil
-    :ensure nil
+    
     :hook ((tsx-ts-mode . subword-mode)
            (tsx-ts-mode . my--setup-ts-js))
     :config
     (setq typescript-indent-level my--indent-width))
 
   (use-package css-ts-mode
-    :ensure nil
-    :straight nil
+    
     :mode "\\.s?css\\'")
 #+end_src
 
@@ -1942,8 +1933,7 @@ blocked.
       (setf erc-track-exclude-types '("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "333" "353")))
 
     (use-package erc-track
-      :ensure nil
-      :straight nil
+      
       ;; Prevent JOINs and PARTs from lighting up the mode-line.
       :config (setopt erc-track-faces-priority-list
                       (remq 'erc-notice-face erc-track-faces-priority-list))
@@ -1974,7 +1964,6 @@ blocked.
 
   #+begin_src elisp
     (use-package shr-tag-pre-highlight
-      :straight t
       :after shr
       :config
       (add-to-list 'shr-external-rendering-functions
@@ -1985,7 +1974,6 @@ blocked.
 
   #+begin_src elisp
     (use-package shrface
-      :straight t
       :config
       (shrface-basic)
       (shrface-trial)
@@ -2030,10 +2018,13 @@ blocked.
 - Libretranslate for translating Deutsch from Emacs
 
   #+begin_src elisp
-    (straight-use-package '(libretrans :host codeberg :repo "martianh/libretrans.el"))
-    (setq libretrans-instance "http://red:5005/translate"
-          libretrans-source "de"
-          libretrans-target "en")
+    (let ((libretrans-dir (expand-file-name "~/code/emacs/libretrans.el")))
+      (when (file-exists-p libretrans-dir)
+        (add-to-list 'load-path libretrans-dir)
+        (require 'libretrans)
+        (setq libretrans-instance "http://red:5005/translate"
+              libretrans-source "de"
+              libretrans-target "en")))
   #+end_src
 
 ** Private work related config 
@@ -2061,3 +2052,9 @@ files. Let's load all of 'em.
       (when (file-exists-p root-workflow)
         (load-file root-workflow)))
   #+end_src
+
+** Finally
+
+#+begin_src elisp
+  (message "Took %s to start Emacs" (emacs-init-time))
+#+end_src
